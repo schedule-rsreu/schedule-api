@@ -1,0 +1,200 @@
+basePath: /api/v1
+definitions:
+  scheme.CourseFacultyGroups:
+    properties:
+      course:
+        type: integer
+      faculty:
+        type: string
+      groups:
+        items:
+          type: string
+        type: array
+    type: object
+  scheme.DayLessonSchedule:
+    properties:
+      lesson:
+        type: string
+      time:
+        type: string
+    type: object
+  scheme.Faculties:
+    properties:
+      faculties:
+        items:
+          type: string
+        type: array
+    type: object
+  scheme.FacultyCourses:
+    properties:
+      courses:
+        items:
+          type: integer
+        type: array
+      faculty:
+        type: string
+    type: object
+  scheme.NumeratorDenominatorSchedule:
+    properties:
+      denominator:
+        $ref: '#/definitions/scheme.WeekSchedule'
+      numerator:
+        $ref: '#/definitions/scheme.WeekSchedule'
+    type: object
+  scheme.Schedule:
+    properties:
+      course:
+        type: integer
+      faculty:
+        type: string
+      group:
+        type: string
+      id:
+        type: string
+      schedule:
+        $ref: '#/definitions/scheme.NumeratorDenominatorSchedule'
+    type: object
+  scheme.WeekSchedule:
+    properties:
+      friday:
+        items:
+          $ref: '#/definitions/scheme.DayLessonSchedule'
+        type: array
+      monday:
+        items:
+          $ref: '#/definitions/scheme.DayLessonSchedule'
+        type: array
+      saturday:
+        items:
+          $ref: '#/definitions/scheme.DayLessonSchedule'
+        type: array
+      thursday:
+        items:
+          $ref: '#/definitions/scheme.DayLessonSchedule'
+        type: array
+      tuesday:
+        items:
+          $ref: '#/definitions/scheme.DayLessonSchedule'
+        type: array
+      wednesday:
+        items:
+          $ref: '#/definitions/scheme.DayLessonSchedule'
+        type: array
+    type: object
+  v1.response:
+    properties:
+      error:
+        example: message
+        type: string
+    type: object
+host: localhost:8081
+info:
+  contact: {}
+  description: API для расписания РГРТУ
+  title: Расписание РГРТУ
+  version: "1.0"
+paths:
+  /schedule/courses:
+    get:
+      consumes:
+      - application/json
+      description: Выдает список номеров курсов факультета
+      parameters:
+      - description: факультет
+        example: фвт
+        in: query
+        name: faculty
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/scheme.FacultyCourses'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/v1.response'
+      summary: Show courses by faculty
+      tags:
+      - schedule
+  /schedule/faculties:
+    get:
+      consumes:
+      - application/json
+      description: Выдает список всех факультетов
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/scheme.Faculties'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/v1.response'
+      summary: Show faculties
+      tags:
+      - schedule
+  /schedule/groups:
+    get:
+      consumes:
+      - application/json
+      description: Выдает список групп на определенном курсе определенного факультета.
+        Если курс не указан выдет все группы факультета
+      parameters:
+      - description: факультет
+        example: фвт
+        in: query
+        name: faculty
+        required: true
+        type: string
+      - description: курс
+        example: 1
+        in: query
+        name: course
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/scheme.CourseFacultyGroups'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/v1.response'
+      summary: Show groups by faculty and course
+      tags:
+      - schedule
+  /schedule/groups/{group}:
+    get:
+      consumes:
+      - application/json
+      description: Выдает расписание по группе
+      parameters:
+      - description: search schedule by group
+        example: "344"
+        in: path
+        name: group
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/scheme.Schedule'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/v1.response'
+      summary: Show schedule by group
+      tags:
+      - schedule
+swagger: "2.0"

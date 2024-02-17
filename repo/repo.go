@@ -1,0 +1,210 @@
+package repo
+
+import (
+	"context"
+	"errors"
+	"github.com/VinGP/schedule-api/scheme"
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/mongo"
+	"time"
+)
+
+type ScheduleRepo struct {
+	mdb *mongo.Client
+	c   *mongo.Collection
+}
+
+func New(mdb *mongo.Client) *ScheduleRepo {
+	c := mdb.Database("schedule_database").Collection("schedule")
+	return &ScheduleRepo{mdb, c}
+}
+
+func (sr *ScheduleRepo) GetScheduleByGroup(group string) (*scheme.Schedule, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	var schedule scheme.Schedule
+
+	err := sr.c.FindOne(ctx, bson.M{"group": group}).Decode(&schedule)
+	if errors.Is(err, mongo.ErrNoDocuments) {
+		return nil, ErrNoScheduleGroup{group}
+	} else if err != nil {
+		return nil, err
+	}
+	return &schedule, nil
+}
+
+func (sr *ScheduleRepo) GetCourseFacultyGroups(facultyName string, course int) (scheme.CourseFacultyGroups, error) {
+	stage := mongo.Pipeline{
+		bson.D{{"$match", bson.D{
+			{"faculty", facultyName},
+			{"course", course},
+		}}},
+		bson.D{{"$group", bson.D{
+			{"_id", 0},
+			{"group", bson.D{
+				{"$addToSet", "$group"},
+			}},
+		}}},
+		bson.D{{"$unwind", "$group"}},
+		bson.D{{"$sort", bson.D{
+			{"group", 1}},
+		}},
+		bson.D{{"$group", bson.D{
+			{"_id", 0},
+			{"_groups", bson.D{
+				{"$push", "$group"}},
+			},
+		},
+		}},
+		bson.D{{"$project", bson.D{
+			{"_id", 0},
+			{"faculty", facultyName},
+			{"course",
+				bson.D{{"$literal", course}},
+			},
+			{"groups", "$_groups"},
+		}}},
+	}
+	cursor, err := sr.c.Aggregate(context.TODO(), stage)
+	if err != nil {
+		return scheme.CourseFacultyGroups{}, err
+	}
+	var results []scheme.CourseFacultyGroups
+	cursor.Next(context.TODO())
+	if err = cursor.All(context.TODO(), &results); err != nil {
+		return scheme.CourseFacultyGroups{}, err
+	}
+
+	for _, result := range results {
+		return result, nil
+	}
+	return scheme.CourseFacultyGroups{}, ErrNoResults
+}
+
+func (sr *ScheduleRepo) GetFacultyGroups(facultyName string) (scheme.CourseFacultyGroups, error) {
+	stage := mongo.Pipeline{
+		bson.D{{"$match", bson.D{
+			{"faculty", facultyName},
+		}}},
+		bson.D{{"$group", bson.D{
+			{"_id", 0},
+			{"group", bson.D{
+				{"$addToSet", "$group"},
+			}},
+		}}},
+		bson.D{{"$unwind", "$group"}},
+		bson.D{{"$sort", bson.D{
+			{"group", 1}},
+		}},
+		bson.D{{"$group", bson.D{
+			{"_id", 0},
+			{"_groups", bson.D{
+				{"$push", "$group"}},
+			},
+		},
+		}},
+		bson.D{{"$project", bson.D{
+			{"_id", 0},
+			{"faculty", facultyName},
+			{"groups", "$_groups"},
+		}}},
+	}
+	cursor, err := sr.c.Aggregate(context.TODO(), stage)
+	if err != nil {
+		return scheme.CourseFacultyGroups{}, err
+	}
+	var results []scheme.CourseFacultyGroups
+	cursor.Next(context.TODO())
+	if err = cursor.All(context.TODO(), &results); err != nil {
+		return scheme.CourseFacultyGroups{}, err
+	}
+
+	for _, result := range results {
+		return result, nil
+	}
+	return scheme.CourseFacultyGroups{}, ErrNoResults
+}
+
+func (sr *ScheduleRepo) GetFaculties() (scheme.Faculties, error) {
+	stage := mongo.Pipeline{
+		bson.D{{"$group", bson.D{
+			{"_id", 0},
+			{"group", bson.D{
+				{"$addToSet", "$faculty"}},
+			},
+		},
+		}},
+		bson.D{{"$unwind", "$group"}},
+		bson.D{{"$sort", bson.D{{"group", 1}}}},
+		bson.D{{"$group", bson.D{
+			{"_id", 0},
+			{"faculties", bson.D{
+				{"$push", "$group"}},
+			},
+		},
+		}},
+		bson.D{{"$project", bson.D{
+			{"_id", 0},
+			{"faculties", 1},
+		}}},
+	}
+	cursor, err := sr.c.Aggregate(context.TODO(), stage)
+	if err != nil {
+		return scheme.Faculties{}, err
+	}
+	var results []scheme.Faculties
+	cursor.Next(context.TODO())
+	if err = cursor.All(context.TODO(), &results); err != nil {
+		return scheme.Faculties{}, err
+	}
+
+	for _, result := range results {
+		return result, nil
+	}
+	return scheme.Faculties{}, ErrNoResults
+}
+
+func (sr *ScheduleRepo) GetFacultyCourses(facultyName string) (scheme.FacultyCourses, error) {
+	stage := mongo.Pipeline{
+		bson.D{{"$match", bson.D{
+			{"faculty", facultyName},
+		}}},
+		bson.D{{"$group", bson.D{
+			{"_id", 0},
+			{"group", bson.D{
+				{"$addToSet", "$course"},
+			}},
+		}}},
+		bson.D{{"$unwind", "$group"}},
+		bson.D{{"$sort", bson.D{
+			{"group", 1}},
+		}},
+		bson.D{{"$group", bson.D{
+			{"_id", 0},
+			{"_courses", bson.D{
+				{"$push", "$group"}},
+			},
+		},
+		}},
+		bson.D{{"$project", bson.D{
+			{"_id", 0},
+			{"faculty", facultyName},
+			{"courses", "$_courses"},
+		}}},
+	}
+	cursor, err := sr.c.Aggregate(context.TODO(), stage)
+	if err != nil {
+		return scheme.FacultyCourses{}, err
+	}
+	var results []scheme.FacultyCourses
+	cursor.Next(context.TODO())
+	if err = cursor.All(context.TODO(), &results); err != nil {
+		return scheme.FacultyCourses{}, err
+	}
+
+	for _, result := range results {
+		return result, nil
+	}
+	return scheme.FacultyCourses{}, ErrNoResults
+}

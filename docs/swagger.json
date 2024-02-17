@@ -1,0 +1,302 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "description": "API для расписания РГРТУ",
+        "title": "Расписание РГРТУ",
+        "contact": {},
+        "version": "1.0"
+    },
+    "host": "localhost:8081",
+    "basePath": "/api/v1",
+    "paths": {
+        "/schedule/courses": {
+            "get": {
+                "description": "Выдает список номеров курсов факультета",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "schedule"
+                ],
+                "summary": "Show courses by faculty",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "example": "фвт",
+                        "description": "факультет",
+                        "name": "faculty",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/scheme.FacultyCourses"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/v1.response"
+                        }
+                    }
+                }
+            }
+        },
+        "/schedule/faculties": {
+            "get": {
+                "description": "Выдает список всех факультетов",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "schedule"
+                ],
+                "summary": "Show faculties",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/scheme.Faculties"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/v1.response"
+                        }
+                    }
+                }
+            }
+        },
+        "/schedule/groups": {
+            "get": {
+                "description": "Выдает список групп на определенном курсе определенного факультета. Если курс не указан выдет все группы факультета",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "schedule"
+                ],
+                "summary": "Show groups by faculty and course",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "example": "фвт",
+                        "description": "факультет",
+                        "name": "faculty",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "example": 1,
+                        "description": "курс",
+                        "name": "course",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/scheme.CourseFacultyGroups"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/v1.response"
+                        }
+                    }
+                }
+            }
+        },
+        "/schedule/groups/{group}": {
+            "get": {
+                "description": "Выдает расписание по группе",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "schedule"
+                ],
+                "summary": "Show schedule by group",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "example": "344",
+                        "description": "search schedule by group",
+                        "name": "group",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/scheme.Schedule"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/v1.response"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "scheme.CourseFacultyGroups": {
+            "type": "object",
+            "properties": {
+                "course": {
+                    "type": "integer"
+                },
+                "faculty": {
+                    "type": "string"
+                },
+                "groups": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "scheme.DayLessonSchedule": {
+            "type": "object",
+            "properties": {
+                "lesson": {
+                    "type": "string"
+                },
+                "time": {
+                    "type": "string"
+                }
+            }
+        },
+        "scheme.Faculties": {
+            "type": "object",
+            "properties": {
+                "faculties": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "scheme.FacultyCourses": {
+            "type": "object",
+            "properties": {
+                "courses": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                },
+                "faculty": {
+                    "type": "string"
+                }
+            }
+        },
+        "scheme.NumeratorDenominatorSchedule": {
+            "type": "object",
+            "properties": {
+                "denominator": {
+                    "$ref": "#/definitions/scheme.WeekSchedule"
+                },
+                "numerator": {
+                    "$ref": "#/definitions/scheme.WeekSchedule"
+                }
+            }
+        },
+        "scheme.Schedule": {
+            "type": "object",
+            "properties": {
+                "course": {
+                    "type": "integer"
+                },
+                "faculty": {
+                    "type": "string"
+                },
+                "group": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "schedule": {
+                    "$ref": "#/definitions/scheme.NumeratorDenominatorSchedule"
+                }
+            }
+        },
+        "scheme.WeekSchedule": {
+            "type": "object",
+            "properties": {
+                "friday": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/scheme.DayLessonSchedule"
+                    }
+                },
+                "monday": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/scheme.DayLessonSchedule"
+                    }
+                },
+                "saturday": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/scheme.DayLessonSchedule"
+                    }
+                },
+                "thursday": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/scheme.DayLessonSchedule"
+                    }
+                },
+                "tuesday": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/scheme.DayLessonSchedule"
+                    }
+                },
+                "wednesday": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/scheme.DayLessonSchedule"
+                    }
+                }
+            }
+        },
+        "v1.response": {
+            "type": "object",
+            "properties": {
+                "error": {
+                    "type": "string",
+                    "example": "message"
+                }
+            }
+        }
+    }
+}
