@@ -34,6 +34,87 @@ func (sr *ScheduleRepo) GetScheduleByGroup(group string) (*scheme.Schedule, erro
 	return &schedule, nil
 }
 
+func (sr *ScheduleRepo) GetGroups(facultyName string, course int) (scheme.CourseFacultyGroups, error) {
+
+	stageBase := []bson.D{
+		bson.D{{"$group", bson.D{
+			{"_id", 0},
+			{"group", bson.D{
+				{"$addToSet", "$group"},
+			}},
+		}}},
+		bson.D{{"$unwind", "$group"}},
+		bson.D{{"$sort", bson.D{
+			{"group", 1}},
+		}},
+		bson.D{{"$group", bson.D{
+			{"_id", 0},
+			{"_groups", bson.D{
+				{"$push", "$group"}},
+			},
+		},
+		}},
+		bson.D{{"$project", bson.D{
+			{"_id", 0},
+			{"faculty", facultyName},
+			{"course",
+				bson.D{{"$literal", course}},
+			},
+			{"groups", "$_groups"},
+		}}},
+	}
+
+	stageFacultyCourse := append(mongo.Pipeline{
+		bson.D{{"$match", bson.D{
+			{"faculty", facultyName},
+			{"course", course},
+		}}},
+	}, stageBase...)
+
+	//{
+	//	"course",
+	//		bson.D{{"$literal", course}},
+	//},
+
+	stageFaculty := append(mongo.Pipeline{
+		bson.D{{"$match", bson.D{
+			{"faculty", facultyName},
+		}}},
+	}, stageBase...)
+
+	//stageCourse := append(mongo.Pipeline{
+	//	bson.D{{"$match", {},
+	//	}},
+	//}, stageBase...)
+	stage := stageBase
+	if facultyName != "" && course != 0 {
+		stage = stageFacultyCourse
+	} else if facultyName != "" && course != 0 {
+		stage = stageFacultyCourse
+	} else if facultyName != "" {
+		stage = stageFaculty
+	} else {
+		stage = append(mongo.Pipeline{
+			bson.D{{"$match", bson.D{}}},
+		}, stageBase...)
+	}
+
+	cursor, err := sr.c.Aggregate(context.TODO(), stage)
+	if err != nil {
+		return scheme.CourseFacultyGroups{}, err
+	}
+	var results []scheme.CourseFacultyGroups
+	cursor.Next(context.TODO())
+	if err = cursor.All(context.TODO(), &results); err != nil {
+		return scheme.CourseFacultyGroups{}, err
+	}
+
+	for _, result := range results {
+		return result, nil
+	}
+	return scheme.CourseFacultyGroups{}, ErrNoResults
+}
+
 func (sr *ScheduleRepo) GetCourseFacultyGroups(facultyName string, course int) (scheme.CourseFacultyGroups, error) {
 	stage := mongo.Pipeline{
 		bson.D{{"$match", bson.D{

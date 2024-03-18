@@ -13,11 +13,8 @@ func (s *ScheduleService) GetScheduleByGroup(group string) (*scheme.Schedule, er
 	return s.Repo.GetScheduleByGroup(group)
 }
 
-func (s *ScheduleService) GetCourseFacultyGroups(facultyName string, course int) (scheme.CourseFacultyGroups, error) {
-	return s.Repo.GetCourseFacultyGroups(facultyName, course)
-}
-func (s *ScheduleService) GetFacultyGroups(facultyName string) (scheme.CourseFacultyGroups, error) {
-	return s.Repo.GetFacultyGroups(facultyName)
+func (s *ScheduleService) GetGroups(facultyName string, course int) (scheme.CourseFacultyGroups, error) {
+	return s.Repo.GetGroups(facultyName, course)
 }
 
 func (s *ScheduleService) GetFaculties() (scheme.Faculties, error) {

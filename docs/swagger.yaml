@@ -3,8 +3,22 @@ definitions:
   scheme.CourseFacultyGroups:
     properties:
       course:
+        enum:
+        - 1
+        - 2
+        - 3
+        - 4
+        - 5
+        example: 1
         type: integer
       faculty:
+        enum:
+        - иэф
+        - фаиту
+        - фвт
+        - фрт
+        - фэ
+        example: фвт
         type: string
       groups:
         items:
@@ -14,8 +28,12 @@ definitions:
   scheme.DayLessonSchedule:
     properties:
       lesson:
+        example: |-
+          л.Высшая математика
+          доц.Конюхов А.Н.   333 С
         type: string
       time:
+        example: 08.10-09.45
         type: string
     type: object
   scheme.Faculties:
@@ -32,6 +50,13 @@ definitions:
           type: integer
         type: array
       faculty:
+        enum:
+        - иэф
+        - фаиту
+        - фвт
+        - фрт
+        - фэ
+        example: фвт
         type: string
     type: object
   scheme.NumeratorDenominatorSchedule:
@@ -44,15 +69,25 @@ definitions:
   scheme.Schedule:
     properties:
       course:
+        example: 1
         type: integer
       faculty:
+        example: фвт
+        type: string
+      file:
+        type: string
+      file_hash:
+        example: 5427593514859b0701e8e12ecbce1b0b
         type: string
       group:
+        example: "344"
         type: string
       id:
         type: string
       schedule:
         $ref: '#/definitions/scheme.NumeratorDenominatorSchedule'
+      update_at:
+        type: string
     type: object
   scheme.WeekSchedule:
     properties:
@@ -101,7 +136,12 @@ paths:
       description: Выдает список номеров курсов факультета
       parameters:
       - description: факультет
-        example: фвт
+        enum:
+        - иэф
+        - фаиту
+        - фвт
+        - фрт
+        - фэ
         in: query
         name: faculty
         required: true
@@ -147,13 +187,22 @@ paths:
         Если курс не указан выдет все группы факультета
       parameters:
       - description: факультет
-        example: фвт
+        enum:
+        - иэф
+        - фаиту
+        - фвт
+        - фрт
+        - фэ
         in: query
         name: faculty
-        required: true
         type: string
       - description: курс
-        example: 1
+        enum:
+        - 1
+        - 2
+        - 3
+        - 4
+        - 5
         in: query
         name: course
         type: integer

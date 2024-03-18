@@ -30,8 +30,14 @@ const docTemplate = `{
                 "summary": "Show courses by faculty",
                 "parameters": [
                     {
+                        "enum": [
+                            "иэф",
+                            "фаиту",
+                            "фвт",
+                            "фрт",
+                            "фэ"
+                        ],
                         "type": "string",
-                        "example": "фвт",
                         "description": "факультет",
                         "name": "faculty",
                         "in": "query",
@@ -98,16 +104,27 @@ const docTemplate = `{
                 "summary": "Show groups by faculty and course",
                 "parameters": [
                     {
+                        "enum": [
+                            "иэф",
+                            "фаиту",
+                            "фвт",
+                            "фрт",
+                            "фэ"
+                        ],
                         "type": "string",
-                        "example": "фвт",
                         "description": "факультет",
                         "name": "faculty",
-                        "in": "query",
-                        "required": true
+                        "in": "query"
                     },
                     {
+                        "enum": [
+                            1,
+                            2,
+                            3,
+                            4,
+                            5
+                        ],
                         "type": "integer",
-                        "example": 1,
                         "description": "курс",
                         "name": "course",
                         "in": "query"
@@ -174,10 +191,26 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "course": {
-                    "type": "integer"
+                    "type": "integer",
+                    "enum": [
+                        1,
+                        2,
+                        3,
+                        4,
+                        5
+                    ],
+                    "example": 1
                 },
                 "faculty": {
-                    "type": "string"
+                    "type": "string",
+                    "enum": [
+                        "иэф",
+                        "фаиту",
+                        "фвт",
+                        "фрт",
+                        "фэ"
+                    ],
+                    "example": "фвт"
                 },
                 "groups": {
                     "type": "array",
@@ -191,10 +224,12 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "lesson": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "л.Высшая математика\nдоц.Конюхов А.Н.   333 С"
                 },
                 "time": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "08.10-09.45"
                 }
             }
         },
@@ -219,7 +254,15 @@ const docTemplate = `{
                     }
                 },
                 "faculty": {
-                    "type": "string"
+                    "type": "string",
+                    "enum": [
+                        "иэф",
+                        "фаиту",
+                        "фвт",
+                        "фрт",
+                        "фэ"
+                    ],
+                    "example": "фвт"
                 }
             }
         },
@@ -238,19 +281,32 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "course": {
-                    "type": "integer"
+                    "type": "integer",
+                    "example": 1
                 },
                 "faculty": {
+                    "type": "string",
+                    "example": "фвт"
+                },
+                "file": {
                     "type": "string"
                 },
+                "file_hash": {
+                    "type": "string",
+                    "example": "5427593514859b0701e8e12ecbce1b0b"
+                },
                 "group": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "344"
                 },
                 "id": {
                     "type": "string"
                 },
                 "schedule": {
                     "$ref": "#/definitions/scheme.NumeratorDenominatorSchedule"
+                },
+                "update_at": {
+                    "type": "string"
                 }
             }
         },

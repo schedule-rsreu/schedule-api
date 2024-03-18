@@ -25,6 +25,14 @@ func newScheduleRoutes(handler *gin.RouterGroup, s services.ScheduleService) {
 	}
 }
 
+/*
+информация о группе (факультет, курс)
+получения списка всех групп если не указаны факультет и курс
+получение расписания по дню недели
+получение расписания по дню недели и числителю/знаменателю
+получения что сегодня - числитель/знаменатель
+*/
+
 // @Summary     Show schedule by group
 // @Description Выдает расписание по группе
 // @Tags  	    schedule
@@ -51,50 +59,35 @@ func (r *scheduleRoutes) scheduleByGroup(c *gin.Context) {
 // @Produce     json
 // @Success     200 {object} scheme.CourseFacultyGroups
 // @Failure     500 {object} response
-// @Param		faculty	query	string 	true	"факультет" example(фвт)
-// @Param		course	query	int 	false	"курс" 		example(1)
+// @Param		faculty	query	string 	false	"факультет" Enums(иэф, фаиту, фвт, фрт, фэ)
+// @Param		course	query	int 	false	"курс" 		Enums(1, 2, 3, 4, 5)
 // @Router      /schedule/groups [get]
 func (r *scheduleRoutes) getGroups(c *gin.Context) {
-	//faculty := c.Param("faculty")
 	faculty := c.Query("faculty")
-	if faculty == "" {
-		errorResponse(c, http.StatusBadRequest, "param faculty dont exist")
-		return
-	}
-	courseS := c.Query("course")
 
-	if courseS == "" {
-		res, err := r.s.GetFacultyGroups(faculty)
-		if errors.Is(err, repo.ErrNoResults) {
-			errorResponse(c, http.StatusBadRequest, err.Error())
-			return
-		} else if err != nil {
-			errorResponse(c, http.StatusInternalServerError, err.Error())
-			return
-		}
-		c.JSON(http.StatusOK, res)
-		return
-	} else {
-		course, err := strconv.Atoi(courseS)
+	courseS := c.Query("course")
+	var course int
+	var err error
+	if courseS != "" {
+		course, err = strconv.Atoi(courseS)
 		if err != nil {
 			errorResponse(c, http.StatusBadRequest, "course must be integer")
 			return
 		}
-		if course == 0 {
-			errorResponse(c, http.StatusBadRequest, "param course dont exist")
-			return
-		}
-
-		res, err := r.s.GetCourseFacultyGroups(faculty, course)
-		if errors.Is(err, repo.ErrNoResults) {
-			errorResponse(c, http.StatusBadRequest, err.Error())
-			return
-		} else if err != nil {
-			errorResponse(c, http.StatusInternalServerError, err.Error())
-			return
-		}
-		c.JSON(http.StatusOK, res)
+	} else {
+		course = 0
 	}
+
+	res, err := r.s.GetGroups(faculty, course)
+	if errors.Is(err, repo.ErrNoResults) {
+		errorResponse(c, http.StatusBadRequest, err.Error())
+		return
+	} else if err != nil {
+		errorResponse(c, http.StatusInternalServerError, err.Error())
+		return
+	}
+	c.JSON(http.StatusOK, res)
+
 }
 
 // @Summary     Show faculties
@@ -124,7 +117,7 @@ func (r *scheduleRoutes) getFaculties(c *gin.Context) {
 // @Produce     json
 // @Success     200 {object} scheme.FacultyCourses
 // @Failure     500 {object} response
-// @Param		faculty	query 	string 	true	"факультет" example(фвт)
+// @Param		faculty	query 	string 	true	"факультет" Enums(иэф, фаиту, фвт, фрт, фэ)
 // @Router      /schedule/courses [get]
 func (r *scheduleRoutes) getFacultyCourses(c *gin.Context) {
 	faculty := c.Query("faculty")
