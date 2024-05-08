@@ -118,6 +118,17 @@ definitions:
     type: object
   scheme.WeekType:
     properties:
+      day:
+        enum:
+        - понедельник
+        - вторник
+        - среда
+        - четверг
+        - пятница
+        - суббота
+        - воскресенье
+        example: понедельник
+        type: string
       week_type:
         enum:
         - числитель

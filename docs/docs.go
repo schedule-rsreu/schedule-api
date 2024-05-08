@@ -383,6 +383,19 @@ const docTemplate = `{
         "scheme.WeekType": {
             "type": "object",
             "properties": {
+                "day": {
+                    "type": "string",
+                    "enum": [
+                        "понедельник",
+                        "вторник",
+                        "среда",
+                        "четверг",
+                        "пятница",
+                        "суббота",
+                        "воскресенье"
+                    ],
+                    "example": "понедельник"
+                },
                 "week_type": {
                     "type": "string",
                     "enum": [

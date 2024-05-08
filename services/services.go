@@ -4,6 +4,7 @@ import (
 	"github.com/VinGP/schedule-api/repo"
 	"github.com/VinGP/schedule-api/scheme"
 	utils "github.com/VinGP/schedule-api/utils"
+	"time"
 )
 
 type ScheduleService struct {
@@ -31,7 +32,9 @@ func (s *ScheduleService) GetWeekType() (scheme.WeekType, error) {
 	if err != nil {
 		return scheme.WeekType{}, err
 	}
+
 	return scheme.WeekType{
 		WeekType: w,
+		Day:      time.Now().Weekday().String(),
 	}, nil
 }
