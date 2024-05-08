@@ -25,6 +25,26 @@ definitions:
           type: string
         type: array
     type: object
+  scheme.Day:
+    properties:
+      day:
+        enum:
+        - Monday
+        - Tuesday
+        - Wednesday
+        - Thursday
+        - Friday
+        - Saturday
+        - Sunday
+        example: Monday
+        type: string
+      week_type:
+        enum:
+        - числитель
+        - знаменатель
+        example: знаменатель
+        type: string
+    type: object
   scheme.DayLessonSchedule:
     properties:
       lesson:
@@ -116,26 +136,6 @@ definitions:
           $ref: '#/definitions/scheme.DayLessonSchedule'
         type: array
     type: object
-  scheme.WeekType:
-    properties:
-      day:
-        enum:
-        - понедельник
-        - вторник
-        - среда
-        - четверг
-        - пятница
-        - суббота
-        - воскресенье
-        example: понедельник
-        type: string
-      week_type:
-        enum:
-        - числитель
-        - знаменатель
-        example: знаменатель
-        type: string
-    type: object
   v1.response:
     properties:
       error:
@@ -178,6 +178,25 @@ paths:
           schema:
             $ref: '#/definitions/v1.response'
       summary: Show courses by faculty
+      tags:
+      - schedule
+  /schedule/day:
+    get:
+      consumes:
+      - application/json
+      description: Текущий день
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/scheme.Day'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/v1.response'
+      summary: Show day data
       tags:
       - schedule
   /schedule/faculties:
@@ -264,25 +283,6 @@ paths:
           schema:
             $ref: '#/definitions/v1.response'
       summary: Show schedule by group
-      tags:
-      - schedule
-  /schedule/week:
-    get:
-      consumes:
-      - application/json
-      description: Текущая неделя
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/scheme.WeekType'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/v1.response'
-      summary: Show type of week
       tags:
       - schedule
 swagger: "2.0"

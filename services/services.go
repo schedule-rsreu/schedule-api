@@ -26,14 +26,14 @@ func (s *ScheduleService) GetFacultyCourses(facultyName string) (scheme.FacultyC
 	return s.Repo.GetFacultyCourses(facultyName)
 }
 
-func (s *ScheduleService) GetWeekType() (scheme.WeekType, error) {
+func (s *ScheduleService) GetDay() (scheme.Day, error) {
 	w, err := utils.GetWeekType()
 
 	if err != nil {
-		return scheme.WeekType{}, err
+		return scheme.Day{}, err
 	}
 
-	return scheme.WeekType{
+	return scheme.Day{
 		WeekType: w,
 		Day:      time.Now().Weekday().String(),
 	}, nil

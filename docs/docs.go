@@ -60,6 +60,35 @@ const docTemplate = `{
                 }
             }
         },
+        "/schedule/day": {
+            "get": {
+                "description": "Текущий день",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "schedule"
+                ],
+                "summary": "Show day data",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/scheme.Day"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/v1.response"
+                        }
+                    }
+                }
+            }
+        },
         "/schedule/faculties": {
             "get": {
                 "description": "Выдает список всех факультетов",
@@ -184,35 +213,6 @@ const docTemplate = `{
                     }
                 }
             }
-        },
-        "/schedule/week": {
-            "get": {
-                "description": "Текущая неделя",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "schedule"
-                ],
-                "summary": "Show type of week",
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/scheme.WeekType"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/v1.response"
-                        }
-                    }
-                }
-            }
         }
     },
     "definitions": {
@@ -246,6 +246,32 @@ const docTemplate = `{
                     "items": {
                         "type": "string"
                     }
+                }
+            }
+        },
+        "scheme.Day": {
+            "type": "object",
+            "properties": {
+                "day": {
+                    "type": "string",
+                    "enum": [
+                        "Monday",
+                        "Tuesday",
+                        "Wednesday",
+                        "Thursday",
+                        "Friday",
+                        "Saturday",
+                        "Sunday"
+                    ],
+                    "example": "Monday"
+                },
+                "week_type": {
+                    "type": "string",
+                    "enum": [
+                        "числитель",
+                        "знаменатель"
+                    ],
+                    "example": "знаменатель"
                 }
             }
         },
@@ -377,32 +403,6 @@ const docTemplate = `{
                     "items": {
                         "$ref": "#/definitions/scheme.DayLessonSchedule"
                     }
-                }
-            }
-        },
-        "scheme.WeekType": {
-            "type": "object",
-            "properties": {
-                "day": {
-                    "type": "string",
-                    "enum": [
-                        "понедельник",
-                        "вторник",
-                        "среда",
-                        "четверг",
-                        "пятница",
-                        "суббота",
-                        "воскресенье"
-                    ],
-                    "example": "понедельник"
-                },
-                "week_type": {
-                    "type": "string",
-                    "enum": [
-                        "числитель",
-                        "знаменатель"
-                    ],
-                    "example": "знаменатель"
                 }
             }
         },
