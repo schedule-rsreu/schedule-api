@@ -1,0 +1,17 @@
+version: '3.8'
+
+services:
+  schedule-api:
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.schedule-api.rule=Host(`api.schedule.vingp.dev`)"
+      - "traefik.http.routers.schedule-api.entrypoints=http,https"
+      - "traefik.http.routers.schedule-api.tls.certresolver=myresolver"
+      - "traefik.http.services.schedule-api.loadbalancer.server.port=8081"
+
+    networks:
+      - traefik
+
+networks:
+  traefik:
+    external: true
