@@ -49,3 +49,7 @@ type FacultyCourses struct {
 	Faculty string `bson:"faculty" json:"faculty" example:"фвт" enums:"иэф,фаиту,фвт,фрт,фэ"`
 	Courses []int  `bson:"courses" json:"courses"`
 }
+
+type WeekType struct {
+	WeekType string ` json:"week_type" example:"знаменатель" enums:"числитель,знаменатель"`
+}

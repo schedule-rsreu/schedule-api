@@ -22,6 +22,7 @@ func newScheduleRoutes(handler *gin.RouterGroup, s services.ScheduleService) {
 		h.GET("/groups", r.getGroups)              // /faculty/course?faculty=фвт&course=3
 		h.GET("/faculties", r.getFaculties)        // /faculties
 		h.GET("/courses", r.getFacultyCourses)     // /courses?faculty=фвт
+		h.GET("/week", r.getWeekType)              // /week
 	}
 }
 
@@ -131,6 +132,25 @@ func (r *scheduleRoutes) getFacultyCourses(c *gin.Context) {
 		errorResponse(c, http.StatusBadRequest, err.Error())
 		return
 	} else if err != nil {
+		errorResponse(c, http.StatusInternalServerError, err.Error())
+		return
+	}
+	c.JSON(http.StatusOK, res)
+}
+
+// @Summary     Show type of week
+// @Description Текущая неделя
+// @Tags  	    schedule
+// @Accept      json
+// @Produce     json
+// @Success     200 {object} scheme.WeekType
+// @Failure     500 {object} response
+// @Router      /schedule/week [get]
+func (r *scheduleRoutes) getWeekType(c *gin.Context) {
+
+	res, err := r.s.GetWeekType()
+
+	if err != nil {
 		errorResponse(c, http.StatusInternalServerError, err.Error())
 		return
 	}

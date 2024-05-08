@@ -3,6 +3,7 @@ package services
 import (
 	"github.com/VinGP/schedule-api/repo"
 	"github.com/VinGP/schedule-api/scheme"
+	utils "github.com/VinGP/schedule-api/utils"
 )
 
 type ScheduleService struct {
@@ -22,4 +23,15 @@ func (s *ScheduleService) GetFaculties() (scheme.Faculties, error) {
 }
 func (s *ScheduleService) GetFacultyCourses(facultyName string) (scheme.FacultyCourses, error) {
 	return s.Repo.GetFacultyCourses(facultyName)
+}
+
+func (s *ScheduleService) GetWeekType() (scheme.WeekType, error) {
+	w, err := utils.GetWeekType()
+
+	if err != nil {
+		return scheme.WeekType{}, err
+	}
+	return scheme.WeekType{
+		WeekType: w,
+	}, nil
 }
