@@ -53,4 +53,5 @@ type FacultyCourses struct {
 type Day struct {
 	WeekType string ` json:"week_type" example:"знаменатель" enums:"числитель,знаменатель"`
 	Day      string ` json:"day" example:"Monday" enums:"Monday,Tuesday,Wednesday,Thursday,Friday,Saturday,Sunday"`
+	DayRu    string ` json:"day_ru" example:"Пн" enums:"Пн,Вт,Ср,Чт,Пт,Сб,Вс"`
 }

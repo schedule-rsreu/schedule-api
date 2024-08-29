@@ -38,6 +38,17 @@ definitions:
         - Sunday
         example: Monday
         type: string
+      day_ru:
+        enum:
+        - Пн
+        - Вт
+        - Ср
+        - Чт
+        - Пт
+        - Сб
+        - Вс
+        example: Пн
+        type: string
       week_type:
         enum:
         - числитель

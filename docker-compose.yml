@@ -8,3 +8,17 @@ services:
     ports:
       - '8081:8081'
     restart: always
+
+  mongodb:
+    image: mongo:6.0.9
+    ports:
+      - "27017:27017"
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=root
+      - MONGO_INITDB_ROOT_PASSWORD=rootPassXXX
+    restart: always
+    volumes:
+      - mongodb_volume:/data/db
+
+volumes:
+  mongodb_volume:

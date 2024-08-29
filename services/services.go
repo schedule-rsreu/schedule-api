@@ -33,8 +33,11 @@ func (s *ScheduleService) GetDay() (scheme.Day, error) {
 		return scheme.Day{}, err
 	}
 
+	shortDayNames := []string{"Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Вс"}
+
 	return scheme.Day{
 		WeekType: w,
 		Day:      time.Now().Weekday().String(),
+		DayRu:    shortDayNames[time.Now().Weekday()],
 	}, nil
 }

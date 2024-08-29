@@ -32,9 +32,8 @@ func CORSMiddleware() gin.HandlerFunc {
 func main() {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
-	//client, err := mongo.Connect(ctx, options.Client().ApplyURI("mongodb://localhost:27017"))
-	//client, err := mongo.Connect(ctx, options.Client().ApplyURI("mongodb+srv://Test:<password>@rgrty.dlo7r6h.mongodb.net/?retryWrites=true&w=majority&appName=RGRTY"))
-	client, err := mongo.Connect(ctx, options.Client().ApplyURI("mongodb+srv://Test:test@rgrty.dlo7r6h.mongodb.net/"))
+
+	client, err := mongo.Connect(ctx, options.Client().ApplyURI("mongodb://root:rootPassXXX@mongodb:27017/"))
 
 	defer func() {
 		if err = client.Disconnect(ctx); err != nil {

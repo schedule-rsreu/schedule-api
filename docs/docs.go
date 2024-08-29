@@ -265,6 +265,19 @@ const docTemplate = `{
                     ],
                     "example": "Monday"
                 },
+                "day_ru": {
+                    "type": "string",
+                    "enum": [
+                        "Пн",
+                        "Вт",
+                        "Ср",
+                        "Чт",
+                        "Пт",
+                        "Сб",
+                        "Вс"
+                    ],
+                    "example": "Пн"
+                },
                 "week_type": {
                     "type": "string",
                     "enum": [
