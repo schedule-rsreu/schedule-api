@@ -33,7 +33,8 @@ func main() {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	client, err := mongo.Connect(ctx, options.Client().ApplyURI("mongodb://root:rootPassXXX@mongodb:27017/"))
+	//client, err := mongo.Connect(ctx, options.Client().ApplyURI("mongodb://root:rootPassXXX@mongodb:27017/"))
+	client, err := mongo.Connect(ctx, options.Client().ApplyURI("mongodb+srv://Test:test@rgrty.dlo7r6h.mongodb.net/"))
 
 	defer func() {
 		if err = client.Disconnect(ctx); err != nil {

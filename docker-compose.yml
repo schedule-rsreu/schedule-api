@@ -11,18 +11,18 @@ services:
     networks:
       - default
 
-  mongodb:
-    image: mongo:6.0.9
-    ports:
-      - "27017:27017"
-    environment:
-      - MONGO_INITDB_ROOT_USERNAME=root
-      - MONGO_INITDB_ROOT_PASSWORD=rootPassXXX
-    restart: always
-    volumes:
-      - mongodb_volume:/data/db
-    networks:
-      - default
+#  mongodb:
+#    image: mongo:6.0.9
+#    ports:
+#      - "27017:27017"
+#    environment:
+#      - MONGO_INITDB_ROOT_USERNAME=root
+#      - MONGO_INITDB_ROOT_PASSWORD=rootPassXXX
+#    restart: always
+#    volumes:
+#      - mongodb_volume:/data/db
+#    networks:
+#      - default
 
 volumes:
   mongodb_volume:
