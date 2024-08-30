@@ -5,6 +5,7 @@ import (
 	"github.com/VinGP/schedule-api/scheme"
 	utils "github.com/VinGP/schedule-api/utils"
 	"time"
+	_ "time/tzdata"
 )
 
 type ScheduleService struct {
@@ -29,15 +30,18 @@ func (s *ScheduleService) GetFacultyCourses(facultyName string) (scheme.FacultyC
 func (s *ScheduleService) GetDay() (scheme.Day, error) {
 	w, err := utils.GetWeekType()
 
+	loc, _ := time.LoadLocation("Europe/Moscow")
+	now := time.Now().In(loc)
+
 	if err != nil {
 		return scheme.Day{}, err
 	}
 
-	shortDayNames := []string{"Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Вс"}
+	shortDayNames := []string{"Вс", "Пн", "Вт", "Ср", "Чт", "Пт", "Сб"}
 
 	return scheme.Day{
 		WeekType: w,
-		Day:      time.Now().Weekday().String(),
-		DayRu:    shortDayNames[time.Now().Weekday()],
+		Day:      now.Weekday().String(),
+		DayRu:    shortDayNames[now.Weekday()],
 	}, nil
 }
