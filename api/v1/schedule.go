@@ -67,7 +67,6 @@ type schedulesByGroupsRequest struct {
 // @Success     200 {array} scheme.Schedule
 // @Failure     500 {object} response
 // @Param       groups  body schedulesByGroupsRequest  true  "search schedules by groups"
-// @Param       group  path string  true  "search schedules by groups"
 // @Router       /schedule/groups/sample [get]
 func (r *scheduleRoutes) schedulesByGroups(c *gin.Context) {
 	var req schedulesByGroupsRequest
@@ -151,7 +150,7 @@ func (r *scheduleRoutes) getFaculties(c *gin.Context) {
 // @Produce     json
 // @Success     200 {object} scheme.CourseFaculties
 // @Failure     500 {object} response
-// @Param		course	query	int 	false	"курс" 		Enums(1, 2, 3, 4, 5)
+// @Param		course	query	int 	true	"курс" 		Enums(1, 2, 3, 4, 5)
 // @Router      /schedule/course/faculties [get]
 func (r *scheduleRoutes) getCourseFaculties(c *gin.Context) {
 	courseS := c.Query("course")

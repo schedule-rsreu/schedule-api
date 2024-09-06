@@ -217,6 +217,7 @@ paths:
         - 5
         in: query
         name: course
+        required: true
         type: integer
       produces:
       - application/json
@@ -380,11 +381,6 @@ paths:
         required: true
         schema:
           $ref: '#/definitions/v1.schedulesByGroupsRequest'
-      - description: search schedules by groups
-        in: path
-        name: group
-        required: true
-        type: string
       produces:
       - application/json
       responses:

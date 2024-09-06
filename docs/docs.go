@@ -40,7 +40,8 @@ const docTemplate = `{
                         "type": "integer",
                         "description": "курс",
                         "name": "course",
-                        "in": "query"
+                        "in": "query",
+                        "required": true
                     }
                 ],
                 "responses": {
@@ -241,13 +242,6 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/v1.schedulesByGroupsRequest"
                         }
-                    },
-                    {
-                        "type": "string",
-                        "description": "search schedules by groups",
-                        "name": "group",
-                        "in": "path",
-                        "required": true
                     }
                 ],
                 "responses": {
