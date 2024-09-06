@@ -34,6 +34,22 @@ func (sr *ScheduleRepo) GetScheduleByGroup(group string) (*scheme.Schedule, erro
 	return &schedule, nil
 }
 
+func (sr *ScheduleRepo) GetSchedulesByGroups(groups []string) ([]*scheme.Schedule, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	var schedules []*scheme.Schedule
+
+	cursor, err := sr.c.Find(ctx, bson.M{"group": bson.M{"$in": groups}})
+	if err != nil {
+		return nil, err
+	}
+	if err = cursor.All(ctx, &schedules); err != nil {
+		return nil, err
+	}
+	return schedules, nil
+}
+
 func (sr *ScheduleRepo) GetGroups(facultyName string, course int) (scheme.CourseFacultyGroups, error) {
 
 	stageBase := []bson.D{

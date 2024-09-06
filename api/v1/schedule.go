@@ -18,11 +18,12 @@ func newScheduleRoutes(handler *gin.RouterGroup, s services.ScheduleService) {
 	r := &scheduleRoutes{s}
 	h := handler.Group("/schedule")
 	{
-		h.GET("/groups/:group", r.scheduleByGroup) // /groups/344
-		h.GET("/groups", r.getGroups)              // /faculty/course?faculty=фвт&course=3
-		h.GET("/faculties", r.getFaculties)        // /faculties
-		h.GET("/courses", r.getFacultyCourses)     // /courses?faculty=фвт
-		h.GET("/day", r.getDay)                    // /day
+		h.GET("/groups/:group", r.scheduleByGroup)   // /groups/344
+		h.GET("/groups", r.getGroups)                // /faculty/course?faculty=фвт&course=3
+		h.GET("/groups/sample", r.schedulesByGroups) // /groups
+		h.GET("/faculties", r.getFaculties)          // /faculties
+		h.GET("/courses", r.getFacultyCourses)       // /courses?faculty=фвт
+		h.GET("/day", r.getDay)                      // /day
 	}
 }
 
@@ -51,6 +52,36 @@ func (r *scheduleRoutes) scheduleByGroup(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusOK, schedule)
+}
+
+type schedulesByGroupsRequest struct {
+	groups []string
+}
+
+// @Summary     Show schedules by groups
+// @Description Выдает расписания по группам
+// @Tags  	    schedule
+// @Accept      json
+// @Produce     json
+// @Success     200 {array} scheme.Schedule
+// @Failure     500 {object} response
+// @Param       group  path string  true  "search schedule by group" example(344)
+// @Router       /schedule/groups/ [get]
+func (r *scheduleRoutes) schedulesByGroups(c *gin.Context) {
+	var req schedulesByGroupsRequest
+
+	if err := c.ShouldBindJSON(&req); err != nil {
+		errorResponse(c, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	schedules, err := r.s.GetSchedulesByGroups(req.groups)
+	if err != nil {
+		errorResponse(c, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	c.JSON(http.StatusOK, schedules)
 }
 
 // @Summary     Show groups by faculty and course

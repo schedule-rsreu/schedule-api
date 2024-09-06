@@ -16,6 +16,10 @@ func (s *ScheduleService) GetScheduleByGroup(group string) (*scheme.Schedule, er
 	return s.Repo.GetScheduleByGroup(group)
 }
 
+func (s *ScheduleService) GetSchedulesByGroups(groups []string) ([]*scheme.Schedule, error) {
+	return s.Repo.GetSchedulesByGroups(groups)
+}
+
 func (s *ScheduleService) GetGroups(facultyName string, course int) (scheme.CourseFacultyGroups, error) {
 	return s.Repo.GetGroups(facultyName, course)
 }
@@ -39,9 +43,16 @@ func (s *ScheduleService) GetDay() (scheme.Day, error) {
 
 	shortDayNames := []string{"Вс", "Пн", "Вт", "Ср", "Чт", "Пт", "Сб"}
 
+	WeekTypeMap := map[string]string{
+		"числитель":   "numerator",
+		"знаменатель": "denominator",
+	}
+
 	return scheme.Day{
-		WeekType: w,
-		Day:      now.Weekday().String(),
-		DayRu:    shortDayNames[now.Weekday()],
+		WeekType:    w,
+		WeekTypeEng: WeekTypeMap[w],
+		Day:         now.Weekday().String(),
+		DayRu:       shortDayNames[now.Weekday()],
+		Time:        now.Format("15:04"),
 	}, nil
 }

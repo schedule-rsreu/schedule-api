@@ -6,6 +6,7 @@ import (
 	"github.com/PuerkitoBio/goquery"
 	"net/http"
 	"time"
+	_ "time/tzdata"
 )
 
 type WeekTypeCash struct {
@@ -16,27 +17,32 @@ type WeekTypeCash struct {
 var weekTypeCash = &WeekTypeCash{}
 
 func GetWeekType() (string, error) {
-	if weekTypeCash.WeekType != "" && weekTypeCash.date.Day() == time.Now().Day() {
-		return weekTypeCash.WeekType, nil
+	loc, _ := time.LoadLocation("Europe/Moscow")
+	now := time.Now().In(loc)
+
+	cashWeekType := weekTypeCash.WeekType
+
+	if weekTypeCash.WeekType != "" && weekTypeCash.date.Day() == now.Day() {
+		return cashWeekType, nil
 	}
 	res, err := http.Get("https://edu.rsreu.ru/")
 	if err != nil {
-		return "", err
+		return cashWeekType, err
 	}
 	defer res.Body.Close()
 
 	if res.StatusCode != 200 {
-		return "", errors.New(fmt.Sprintf("status code error: %d %s", res.StatusCode, res.Status))
+		return cashWeekType, errors.New(fmt.Sprintf("status code error: %d %s", res.StatusCode, res.Status))
 	}
 
 	doc, err := goquery.NewDocumentFromReader(res.Body)
 	if err != nil {
-		return "", err
+		return cashWeekType, err
 	}
 	weekType := doc.Find(".item.date div:nth-child(2) span").Text()
 
 	weekTypeCash.WeekType = weekType
-	weekTypeCash.date = time.Now()
+	weekTypeCash.date = now
 
 	return weekType, nil
 }
