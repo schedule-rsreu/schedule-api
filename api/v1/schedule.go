@@ -65,8 +65,9 @@ type schedulesByGroupsRequest struct {
 // @Produce     json
 // @Success     200 {array} scheme.Schedule
 // @Failure     500 {object} response
-// @Param       group  path string  true  "search schedule by group" example(344)
-// @Router       /schedule/groups/ [get]
+// @Param       groups  body schedulesByGroupsRequest  true  "search schedules by groups"
+// @Param       group  path string  true  "search schedules by groups"
+// @Router       /schedule/groups/sample [get]
 func (r *scheduleRoutes) schedulesByGroups(c *gin.Context) {
 	var req schedulesByGroupsRequest
 

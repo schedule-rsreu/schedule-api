@@ -49,11 +49,20 @@ definitions:
         - Вс
         example: Пн
         type: string
+      time:
+        example: "08.10"
+        type: string
       week_type:
         enum:
         - числитель
         - знаменатель
         example: знаменатель
+        type: string
+      week_type_eng:
+        enum:
+        - numerator
+        - denominator
+        example: numerator
         type: string
     type: object
   scheme.DayLessonSchedule:
@@ -152,6 +161,8 @@ definitions:
       error:
         example: message
         type: string
+    type: object
+  v1.schedulesByGroupsRequest:
     type: object
 host: localhost:8081
 info:
@@ -294,6 +305,39 @@ paths:
           schema:
             $ref: '#/definitions/v1.response'
       summary: Show schedule by group
+      tags:
+      - schedule
+  /schedule/groups/sample:
+    get:
+      consumes:
+      - application/json
+      description: Выдает расписания по группам
+      parameters:
+      - description: search schedules by groups
+        in: body
+        name: groups
+        required: true
+        schema:
+          $ref: '#/definitions/v1.schedulesByGroupsRequest'
+      - description: search schedules by groups
+        in: path
+        name: group
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/scheme.Schedule'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/v1.response'
+      summary: Show schedules by groups
       tags:
       - schedule
 swagger: "2.0"

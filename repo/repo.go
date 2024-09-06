@@ -305,3 +305,7 @@ func (sr *ScheduleRepo) GetFacultyCourses(facultyName string) (scheme.FacultyCou
 	}
 	return scheme.FacultyCourses{}, ErrNoResults
 }
+
+//func (sr *ScheduleRepo) GetCourseFaculties(course int) (scheme.FacultyCourses, error) {
+//
+//}

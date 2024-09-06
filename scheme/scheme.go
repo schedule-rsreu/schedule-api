@@ -50,6 +50,11 @@ type FacultyCourses struct {
 	Courses []int  `bson:"courses" json:"courses"`
 }
 
+type CoursesFaculties struct {
+	Course    int      `bson:"course" json:"course" example:"1" enums:"1,2,3,4,5"`
+	Faculties []string `bson:"faculties" json:"faculties" enums:"иэф,фаиту,фвт,фрт,фэ"`
+}
+
 type Day struct {
 	WeekType    string ` json:"week_type" example:"знаменатель" enums:"числитель,знаменатель"`
 	WeekTypeEng string ` json:"week_type_eng" example:"numerator" enums:"numerator,denominator"`

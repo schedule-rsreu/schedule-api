@@ -175,6 +175,56 @@ const docTemplate = `{
                 }
             }
         },
+        "/schedule/groups/sample": {
+            "get": {
+                "description": "Выдает расписания по группам",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "schedule"
+                ],
+                "summary": "Show schedules by groups",
+                "parameters": [
+                    {
+                        "description": "search schedules by groups",
+                        "name": "groups",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/v1.schedulesByGroupsRequest"
+                        }
+                    },
+                    {
+                        "type": "string",
+                        "description": "search schedules by groups",
+                        "name": "group",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/scheme.Schedule"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/v1.response"
+                        }
+                    }
+                }
+            }
+        },
         "/schedule/groups/{group}": {
             "get": {
                 "description": "Выдает расписание по группе",
@@ -278,6 +328,10 @@ const docTemplate = `{
                     ],
                     "example": "Пн"
                 },
+                "time": {
+                    "type": "string",
+                    "example": "08.10"
+                },
                 "week_type": {
                     "type": "string",
                     "enum": [
@@ -285,6 +339,14 @@ const docTemplate = `{
                         "знаменатель"
                     ],
                     "example": "знаменатель"
+                },
+                "week_type_eng": {
+                    "type": "string",
+                    "enum": [
+                        "numerator",
+                        "denominator"
+                    ],
+                    "example": "numerator"
                 }
             }
         },
@@ -427,6 +489,9 @@ const docTemplate = `{
                     "example": "message"
                 }
             }
+        },
+        "v1.schedulesByGroupsRequest": {
+            "type": "object"
         }
     }
 }`
