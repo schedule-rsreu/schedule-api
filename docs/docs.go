@@ -15,6 +15,50 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/schedule/course/faculties": {
+            "get": {
+                "description": "Выдает список факультетов определенного курса",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "schedule"
+                ],
+                "summary": "Show faculties by course",
+                "parameters": [
+                    {
+                        "enum": [
+                            1,
+                            2,
+                            3,
+                            4,
+                            5
+                        ],
+                        "type": "integer",
+                        "description": "курс",
+                        "name": "course",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/scheme.CourseFaculties"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/v1.response"
+                        }
+                    }
+                }
+            }
+        },
         "/schedule/courses": {
             "get": {
                 "description": "Выдает список номеров курсов факультета",
@@ -266,6 +310,35 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "scheme.CourseFaculties": {
+            "type": "object",
+            "properties": {
+                "course": {
+                    "type": "integer",
+                    "enum": [
+                        1,
+                        2,
+                        3,
+                        4,
+                        5
+                    ],
+                    "example": 1
+                },
+                "faculties": {
+                    "type": "array",
+                    "items": {
+                        "type": "string",
+                        "enum": [
+                            "иэф",
+                            "фаиту",
+                            "фвт",
+                            "фрт",
+                            "фэ"
+                        ]
+                    }
+                }
+            }
+        },
         "scheme.CourseFacultyGroups": {
             "type": "object",
             "properties": {
@@ -491,7 +564,20 @@ const docTemplate = `{
             }
         },
         "v1.schedulesByGroupsRequest": {
-            "type": "object"
+            "type": "object",
+            "properties": {
+                "groups": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "example": [
+                        "344",
+                        "345",
+                        "346"
+                    ]
+                }
+            }
         }
     }
 }`

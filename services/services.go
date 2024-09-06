@@ -31,6 +31,10 @@ func (s *ScheduleService) GetFacultyCourses(facultyName string) (scheme.FacultyC
 	return s.Repo.GetFacultyCourses(facultyName)
 }
 
+func (s *ScheduleService) GetCourseFaculties(course int) (scheme.CourseFaculties, error) {
+	return s.Repo.GetCourseFaculties(course)
+}
+
 func (s *ScheduleService) GetDay() (scheme.Day, error) {
 	w, err := utils.GetWeekType()
 

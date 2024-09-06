@@ -306,6 +306,48 @@ func (sr *ScheduleRepo) GetFacultyCourses(facultyName string) (scheme.FacultyCou
 	return scheme.FacultyCourses{}, ErrNoResults
 }
 
-//func (sr *ScheduleRepo) GetCourseFaculties(course int) (scheme.FacultyCourses, error) {
-//
-//}
+func (sr *ScheduleRepo) GetCourseFaculties(course int) (scheme.CourseFaculties, error) {
+	stage := mongo.Pipeline{
+		bson.D{{"$match", bson.D{
+			{"course", course},
+		}}},
+		bson.D{{"$group", bson.D{
+			{"_id", 0},
+			{"group", bson.D{
+				{"$addToSet", "$faculty"},
+			}},
+		}}},
+		bson.D{{"$unwind", "$group"}},
+		bson.D{{"$sort", bson.D{
+			{"group", 1}},
+		}},
+		bson.D{{"$group", bson.D{
+			{"_id", 0},
+			{"_faculties", bson.D{
+				{"$push", "$group"}},
+			},
+		},
+		}},
+		bson.D{{"$project", bson.D{
+			{"_id", 0},
+			{"course",
+				bson.D{{"$literal", course}},
+			},
+			{"faculties", "$_faculties"},
+		}}},
+	}
+	cursor, err := sr.c.Aggregate(context.TODO(), stage)
+	if err != nil {
+		return scheme.CourseFaculties{}, err
+	}
+	var results []scheme.CourseFaculties
+	cursor.Next(context.TODO())
+	if err = cursor.All(context.TODO(), &results); err != nil {
+		return scheme.CourseFaculties{}, err
+	}
+
+	for _, result := range results {
+		return result, nil
+	}
+	return scheme.CourseFaculties{}, ErrNoResults
+}

@@ -1,5 +1,27 @@
 basePath: /api/v1
 definitions:
+  scheme.CourseFaculties:
+    properties:
+      course:
+        enum:
+        - 1
+        - 2
+        - 3
+        - 4
+        - 5
+        example: 1
+        type: integer
+      faculties:
+        items:
+          enum:
+          - иэф
+          - фаиту
+          - фвт
+          - фрт
+          - фэ
+          type: string
+        type: array
+    type: object
   scheme.CourseFacultyGroups:
     properties:
       course:
@@ -163,6 +185,15 @@ definitions:
         type: string
     type: object
   v1.schedulesByGroupsRequest:
+    properties:
+      groups:
+        example:
+        - "344"
+        - "345"
+        - "346"
+        items:
+          type: string
+        type: array
     type: object
 host: localhost:8081
 info:
@@ -171,6 +202,36 @@ info:
   title: Расписание РГРТУ
   version: "1.0"
 paths:
+  /schedule/course/faculties:
+    get:
+      consumes:
+      - application/json
+      description: Выдает список факультетов определенного курса
+      parameters:
+      - description: курс
+        enum:
+        - 1
+        - 2
+        - 3
+        - 4
+        - 5
+        in: query
+        name: course
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/scheme.CourseFaculties'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/v1.response'
+      summary: Show faculties by course
+      tags:
+      - schedule
   /schedule/courses:
     get:
       consumes:
