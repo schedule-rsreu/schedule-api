@@ -20,7 +20,7 @@ func newScheduleRoutes(handler *gin.RouterGroup, s services.ScheduleService) {
 	{
 		h.GET("/groups/:group", r.scheduleByGroup)       // /groups/344
 		h.GET("/groups", r.getGroups)                    // /faculty/course?faculty=фвт&course=3
-		h.GET("/groups/sample", r.schedulesByGroups)     // /groups
+		h.POST("/groups/sample", r.schedulesByGroups)    // /groups
 		h.GET("/faculties", r.getFaculties)              // /faculties
 		h.GET("/course/faculties", r.getCourseFaculties) // /course/faculties?course=3
 		h.GET("/courses", r.getFacultyCourses)           // /courses?faculty=фвт
@@ -67,7 +67,7 @@ type schedulesByGroupsRequest struct {
 // @Success     200 {array} scheme.Schedule
 // @Failure     500 {object} response
 // @Param       groups  body schedulesByGroupsRequest  true  "search schedules by groups"
-// @Router       /schedule/groups/sample [get]
+// @Router       /schedule/groups/sample [post]
 func (r *scheduleRoutes) schedulesByGroups(c *gin.Context) {
 	var req schedulesByGroupsRequest
 

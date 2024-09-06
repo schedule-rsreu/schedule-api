@@ -370,7 +370,7 @@ paths:
       tags:
       - schedule
   /schedule/groups/sample:
-    get:
+    post:
       consumes:
       - application/json
       description: Выдает расписания по группам

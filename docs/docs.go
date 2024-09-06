@@ -221,7 +221,7 @@ const docTemplate = `{
             }
         },
         "/schedule/groups/sample": {
-            "get": {
+            "post": {
                 "description": "Выдает расписания по группам",
                 "consumes": [
                     "application/json"
