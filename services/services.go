@@ -57,6 +57,6 @@ func (s *ScheduleService) GetDay() (scheme.Day, error) {
 		WeekTypeEng: WeekTypeMap[w],
 		Day:         now.Weekday().String(),
 		DayRu:       shortDayNames[now.Weekday()],
-		Time:        now.Format("15:04"),
+		Time:        now.Format("15.04"),
 	}, nil
 }
