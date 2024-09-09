@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	v1 "github.com/VinGP/schedule-api/api/v1"
+	"github.com/VinGP/schedule-api/config"
 	"github.com/VinGP/schedule-api/repo"
 	"github.com/VinGP/schedule-api/services"
 	"github.com/gin-gonic/gin"
@@ -30,14 +31,12 @@ func CORSMiddleware() gin.HandlerFunc {
 }
 
 func main() {
-	//cfg := config.Get()
+	cfg := config.Get()
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	mUrl := "mongodb://root:rootPassXXX@149.154.70.16:27017/"
-
-	client, err := mongo.Connect(ctx, options.Client().ApplyURI(mUrl))
+	client, err := mongo.Connect(ctx, options.Client().ApplyURI(cfg.GetMongoURI()))
 
 	defer func() {
 		if err = client.Disconnect(ctx); err != nil {
