@@ -48,6 +48,9 @@ func newScheduleRoutes(handler *gin.RouterGroup, s services.ScheduleService) {
 // @Router       /schedule/groups/{group} [get]
 func (r *scheduleRoutes) scheduleByGroup(c *gin.Context) {
 	group := c.Param("group")
+
+	group = strings.ToLower(group)
+
 	schedule, err := r.s.GetScheduleByGroup(group)
 	if err != nil {
 		errorResponse(c, http.StatusBadRequest, err.Error())
@@ -191,6 +194,9 @@ func (r *scheduleRoutes) getCourseFaculties(c *gin.Context) {
 // @Router      /schedule/courses [get]
 func (r *scheduleRoutes) getFacultyCourses(c *gin.Context) {
 	faculty := c.Query("faculty")
+
+	faculty = strings.ToLower(faculty)
+
 	if faculty == "" {
 		errorResponse(c, http.StatusBadRequest, "param faculty dont exist")
 		return
