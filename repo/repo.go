@@ -125,15 +125,15 @@ func (sr *ScheduleRepo) GetGroups(facultyName string, course int) (scheme.Course
 							// Фильтрация по faculty
 							bson.D{{
 								"$or", bson.A{
-									bson.D{{"$eq", bson.A{"$faculty", "фвт"}}},
-									bson.D{{"$eq", bson.A{"фвт", ""}}},
+									bson.D{{"$eq", bson.A{"$faculty", facultyName}}},
+									bson.D{{"$eq", bson.A{facultyName, ""}}},
 								},
 							}},
 							// Фильтрация по course
 							bson.D{{
 								"$or", bson.A{
-									bson.D{{"$eq", bson.A{"$course", 1}}},
-									bson.D{{"$eq", bson.A{1, 0}}},
+									bson.D{{"$eq", bson.A{"$course", course}}},
+									bson.D{{"$eq", bson.A{course, 0}}},
 								},
 							}},
 						},
@@ -173,9 +173,9 @@ func (sr *ScheduleRepo) GetGroups(facultyName string, course int) (scheme.Course
 				"$project", bson.D{{
 					"_id", 0,
 				}, {
-					"faculty", "$_id.faculty",
+					"faculty", facultyName,
 				}, {
-					"course", "$_id.course",
+					"course", bson.D{{"$literal", course}},
 				}, {
 					"groups", 1,
 				}},
