@@ -8,6 +8,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"strconv"
+	"strings"
 )
 
 type scheduleRoutes struct {
@@ -97,6 +98,8 @@ func (r *scheduleRoutes) schedulesByGroups(c *gin.Context) {
 // @Router      /schedule/groups [get]
 func (r *scheduleRoutes) getGroups(c *gin.Context) {
 	faculty := c.Query("faculty")
+
+	faculty = strings.ToLower(faculty)
 
 	courseS := c.Query("course")
 	var course int

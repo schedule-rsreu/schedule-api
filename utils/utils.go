@@ -17,6 +17,7 @@ type WeekTypeCash struct {
 var weekTypeCash = &WeekTypeCash{}
 
 func GetWeekType() (string, error) {
+	return "знаменатель", nil
 	loc, _ := time.LoadLocation("Europe/Moscow")
 	now := time.Now().In(loc)
 
