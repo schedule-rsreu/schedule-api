@@ -1,10 +1,6 @@
 package utils
 
 import (
-	"errors"
-	"fmt"
-	"github.com/PuerkitoBio/goquery"
-	"net/http"
 	"time"
 	_ "time/tzdata"
 )
@@ -14,36 +10,18 @@ type WeekTypeCash struct {
 	date     time.Time
 }
 
-var weekTypeCash = &WeekTypeCash{}
+var loc, _ = time.LoadLocation("Europe/Moscow")
+var startDate = time.Date(2024, 9, 2, 0, 0, 0, 0, loc)
 
-func GetWeekType() (string, error) {
-	return "числитель", nil
-	loc, _ := time.LoadLocation("Europe/Moscow")
-	now := time.Now().In(loc)
+func GetWeekType() string {
 
-	cashWeekType := weekTypeCash.WeekType
+	date := time.Now().In(loc)
 
-	if weekTypeCash.WeekType != "" && weekTypeCash.date.Day() == now.Day() {
-		return cashWeekType, nil
+	r := date.Sub(startDate).Hours() / 24
+
+	if int(r/7)%2 == 0 {
+		return "числитель"
+	} else {
+		return "знаменатель"
 	}
-	res, err := http.Get("https://edu.rsreu.ru/")
-	if err != nil {
-		return cashWeekType, err
-	}
-	defer res.Body.Close()
-
-	if res.StatusCode != 200 {
-		return cashWeekType, errors.New(fmt.Sprintf("status code error: %d %s", res.StatusCode, res.Status))
-	}
-
-	doc, err := goquery.NewDocumentFromReader(res.Body)
-	if err != nil {
-		return cashWeekType, err
-	}
-	weekType := doc.Find(".item.date div:nth-child(2) span").Text()
-
-	weekTypeCash.WeekType = weekType
-	weekTypeCash.date = now
-
-	return weekType, nil
 }

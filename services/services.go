@@ -36,14 +36,10 @@ func (s *ScheduleService) GetCourseFaculties(course int) (scheme.CourseFaculties
 }
 
 func (s *ScheduleService) GetDay() (scheme.Day, error) {
-	w, err := utils.GetWeekType()
+	w := utils.GetWeekType()
 
 	loc, _ := time.LoadLocation("Europe/Moscow")
 	now := time.Now().In(loc)
-
-	if err != nil {
-		return scheme.Day{}, err
-	}
 
 	shortDayNames := []string{"Вс", "Пн", "Вт", "Ср", "Чт", "Пт", "Сб"}
 
