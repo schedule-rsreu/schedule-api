@@ -415,7 +415,9 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/github_com_schedule-rsreu_schedule-api_internal_models.Schedule'
+            items:
+              $ref: '#/definitions/github_com_schedule-rsreu_schedule-api_internal_models.Schedule'
+            type: array
         "404":
           description: Not Found
           schema:

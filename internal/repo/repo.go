@@ -83,11 +83,11 @@ func aggregateOne[T any](pipeline any, c *mongo.Collection) (*T, error) {
 }
 
 func (sr *ScheduleRepo) GetScheduleByGroup(group string) (*models.Schedule, error) {
-	return findOne[models.Schedule](bson.M{"group": group}, sr.scheduleCollection)
+	return findOne[models.Schedule](bson.D{{"group", group}}, sr.scheduleCollection)
 }
 
 func (sr *ScheduleRepo) GetSchedulesByGroups(groups []string) ([]*models.Schedule, error) {
-	return findAll[models.Schedule](bson.M{"group": bson.M{"$in": groups}}, sr.scheduleCollection)
+	return findAll[models.Schedule](bson.D{{"group", bson.M{"$in": groups}}}, sr.scheduleCollection)
 }
 
 func (sr *ScheduleRepo) GetGroups(facultyName string, course int) (*models.CourseFacultyGroups, error) { //nolint:funlen,lll // too long queries
@@ -337,7 +337,7 @@ func (sr *ScheduleRepo) GetCourseFaculties(course int) (*models.CourseFaculties,
 }
 
 func (sr *ScheduleRepo) GetTeacherSchedule(teacher string) (*models.TeacherSchedule, error) {
-	filter := bson.M{"teacher_full": teacher}
+	filter := bson.D{{"teacher_full", teacher}}
 	return findOne[models.TeacherSchedule](filter, sr.teachersScheduleCollection)
 }
 
