@@ -15,64 +15,13 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/schedule/course/faculties": {
+        "/api/v1/schedule/courses": {
             "get": {
-                "description": "Выдает список факультетов определенного курса",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
+                "description": "Курсы факультета",
                 "tags": [
-                    "schedule"
+                    "Courses"
                 ],
-                "summary": "Show faculties by course",
-                "parameters": [
-                    {
-                        "enum": [
-                            1,
-                            2,
-                            3,
-                            4,
-                            5
-                        ],
-                        "type": "integer",
-                        "description": "курс",
-                        "name": "course",
-                        "in": "query",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/scheme.CourseFaculties"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/v1.response"
-                        }
-                    }
-                }
-            }
-        },
-        "/schedule/courses": {
-            "get": {
-                "description": "Выдает список номеров курсов факультета",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "schedule"
-                ],
-                "summary": "Show courses by faculty",
+                "summary": "Get faculty courses",
                 "parameters": [
                     {
                         "enum": [
@@ -83,7 +32,7 @@ const docTemplate = `{
                             "фэ"
                         ],
                         "type": "string",
-                        "description": "факультет",
+                        "description": "faculty",
                         "name": "faculty",
                         "in": "query",
                         "required": true
@@ -93,103 +42,84 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/scheme.FacultyCourses"
+                            "$ref": "#/definitions/github_com_schedule-rsreu_schedule-api_internal_models.FacultyCourses"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/echo.HTTPError"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/v1.response"
+                            "$ref": "#/definitions/echo.HTTPError"
                         }
                     }
                 }
             }
         },
-        "/schedule/day": {
+        "/api/v1/schedule/day": {
             "get": {
-                "description": "Текущий день",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
+                "description": "Информация о текущем дне",
                 "tags": [
-                    "schedule"
+                    "Day"
                 ],
-                "summary": "Show day data",
+                "summary": "Get day",
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/scheme.Day"
+                            "$ref": "#/definitions/github_com_schedule-rsreu_schedule-api_internal_models.Day"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/v1.response"
+                            "$ref": "#/definitions/echo.HTTPError"
                         }
                     }
                 }
             }
         },
-        "/schedule/faculties": {
+        "/api/v1/schedule/faculties": {
             "get": {
-                "description": "Выдает список всех факультетов",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
+                "description": "Факультеты",
                 "tags": [
-                    "schedule"
+                    "Faculties"
                 ],
-                "summary": "Show faculties",
+                "summary": "Get faculties",
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/scheme.Faculties"
+                            "$ref": "#/definitions/github_com_schedule-rsreu_schedule-api_internal_models.Faculties"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/echo.HTTPError"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/v1.response"
+                            "$ref": "#/definitions/echo.HTTPError"
                         }
                     }
                 }
             }
         },
-        "/schedule/groups": {
+        "/api/v1/schedule/faculties/course": {
             "get": {
-                "description": "Выдает список групп на определенном курсе определенного факультета. Если курс не указан выдет все группы факультета",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
+                "description": "Факультеты курса",
                 "tags": [
-                    "schedule"
+                    "Faculties"
                 ],
-                "summary": "Show groups by faculty and course",
+                "summary": "Get course faculties",
                 "parameters": [
-                    {
-                        "enum": [
-                            "иэф",
-                            "фаиту",
-                            "фвт",
-                            "фрт",
-                            "фэ"
-                        ],
-                        "type": "string",
-                        "description": "факультет",
-                        "name": "faculty",
-                        "in": "query"
-                    },
                     {
                         "enum": [
                             1,
@@ -199,48 +129,49 @@ const docTemplate = `{
                             5
                         ],
                         "type": "integer",
-                        "description": "курс",
+                        "description": "course",
                         "name": "course",
-                        "in": "query"
+                        "in": "query",
+                        "required": true
                     }
                 ],
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/scheme.CourseFacultyGroups"
+                            "$ref": "#/definitions/github_com_schedule-rsreu_schedule-api_internal_models.CourseFaculties"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/echo.HTTPError"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/v1.response"
+                            "$ref": "#/definitions/echo.HTTPError"
                         }
                     }
                 }
             }
         },
-        "/schedule/groups/sample": {
+        "/api/v1/schedule/groups/sample": {
             "post": {
-                "description": "Выдает расписания по группам",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
+                "description": "Рассписание для нескольких групп",
                 "tags": [
-                    "schedule"
+                    "Groups"
                 ],
-                "summary": "Show schedules by groups",
+                "summary": "Get schedules by groups",
                 "parameters": [
                     {
-                        "description": "search schedules by groups",
+                        "description": "groups",
                         "name": "groups",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/v1.schedulesByGroupsRequest"
+                            "$ref": "#/definitions/internal_http_handlers_v1.schedulesByGroupsRequest"
                         }
                     }
                 ],
@@ -248,39 +179,36 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/scheme.Schedule"
-                            }
+                            "$ref": "#/definitions/github_com_schedule-rsreu_schedule-api_internal_models.Schedule"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/echo.HTTPError"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/v1.response"
+                            "$ref": "#/definitions/echo.HTTPError"
                         }
                     }
                 }
             }
         },
-        "/schedule/groups/{group}": {
+        "/api/v1/schedule/groups/{group}": {
             "get": {
-                "description": "Выдает расписание по группе",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
+                "description": "Get schedule by group",
                 "tags": [
-                    "schedule"
+                    "Groups"
                 ],
-                "summary": "Show schedule by group",
+                "summary": "Get schedule by group",
                 "parameters": [
                     {
                         "type": "string",
                         "example": "344",
-                        "description": "search schedule by group",
+                        "description": "group",
                         "name": "group",
                         "in": "path",
                         "required": true
@@ -290,13 +218,87 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/scheme.Schedule"
+                            "$ref": "#/definitions/github_com_schedule-rsreu_schedule-api_internal_models.Schedule"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/echo.HTTPError"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/v1.response"
+                            "$ref": "#/definitions/echo.HTTPError"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/schedule/teachers": {
+            "get": {
+                "description": "Расписание преподавателя",
+                "tags": [
+                    "Teachers"
+                ],
+                "summary": "Get teacher schedule",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "example": "\"Конюхов Алексей Николаевич\"",
+                        "description": "teacher",
+                        "name": "teacher",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_schedule-rsreu_schedule-api_internal_models.TeacherSchedule"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/echo.HTTPError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/echo.HTTPError"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/schedule/teachers/all": {
+            "get": {
+                "description": "Список всех преподавателей",
+                "tags": [
+                    "Teachers"
+                ],
+                "summary": "Get teachers",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_schedule-rsreu_schedule-api_internal_models.TeachersList"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/echo.HTTPError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/echo.HTTPError"
                         }
                     }
                 }
@@ -304,7 +306,13 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "scheme.CourseFaculties": {
+        "echo.HTTPError": {
+            "type": "object",
+            "properties": {
+                "message": {}
+            }
+        },
+        "github_com_schedule-rsreu_schedule-api_internal_models.CourseFaculties": {
             "type": "object",
             "properties": {
                 "course": {
@@ -333,40 +341,7 @@ const docTemplate = `{
                 }
             }
         },
-        "scheme.CourseFacultyGroups": {
-            "type": "object",
-            "properties": {
-                "course": {
-                    "type": "integer",
-                    "enum": [
-                        1,
-                        2,
-                        3,
-                        4,
-                        5
-                    ],
-                    "example": 1
-                },
-                "faculty": {
-                    "type": "string",
-                    "enum": [
-                        "иэф",
-                        "фаиту",
-                        "фвт",
-                        "фрт",
-                        "фэ"
-                    ],
-                    "example": "фвт"
-                },
-                "groups": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                }
-            }
-        },
-        "scheme.Day": {
+        "github_com_schedule-rsreu_schedule-api_internal_models.Day": {
             "type": "object",
             "properties": {
                 "day": {
@@ -417,7 +392,7 @@ const docTemplate = `{
                 }
             }
         },
-        "scheme.DayLessonSchedule": {
+        "github_com_schedule-rsreu_schedule-api_internal_models.DayLessonSchedule": {
             "type": "object",
             "properties": {
                 "lesson": {
@@ -430,7 +405,7 @@ const docTemplate = `{
                 }
             }
         },
-        "scheme.Faculties": {
+        "github_com_schedule-rsreu_schedule-api_internal_models.Faculties": {
             "type": "object",
             "properties": {
                 "faculties": {
@@ -441,7 +416,7 @@ const docTemplate = `{
                 }
             }
         },
-        "scheme.FacultyCourses": {
+        "github_com_schedule-rsreu_schedule-api_internal_models.FacultyCourses": {
             "type": "object",
             "properties": {
                 "courses": {
@@ -463,18 +438,18 @@ const docTemplate = `{
                 }
             }
         },
-        "scheme.NumeratorDenominatorSchedule": {
+        "github_com_schedule-rsreu_schedule-api_internal_models.NumeratorDenominatorSchedule": {
             "type": "object",
             "properties": {
                 "denominator": {
-                    "$ref": "#/definitions/scheme.WeekSchedule"
+                    "$ref": "#/definitions/github_com_schedule-rsreu_schedule-api_internal_models.WeekSchedule"
                 },
                 "numerator": {
-                    "$ref": "#/definitions/scheme.WeekSchedule"
+                    "$ref": "#/definitions/github_com_schedule-rsreu_schedule-api_internal_models.WeekSchedule"
                 }
             }
         },
-        "scheme.Schedule": {
+        "github_com_schedule-rsreu_schedule-api_internal_models.Schedule": {
             "type": "object",
             "properties": {
                 "course": {
@@ -500,65 +475,212 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "schedule": {
-                    "$ref": "#/definitions/scheme.NumeratorDenominatorSchedule"
+                    "$ref": "#/definitions/github_com_schedule-rsreu_schedule-api_internal_models.NumeratorDenominatorSchedule"
                 },
                 "update_at": {
                     "type": "string"
                 }
             }
         },
-        "scheme.WeekSchedule": {
+        "github_com_schedule-rsreu_schedule-api_internal_models.TeacherLesson": {
+            "type": "object",
+            "properties": {
+                "courses": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    },
+                    "example": [
+                        1
+                    ]
+                },
+                "faculties": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "example": [
+                        "фаиту",
+                        "фвт"
+                    ]
+                },
+                "groups": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "example": [
+                        "344",
+                        "345"
+                    ]
+                },
+                "lesson": {
+                    "type": "string",
+                    "example": "л.Высшая математика\nдоц.Конюхов А.Н.   333 С"
+                },
+                "time": {
+                    "type": "string",
+                    "example": "08.10-09.45"
+                }
+            }
+        },
+        "github_com_schedule-rsreu_schedule-api_internal_models.TeacherSchedule": {
+            "type": "object",
+            "properties": {
+                "schedule": {
+                    "type": "object",
+                    "properties": {
+                        "denominator": {
+                            "type": "object",
+                            "properties": {
+                                "friday": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/definitions/github_com_schedule-rsreu_schedule-api_internal_models.TeacherLesson"
+                                    }
+                                },
+                                "monday": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/definitions/github_com_schedule-rsreu_schedule-api_internal_models.TeacherLesson"
+                                    }
+                                },
+                                "saturday": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/definitions/github_com_schedule-rsreu_schedule-api_internal_models.TeacherLesson"
+                                    }
+                                },
+                                "thursday": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/definitions/github_com_schedule-rsreu_schedule-api_internal_models.TeacherLesson"
+                                    }
+                                },
+                                "tuesday": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/definitions/github_com_schedule-rsreu_schedule-api_internal_models.TeacherLesson"
+                                    }
+                                },
+                                "wednesday": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/definitions/github_com_schedule-rsreu_schedule-api_internal_models.TeacherLesson"
+                                    }
+                                }
+                            }
+                        },
+                        "numerator": {
+                            "type": "object",
+                            "properties": {
+                                "friday": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/definitions/github_com_schedule-rsreu_schedule-api_internal_models.TeacherLesson"
+                                    }
+                                },
+                                "monday": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/definitions/github_com_schedule-rsreu_schedule-api_internal_models.TeacherLesson"
+                                    }
+                                },
+                                "saturday": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/definitions/github_com_schedule-rsreu_schedule-api_internal_models.TeacherLesson"
+                                    }
+                                },
+                                "thursday": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/definitions/github_com_schedule-rsreu_schedule-api_internal_models.TeacherLesson"
+                                    }
+                                },
+                                "tuesday": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/definitions/github_com_schedule-rsreu_schedule-api_internal_models.TeacherLesson"
+                                    }
+                                },
+                                "wednesday": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/definitions/github_com_schedule-rsreu_schedule-api_internal_models.TeacherLesson"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "teacher": {
+                    "type": "string",
+                    "example": "Конюхов Алексей Николаевич,Маношкин Алексей Борисович"
+                }
+            }
+        },
+        "github_com_schedule-rsreu_schedule-api_internal_models.TeachersList": {
+            "type": "object",
+            "properties": {
+                "teachers": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "example": [
+                        "Конюхов Алексей Николаевич",
+                        "Маношкин Алексей Борисович"
+                    ]
+                }
+            }
+        },
+        "github_com_schedule-rsreu_schedule-api_internal_models.WeekSchedule": {
             "type": "object",
             "properties": {
                 "friday": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/scheme.DayLessonSchedule"
+                        "$ref": "#/definitions/github_com_schedule-rsreu_schedule-api_internal_models.DayLessonSchedule"
                     }
                 },
                 "monday": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/scheme.DayLessonSchedule"
+                        "$ref": "#/definitions/github_com_schedule-rsreu_schedule-api_internal_models.DayLessonSchedule"
                     }
                 },
                 "saturday": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/scheme.DayLessonSchedule"
+                        "$ref": "#/definitions/github_com_schedule-rsreu_schedule-api_internal_models.DayLessonSchedule"
                     }
                 },
                 "thursday": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/scheme.DayLessonSchedule"
+                        "$ref": "#/definitions/github_com_schedule-rsreu_schedule-api_internal_models.DayLessonSchedule"
                     }
                 },
                 "tuesday": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/scheme.DayLessonSchedule"
+                        "$ref": "#/definitions/github_com_schedule-rsreu_schedule-api_internal_models.DayLessonSchedule"
                     }
                 },
                 "wednesday": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/scheme.DayLessonSchedule"
+                        "$ref": "#/definitions/github_com_schedule-rsreu_schedule-api_internal_models.DayLessonSchedule"
                     }
                 }
             }
         },
-        "v1.response": {
+        "internal_http_handlers_v1.schedulesByGroupsRequest": {
             "type": "object",
-            "properties": {
-                "error": {
-                    "type": "string",
-                    "example": "message"
-                }
-            }
-        },
-        "v1.schedulesByGroupsRequest": {
-            "type": "object",
+            "required": [
+                "groups"
+            ],
             "properties": {
                 "groups": {
                     "type": "array",
@@ -578,12 +700,12 @@ const docTemplate = `{
 
 // SwaggerInfo holds exported Swagger Info so clients can modify it
 var SwaggerInfo = &swag.Spec{
-	Version:          "1.0",
-	Host:             "localhost:8081",
-	BasePath:         "/api/v1",
+	Version:          "2.0",
+	Host:             "",
+	BasePath:         "",
 	Schemes:          []string{},
-	Title:            "Расписание РГРТУ",
-	Description:      "API для расписания РГРТУ",
+	Title:            "Schedule API",
+	Description:      "API for RSREU schedule.",
 	InfoInstanceName: "swagger",
 	SwaggerTemplate:  docTemplate,
 	LeftDelim:        "{{",

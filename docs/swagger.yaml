@@ -1,6 +1,9 @@
-basePath: /api/v1
 definitions:
-  scheme.CourseFaculties:
+  echo.HTTPError:
+    properties:
+      message: {}
+    type: object
+  github_com_schedule-rsreu_schedule-api_internal_models.CourseFaculties:
     properties:
       course:
         enum:
@@ -22,32 +25,7 @@ definitions:
           type: string
         type: array
     type: object
-  scheme.CourseFacultyGroups:
-    properties:
-      course:
-        enum:
-        - 1
-        - 2
-        - 3
-        - 4
-        - 5
-        example: 1
-        type: integer
-      faculty:
-        enum:
-        - иэф
-        - фаиту
-        - фвт
-        - фрт
-        - фэ
-        example: фвт
-        type: string
-      groups:
-        items:
-          type: string
-        type: array
-    type: object
-  scheme.Day:
+  github_com_schedule-rsreu_schedule-api_internal_models.Day:
     properties:
       day:
         enum:
@@ -87,7 +65,7 @@ definitions:
         example: numerator
         type: string
     type: object
-  scheme.DayLessonSchedule:
+  github_com_schedule-rsreu_schedule-api_internal_models.DayLessonSchedule:
     properties:
       lesson:
         example: |-
@@ -98,14 +76,14 @@ definitions:
         example: 08.10-09.45
         type: string
     type: object
-  scheme.Faculties:
+  github_com_schedule-rsreu_schedule-api_internal_models.Faculties:
     properties:
       faculties:
         items:
           type: string
         type: array
     type: object
-  scheme.FacultyCourses:
+  github_com_schedule-rsreu_schedule-api_internal_models.FacultyCourses:
     properties:
       courses:
         items:
@@ -121,14 +99,14 @@ definitions:
         example: фвт
         type: string
     type: object
-  scheme.NumeratorDenominatorSchedule:
+  github_com_schedule-rsreu_schedule-api_internal_models.NumeratorDenominatorSchedule:
     properties:
       denominator:
-        $ref: '#/definitions/scheme.WeekSchedule'
+        $ref: '#/definitions/github_com_schedule-rsreu_schedule-api_internal_models.WeekSchedule'
       numerator:
-        $ref: '#/definitions/scheme.WeekSchedule'
+        $ref: '#/definitions/github_com_schedule-rsreu_schedule-api_internal_models.WeekSchedule'
     type: object
-  scheme.Schedule:
+  github_com_schedule-rsreu_schedule-api_internal_models.Schedule:
     properties:
       course:
         example: 1
@@ -147,44 +125,142 @@ definitions:
       id:
         type: string
       schedule:
-        $ref: '#/definitions/scheme.NumeratorDenominatorSchedule'
+        $ref: '#/definitions/github_com_schedule-rsreu_schedule-api_internal_models.NumeratorDenominatorSchedule'
       update_at:
         type: string
     type: object
-  scheme.WeekSchedule:
+  github_com_schedule-rsreu_schedule-api_internal_models.TeacherLesson:
+    properties:
+      courses:
+        example:
+        - 1
+        items:
+          type: integer
+        type: array
+      faculties:
+        example:
+        - фаиту
+        - фвт
+        items:
+          type: string
+        type: array
+      groups:
+        example:
+        - "344"
+        - "345"
+        items:
+          type: string
+        type: array
+      lesson:
+        example: |-
+          л.Высшая математика
+          доц.Конюхов А.Н.   333 С
+        type: string
+      time:
+        example: 08.10-09.45
+        type: string
+    type: object
+  github_com_schedule-rsreu_schedule-api_internal_models.TeacherSchedule:
+    properties:
+      schedule:
+        properties:
+          denominator:
+            properties:
+              friday:
+                items:
+                  $ref: '#/definitions/github_com_schedule-rsreu_schedule-api_internal_models.TeacherLesson'
+                type: array
+              monday:
+                items:
+                  $ref: '#/definitions/github_com_schedule-rsreu_schedule-api_internal_models.TeacherLesson'
+                type: array
+              saturday:
+                items:
+                  $ref: '#/definitions/github_com_schedule-rsreu_schedule-api_internal_models.TeacherLesson'
+                type: array
+              thursday:
+                items:
+                  $ref: '#/definitions/github_com_schedule-rsreu_schedule-api_internal_models.TeacherLesson'
+                type: array
+              tuesday:
+                items:
+                  $ref: '#/definitions/github_com_schedule-rsreu_schedule-api_internal_models.TeacherLesson'
+                type: array
+              wednesday:
+                items:
+                  $ref: '#/definitions/github_com_schedule-rsreu_schedule-api_internal_models.TeacherLesson'
+                type: array
+            type: object
+          numerator:
+            properties:
+              friday:
+                items:
+                  $ref: '#/definitions/github_com_schedule-rsreu_schedule-api_internal_models.TeacherLesson'
+                type: array
+              monday:
+                items:
+                  $ref: '#/definitions/github_com_schedule-rsreu_schedule-api_internal_models.TeacherLesson'
+                type: array
+              saturday:
+                items:
+                  $ref: '#/definitions/github_com_schedule-rsreu_schedule-api_internal_models.TeacherLesson'
+                type: array
+              thursday:
+                items:
+                  $ref: '#/definitions/github_com_schedule-rsreu_schedule-api_internal_models.TeacherLesson'
+                type: array
+              tuesday:
+                items:
+                  $ref: '#/definitions/github_com_schedule-rsreu_schedule-api_internal_models.TeacherLesson'
+                type: array
+              wednesday:
+                items:
+                  $ref: '#/definitions/github_com_schedule-rsreu_schedule-api_internal_models.TeacherLesson'
+                type: array
+            type: object
+        type: object
+      teacher:
+        example: Конюхов Алексей Николаевич,Маношкин Алексей Борисович
+        type: string
+    type: object
+  github_com_schedule-rsreu_schedule-api_internal_models.TeachersList:
+    properties:
+      teachers:
+        example:
+        - Конюхов Алексей Николаевич
+        - Маношкин Алексей Борисович
+        items:
+          type: string
+        type: array
+    type: object
+  github_com_schedule-rsreu_schedule-api_internal_models.WeekSchedule:
     properties:
       friday:
         items:
-          $ref: '#/definitions/scheme.DayLessonSchedule'
+          $ref: '#/definitions/github_com_schedule-rsreu_schedule-api_internal_models.DayLessonSchedule'
         type: array
       monday:
         items:
-          $ref: '#/definitions/scheme.DayLessonSchedule'
+          $ref: '#/definitions/github_com_schedule-rsreu_schedule-api_internal_models.DayLessonSchedule'
         type: array
       saturday:
         items:
-          $ref: '#/definitions/scheme.DayLessonSchedule'
+          $ref: '#/definitions/github_com_schedule-rsreu_schedule-api_internal_models.DayLessonSchedule'
         type: array
       thursday:
         items:
-          $ref: '#/definitions/scheme.DayLessonSchedule'
+          $ref: '#/definitions/github_com_schedule-rsreu_schedule-api_internal_models.DayLessonSchedule'
         type: array
       tuesday:
         items:
-          $ref: '#/definitions/scheme.DayLessonSchedule'
+          $ref: '#/definitions/github_com_schedule-rsreu_schedule-api_internal_models.DayLessonSchedule'
         type: array
       wednesday:
         items:
-          $ref: '#/definitions/scheme.DayLessonSchedule'
+          $ref: '#/definitions/github_com_schedule-rsreu_schedule-api_internal_models.DayLessonSchedule'
         type: array
     type: object
-  v1.response:
-    properties:
-      error:
-        example: message
-        type: string
-    type: object
-  v1.schedulesByGroupsRequest:
+  internal_http_handlers_v1.schedulesByGroupsRequest:
     properties:
       groups:
         example:
@@ -194,52 +270,20 @@ definitions:
         items:
           type: string
         type: array
+    required:
+    - groups
     type: object
-host: localhost:8081
 info:
   contact: {}
-  description: API для расписания РГРТУ
-  title: Расписание РГРТУ
-  version: "1.0"
+  description: API for RSREU schedule.
+  title: Schedule API
+  version: "2.0"
 paths:
-  /schedule/course/faculties:
+  /api/v1/schedule/courses:
     get:
-      consumes:
-      - application/json
-      description: Выдает список факультетов определенного курса
+      description: Курсы факультета
       parameters:
-      - description: курс
-        enum:
-        - 1
-        - 2
-        - 3
-        - 4
-        - 5
-        in: query
-        name: course
-        required: true
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/scheme.CourseFaculties'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/v1.response'
-      summary: Show faculties by course
-      tags:
-      - schedule
-  /schedule/courses:
-    get:
-      consumes:
-      - application/json
-      description: Выдает список номеров курсов факультета
-      parameters:
-      - description: факультет
+      - description: faculty
         enum:
         - иэф
         - фаиту
@@ -250,76 +294,61 @@ paths:
         name: faculty
         required: true
         type: string
-      produces:
-      - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/scheme.FacultyCourses'
+            $ref: '#/definitions/github_com_schedule-rsreu_schedule-api_internal_models.FacultyCourses'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/echo.HTTPError'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/v1.response'
-      summary: Show courses by faculty
+            $ref: '#/definitions/echo.HTTPError'
+      summary: Get faculty courses
       tags:
-      - schedule
-  /schedule/day:
+      - Courses
+  /api/v1/schedule/day:
     get:
-      consumes:
-      - application/json
-      description: Текущий день
-      produces:
-      - application/json
+      description: Информация о текущем дне
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/scheme.Day'
+            $ref: '#/definitions/github_com_schedule-rsreu_schedule-api_internal_models.Day'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/v1.response'
-      summary: Show day data
+            $ref: '#/definitions/echo.HTTPError'
+      summary: Get day
       tags:
-      - schedule
-  /schedule/faculties:
+      - Day
+  /api/v1/schedule/faculties:
     get:
-      consumes:
-      - application/json
-      description: Выдает список всех факультетов
-      produces:
-      - application/json
+      description: Факультеты
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/scheme.Faculties'
+            $ref: '#/definitions/github_com_schedule-rsreu_schedule-api_internal_models.Faculties'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/echo.HTTPError'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/v1.response'
-      summary: Show faculties
+            $ref: '#/definitions/echo.HTTPError'
+      summary: Get faculties
       tags:
-      - schedule
-  /schedule/groups:
+      - Faculties
+  /api/v1/schedule/faculties/course:
     get:
-      consumes:
-      - application/json
-      description: Выдает список групп на определенном курсе определенного факультета.
-        Если курс не указан выдет все группы факультета
+      description: Факультеты курса
       parameters:
-      - description: факультет
-        enum:
-        - иэф
-        - фаиту
-        - фвт
-        - фрт
-        - фэ
-        in: query
-        name: faculty
-        type: string
-      - description: курс
+      - description: course
         enum:
         - 1
         - 2
@@ -328,73 +357,119 @@ paths:
         - 5
         in: query
         name: course
+        required: true
         type: integer
-      produces:
-      - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/scheme.CourseFacultyGroups'
+            $ref: '#/definitions/github_com_schedule-rsreu_schedule-api_internal_models.CourseFaculties'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/echo.HTTPError'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/v1.response'
-      summary: Show groups by faculty and course
+            $ref: '#/definitions/echo.HTTPError'
+      summary: Get course faculties
       tags:
-      - schedule
-  /schedule/groups/{group}:
+      - Faculties
+  /api/v1/schedule/groups/{group}:
     get:
-      consumes:
-      - application/json
-      description: Выдает расписание по группе
+      description: Get schedule by group
       parameters:
-      - description: search schedule by group
+      - description: group
         example: "344"
         in: path
         name: group
         required: true
         type: string
-      produces:
-      - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/scheme.Schedule'
+            $ref: '#/definitions/github_com_schedule-rsreu_schedule-api_internal_models.Schedule'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/echo.HTTPError'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/v1.response'
-      summary: Show schedule by group
+            $ref: '#/definitions/echo.HTTPError'
+      summary: Get schedule by group
       tags:
-      - schedule
-  /schedule/groups/sample:
+      - Groups
+  /api/v1/schedule/groups/sample:
     post:
-      consumes:
-      - application/json
-      description: Выдает расписания по группам
+      description: Рассписание для нескольких групп
       parameters:
-      - description: search schedules by groups
+      - description: groups
         in: body
         name: groups
         required: true
         schema:
-          $ref: '#/definitions/v1.schedulesByGroupsRequest'
-      produces:
-      - application/json
+          $ref: '#/definitions/internal_http_handlers_v1.schedulesByGroupsRequest'
       responses:
         "200":
           description: OK
           schema:
-            items:
-              $ref: '#/definitions/scheme.Schedule'
-            type: array
+            $ref: '#/definitions/github_com_schedule-rsreu_schedule-api_internal_models.Schedule'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/echo.HTTPError'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/v1.response'
-      summary: Show schedules by groups
+            $ref: '#/definitions/echo.HTTPError'
+      summary: Get schedules by groups
       tags:
-      - schedule
+      - Groups
+  /api/v1/schedule/teachers:
+    get:
+      description: Расписание преподавателя
+      parameters:
+      - description: teacher
+        example: '"Конюхов Алексей Николаевич"'
+        in: query
+        name: teacher
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_schedule-rsreu_schedule-api_internal_models.TeacherSchedule'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/echo.HTTPError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/echo.HTTPError'
+      summary: Get teacher schedule
+      tags:
+      - Teachers
+  /api/v1/schedule/teachers/all:
+    get:
+      description: Список всех преподавателей
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_schedule-rsreu_schedule-api_internal_models.TeachersList'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/echo.HTTPError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/echo.HTTPError'
+      summary: Get teachers
+      tags:
+      - Teachers
 swagger: "2.0"

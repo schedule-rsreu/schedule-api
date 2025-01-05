@@ -2,29 +2,31 @@ package config
 
 import (
 	"fmt"
+	"log"
+	"net"
+	"sync"
+
 	"github.com/ilyakaznacheev/cleanenv"
 	"github.com/joho/godotenv"
-	"log"
-	"sync"
 )
 
 type Config struct {
-	Port          string `env:"PORT" env-default:"80"`
-	Host          string `env:"HOST" env-default:"0.0.0.0"`
-	Production    bool   `env:"PRODUCTION" env-default:"true"`
-	Version       string `env:"VERSION" env-default:"1"`
-	MongoHost     string `env:"MONGO_HOST" env-default:"mongodb"`
-	MongoPort     string `env:"MONGO_PORT" env-default:"27017"`
-	MongoUsername string `env:"MONGO_USERNAME" env-required:"true"`
-	MongoPassword string `env:"MONGO_PASSWORD" env-required:"true"`
+	Port          string `env:"PORT"           env-default:"80"`
+	Host          string `env:"HOST"           env-default:"0.0.0.0"`
+	Version       string `env:"VERSION"        env-default:"1"`
+	MongoHost     string `env:"MONGO_HOST"     env-default:"mongodb"`
+	MongoPort     string `env:"MONGO_PORT"     env-default:"27017"`
+	MongoUsername string `env:"MONGO_USERNAME" env-default:"mongo"`
+	MongoPassword string `env:"MONGO_PASSWORD" env-default:"mongo"`
+	Production    bool   `env:"PRODUCTION"     env-default:"true"`
 }
 
-var (
-	config Config
-	once   sync.Once
-)
-
 func Get() *Config {
+	var (
+		config Config
+		once   sync.Once
+	)
+
 	once.Do(func() {
 		err := godotenv.Load()
 
@@ -36,9 +38,15 @@ func Get() *Config {
 			panic(fmt.Sprintf("Failed to get config: %s", err))
 		}
 	})
+
 	return &config
 }
 
 func (c *Config) GetMongoURI() string {
-	return fmt.Sprintf("mongodb://%s:%s@%s:%s", c.MongoUsername, c.MongoPassword, c.MongoHost, c.MongoPort)
+	hostPort := net.JoinHostPort(c.MongoHost, c.MongoPort)
+	return fmt.Sprintf("mongodb://%s:%s@%s", c.MongoUsername, c.MongoPassword, hostPort)
+}
+
+func (c *Config) GetMongoDBName() string {
+	return "schedule"
 }
