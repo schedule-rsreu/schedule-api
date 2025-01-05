@@ -1,18 +1,32 @@
 <p align="center">
     <img height="60px" width="60px" src="https://avatars.githubusercontent.com/u/163825083?s=100&v=4" />
-    <h1>Schedule API</h1>
+    <h1 align="center">Schedule API</h1>
 </p>
 
-[![lint workflow](https://github.com/schedule-rsreu/schedule-api/actions/workflows/lint.yml/badge.svg)](https://github.com/schedule-rsreu/schedule-api/actions/workflows/lint.yml)
-![GitHub go.mod Go version](https://img.shields.io/github/go-mod/go-version/schedule-rsreu/schedule-api)
-[![GitHub License](https://img.shields.io/badge/license-MIT-blue)](/LICENSE)
-[![codecov](https://codecov.io/github/schedule-rsreu/schedule-api/graph/badge.svg?token=IFHLWELSNW)](https://codecov.io/github/schedule-rsreu/schedule-api)
-[![CodeQL](https://github.com/schedule-rsreu/schedule-api/actions/workflows/codeql.yml/badge.svg)](https://github.com/schedule-rsreu/schedule-api/actions/workflows/codeql.yml "Code quality workflow status")
-[![dependabot](https://badgen.net/github/dependabot/schedule-rsreu/schedule-api)](https://github.com/schedule-rsreu/schedule-api/actions/workflows/dependabot/dependabot-updates)
+<p align="center">
+    <a href="https://github.com/schedule-rsreu/schedule-api/actions/workflows/lint.yml">
+        <img src="https://github.com/schedule-rsreu/schedule-api/actions/workflows/lint.yml/badge.svg" />
+    </a>
+    <img src="https://img.shields.io/github/go-mod/go-version/schedule-rsreu/schedule-api" />
+    <a href="/LICENSE">
+        <img src="https://img.shields.io/badge/license-MIT-blue" />
+    </a>
+    <a href="https://codecov.io/github/schedule-rsreu/schedule-api">
+        <img src="https://codecov.io/github/schedule-rsreu/schedule-api/graph/badge.svg?token=IFHLWELSNW" />
+    </a>
+    <a href="https://github.com/schedule-rsreu/schedule-api/actions/workflows/codeql.yml" title="Code quality workflow status">
+        <img src="https://github.com/schedule-rsreu/schedule-api/actions/workflows/codeql.yml/badge.svg" />
+    </a>
+    <a href="https://github.com/schedule-rsreu/schedule-api/actions/workflows/dependabot/dependabot-updates">
+        <img src="https://badgen.net/github/dependabot/schedule-rsreu/schedule-api" />
+    </a>
+</p>
 
-
-API для [бота](https://t.me/schedule_rsreu_bot) расписания
-занятий [РГРТУ](https://rsreu.ru/studentu/raspisanie-zanyatij).
+<p align="center">
+    API для <a href="https://t.me/schedule_rsreu_bot">бота</a> расписания занятий <a href="https://rsreu.ru/studentu/raspisanie-zanyatij">РГРТУ</a>.
+<br>
+<a href="https://api.rsreu-schedule.ru/swagger/index.html">Swagger documentation</a>
+</p>
 
 ## Запуск
 
