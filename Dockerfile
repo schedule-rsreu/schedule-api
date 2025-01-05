@@ -11,7 +11,7 @@ RUN go install github.com/swaggo/swag/cmd/swag@v1.16.3
 
 COPY . .
 
-RUN swag init -g internal/http/handlers/router.go
+RUN swag init --parseDependency --parseInternal -g ./internal/http/handlers/router.go
 
 
 RUN CGO_ENABLED=0 GOOS=linux go build -o /main cmd/main.go
