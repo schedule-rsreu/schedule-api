@@ -7,7 +7,7 @@
     <a href="https://github.com/schedule-rsreu/schedule-api/actions/workflows/lint.yml">
         <img src="https://github.com/schedule-rsreu/schedule-api/actions/workflows/lint.yml/badge.svg" />
     </a>
-    <img src="https://img.shields.io/github/go-mod/go-version/schedule-rsreu/schedule-api" />
+    <a href="https://img.shields.io/github/go-mod/go-version/schedule-rsreu/schedule-api"><img src="https://img.shields.io/github/go-mod/go-version/schedule-rsreu/schedule-api" /></a>
     <a href="/LICENSE">
         <img src="https://img.shields.io/badge/license-MIT-blue" />
     </a>
