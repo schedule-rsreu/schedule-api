@@ -1,4 +1,7 @@
-# Schedule API
+<p align="center">
+    <img height="60px" width="60px" src="https://avatars.githubusercontent.com/u/163825083?s=100&v=4" />
+    <h1>Schedule API</h1>
+</p>
 
 [![lint workflow](https://github.com/schedule-rsreu/schedule-api/actions/workflows/lint.yml/badge.svg)](https://github.com/schedule-rsreu/schedule-api/actions/workflows/lint.yml)
 ![GitHub go.mod Go version](https://img.shields.io/github/go-mod/go-version/schedule-rsreu/schedule-api)
