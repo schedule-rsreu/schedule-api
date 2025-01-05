@@ -6,18 +6,21 @@
 [![codecov](https://codecov.io/github/schedule-rsreu/schedule-api/graph/badge.svg?token=IFHLWELSNW)](https://codecov.io/github/schedule-rsreu/schedule-api)
 
 API для [бота](https://t.me/schedule_rsreu_bot) расписания
-занятий [РГРТУ](https://rsreu.ru/studentu/raspisanie-zanyatij)
+занятий [РГРТУ](https://rsreu.ru/studentu/raspisanie-zanyatij).
 
 ## Запуск
 
+Для запуска понадобиться `make`
+и `docker` ([инструкции по установке `docker`](https://docs.docker.com/engine/install/)).
+
 Запуск локально, с поднятой базой данных отдельно. (Базу данных можно поднять в `docker`
-выполнив `docker compose up mongodb -d` )
+выполнив `docker compose up mongodb -d`):
 
 ```shell
 make run
 ```
 
-Запуск всего проекта с помощью `docker compose`
+Запуск всего проекта с помощью `docker compose`:
 
 ```shell
 make d
@@ -25,21 +28,24 @@ make d
 
 ## Локальная разработка
 
+Для работы некоторых линтеров нужен diff. Для Windows его можно скачать
+по [ссылке](https://deac-riga.dl.sourceforge.net/project/gnuwin32/diffutils/2.8.7-1/diffutils-2.8.7-1.exe?viasf=1).
+
 ### Линтеры
 
-- Установка
+- Установка:
 
 ```shell
 make install
 ```
 
-- Запуск проверок
+- Запуск проверок:
 
 ```shell
 make lint
 ```
 
-- Исправление замечаний линтреа автоматически, если возможно
+- Исправление замечаний линтреа автоматически, если возможно:
 
 ```shell
 make fix
