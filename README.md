@@ -1,10 +1,10 @@
 # Schedule API
 
-![lint workflow](https://github.com/schedule-rsreu/schedule-api/actions/workflows/lint.yml/badge.svg)
+[![lint workflow](https://github.com/schedule-rsreu/schedule-api/actions/workflows/lint.yml/badge.svg)](https://github.com/schedule-rsreu/schedule-api/actions/workflows/lint.yml)
 ![GitHub go.mod Go version](https://img.shields.io/github/go-mod/go-version/schedule-rsreu/schedule-api)
 [![GitHub License](https://img.shields.io/badge/license-MIT-blue)](/LICENSE)
 [![codecov](https://codecov.io/github/schedule-rsreu/schedule-api/graph/badge.svg?token=IFHLWELSNW)](https://codecov.io/github/schedule-rsreu/schedule-api)
-[![CodeQL](https://github.com/schedule-rsreu/schedule-api/actions/workflows/codeql.yml/badge.svg)](https://github.com/schedule-rsreu/schedule-api/actions "Code quality workflow status")
+[![CodeQL](https://github.com/schedule-rsreu/schedule-api/actions/workflows/codeql.yml/badge.svg)](https://github.com/schedule-rsreu/schedule-api/actions/workflows/codeql.yml "Code quality workflow status")
 
 
 API для [бота](https://t.me/schedule_rsreu_bot) расписания
