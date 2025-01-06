@@ -9,10 +9,23 @@ services:
       - "traefik.http.routers.schedule-api.tls.certresolver=myresolver"
       - "traefik.http.services.schedule-api.loadbalancer.server.port=80"
       - "traefik.http.routers.schedule-api.tls=true"
+      # prometheus
+      - "prometheus.enable=true"
+      - "prometheus.scrape-port=80"
+      - "prometheus.scrape-path=/metrics"
+      - "prometheus.job=schedule-api"
+      # loki
+      - "logging=promtail"
+      - "logging_jobname=containerlogs"
     networks:
       - traefik
+      - prometheus
 
 networks:
   traefik:
     name: traefik-swarm
+    external: true
+
+  prometheus:
+    name: prometheus
     external: true
