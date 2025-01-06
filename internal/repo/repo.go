@@ -92,24 +92,24 @@ func (sr *ScheduleRepo) GetSchedulesByGroups(groups []string) ([]*models.Schedul
 
 func (sr *ScheduleRepo) GetGroups(facultyName string, course int) (*models.CourseFacultyGroups, error) { //nolint:funlen,lll // too long queries
 	stageBase := []bson.D{
-		bson.D{{Key: "$group", Value: bson.D{
+		{{Key: "$group", Value: bson.D{
 			{Key: "_id", Value: 0},
 			{Key: "group", Value: bson.D{
 				{Key: "$addToSet", Value: "$group"},
 			}},
 		}}},
-		bson.D{{Key: "$unwind", Value: "$group"}},
-		bson.D{{Key: "$sort", Value: bson.D{
+		{{Key: "$unwind", Value: "$group"}},
+		{{Key: "$sort", Value: bson.D{
 			{Key: "group", Value: 1}},
 		}},
-		bson.D{{Key: "$group", Value: bson.D{
+		{{Key: "$group", Value: bson.D{
 			{Key: "_id", Value: 0},
 			{Key: "_groups", Value: bson.D{
 				{Key: "$push", Value: "$group"}},
 			},
 		},
 		}},
-		bson.D{{Key: "$project", Value: bson.D{
+		{{Key: "$project", Value: bson.D{
 			{Key: "_id", Value: 0},
 			{Key: "faculty", Value: facultyName},
 			{Key: "course",

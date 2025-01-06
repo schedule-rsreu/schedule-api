@@ -31,6 +31,8 @@ lint:
 
 .PHONY: fix
 fix:
+	gofmt -s -w .
+
 	$(BIN)/goimports -l -w .
 
 	"$(BIN)/tagalign" -fix -sort -order "json,xml" -strict ./...
