@@ -497,6 +497,24 @@ const docTemplate = `{
                     "type": "string",
                     "example": "л.Высшая математика\nдоц.Конюхов А.Н.   333 С"
                 },
+                "teachers_full": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "example": [
+                        "Конюхов Алексей Николаевич"
+                    ]
+                },
+                "teachers_short": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "example": [
+                        "Конюхов А.Н."
+                    ]
+                },
                 "time": {
                     "type": "string",
                     "example": "08.10-09.45"
@@ -575,7 +593,7 @@ const docTemplate = `{
                 "schedule": {
                     "$ref": "#/definitions/github_com_schedule-rsreu_schedule-api_internal_models.NumeratorDenominatorSchedule"
                 },
-                "update_at": {
+                "updated_at": {
                     "type": "string"
                 }
             }

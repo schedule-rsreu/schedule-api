@@ -97,6 +97,18 @@ definitions:
           л.Высшая математика
           доц.Конюхов А.Н.   333 С
         type: string
+      teachers_full:
+        example:
+        - Конюхов Алексей Николаевич
+        items:
+          type: string
+        type: array
+      teachers_short:
+        example:
+        - Конюхов А.Н.
+        items:
+          type: string
+        type: array
       time:
         example: 08.10-09.45
         type: string
@@ -151,7 +163,7 @@ definitions:
         type: string
       schedule:
         $ref: '#/definitions/github_com_schedule-rsreu_schedule-api_internal_models.NumeratorDenominatorSchedule'
-      update_at:
+      updated_at:
         type: string
     type: object
   github_com_schedule-rsreu_schedule-api_internal_models.TeacherLesson:

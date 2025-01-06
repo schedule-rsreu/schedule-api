@@ -28,14 +28,14 @@ type NumeratorDenominatorSchedule struct {
 }
 
 type Schedule struct {
-	UpdateAt time.Time                    `json:"update_at" bson:"update_at"`
-	File     string                       `json:"file"      bson:"file"`
-	FileHash string                       `json:"file_hash" bson:"file_hash" example:"5427593514859b0701e8e12ecbce1b0b"`
-	Faculty  string                       `json:"faculty"   bson:"faculty"   example:"фвт"`
-	Group    string                       `json:"group"     bson:"group"     example:"344"`
-	Schedule NumeratorDenominatorSchedule `json:"schedule"  bson:"schedule"`
-	Course   int                          `json:"course"    bson:"course"    example:"1"`
-	ID       primitive.ObjectID           `json:"id"        bson:"_id"`
+	UpdatedAt time.Time                    `json:"updated_at" bson:"updated_at"`
+	File      string                       `json:"file"       bson:"file"`
+	FileHash  string                       `json:"file_hash"  bson:"file_hash"  example:"5427593514859b0701e8e12ecbce1b0b"`
+	Faculty   string                       `json:"faculty"    bson:"faculty"    example:"фвт"`
+	Group     string                       `json:"group"      bson:"group"      example:"344"`
+	Schedule  NumeratorDenominatorSchedule `json:"schedule"   bson:"schedule"`
+	Course    int                          `json:"course"     bson:"course"     example:"1"`
+	ID        primitive.ObjectID           `json:"id"         bson:"_id"`
 }
 
 type CourseFacultyGroups struct {
