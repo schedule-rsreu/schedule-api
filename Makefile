@@ -7,7 +7,7 @@ export GOBIN=$(CURDIR)/$(BIN)# for windows
 #export GOBIN=$(PWD)/$(BIN) # for unix
 
 $(BIN)/golangci-lint:
-	go install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.63.3
+	go install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.63.4
 
 $(BIN)/gotestsum:
 	go install gotest.tools/gotestsum@v1.11.0
@@ -15,18 +15,11 @@ $(BIN)/gotestsum:
 $(BIN)/goimports:
 	go install golang.org/x/tools/cmd/goimports@latest
 
-$(BIN)/tagalign:
-	go install github.com/4meepo/tagalign/cmd/tagalign@latest
-
 .PHONY: install
 install: $(BIN)/golangci-lint  $(BIN)/goimports  $(BIN)/gotestsum  $(BIN)/tagalign
 
 .PHONY: lint
 lint:
-	$(BIN)/goimports -l .
-
-	"$(BIN)/tagalign" -sort -order "json,xml" -strict ./...
-
 	$(BIN)/golangci-lint run --config=.golangci.yml ./...
 
 .PHONY: fix
@@ -35,13 +28,7 @@ fix:
 
 	$(BIN)/goimports -l -w .
 
-	"$(BIN)/tagalign" -fix -sort -order "json,xml" -strict ./...
-
 	$(BIN)/golangci-lint run --config=.golangci.yml ./... --fix
-
-.PHONY: ve
-ve:
-	bin\tagalign.exe -fix -sort -order "json,xml" -strict ./...
 
 .PHONY: test
 test:
@@ -65,3 +52,7 @@ swag:
 .PHONY: d
 d:
 	docker compose up
+
+.PHONY: prod
+prod:
+	docker compose -f docker-compose.yml -f docker-compose.traefik.yml up --build -d

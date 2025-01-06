@@ -7,8 +7,12 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"strings"
 	"syscall"
 	"time"
+
+	"github.com/prometheus/client_golang/prometheus/promhttp"
+	mwp "github.com/schedule-rsreu/schedule-api/internal/http/middleware/prometheus"
 
 	"github.com/go-playground/validator/v10"
 
@@ -39,17 +43,32 @@ func (cv *CustomValidator) Validate(i interface{}) error {
 	return nil
 }
 
+func Heartbeat(endpoint string) func(http.Handler) http.Handler {
+	f := func(h http.Handler) http.Handler {
+		fn := func(w http.ResponseWriter, r *http.Request) {
+			if (r.Method == http.MethodGet || r.Method == http.MethodHead) && strings.EqualFold(r.URL.Path, endpoint) {
+				w.Header().Set("Content-Type", "text/plain")
+				w.WriteHeader(http.StatusOK)
+				_, err := w.Write([]byte("."))
+
+				if err != nil {
+					w.WriteHeader(http.StatusInternalServerError)
+				}
+				return
+			}
+			h.ServeHTTP(w, r)
+		}
+		return http.HandlerFunc(fn)
+	}
+	return f
+}
+
 func Run(cfg *config.Config) {
 	logger := zerolog.New(os.Stdout)
 
 	e := echo.New()
 
-	e.Validator = &CustomValidator{validator: validator.New()}
-
-	e.Use(middleware.Recover())
-	e.Use(middleware.CORS())
-	e.Use(middleware.RequestID())
-	setupLogger(e, &logger)
+	setupEcho(e, &logger)
 
 	ctx, cancel := context.WithTimeout(context.Background(), contextTimeout)
 	defer cancel()
@@ -96,6 +115,21 @@ func Run(cfg *config.Config) {
 	if err := e.Shutdown(ctx); err != nil {
 		logger.Error().Err(err).Msg("app - Run - httpServer.Shutdown")
 	}
+}
+
+func setupEcho(e *echo.Echo, logger *zerolog.Logger) {
+	e.Use(mwp.NewPatternMiddleware("schedule_api"))
+	e.GET("/metrics", echo.WrapHandler(promhttp.Handler()))
+
+	e.Use(echo.WrapMiddleware(Heartbeat("/ping")))
+
+	e.Validator = &CustomValidator{validator: validator.New()}
+
+	e.Use(middleware.Recover())
+	e.Use(middleware.CORS())
+	e.Use(middleware.RequestID())
+
+	setupLogger(e, logger)
 }
 
 func setupLogger(e *echo.Echo, logger *zerolog.Logger) {

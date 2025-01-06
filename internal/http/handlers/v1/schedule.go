@@ -195,7 +195,7 @@ func (sh *ScheduleHandler) getCourseFaculties(c echo.Context) error {
 }
 
 type schedulesByGroupsRequest struct {
-	Groups []string `json:"groups" example:"344,345,346" validate:"required"`
+	Groups []string `json:"groups" validate:"required" example:"344,345,346"`
 }
 
 // schedulesByGroups

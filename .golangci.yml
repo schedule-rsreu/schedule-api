@@ -63,6 +63,18 @@ linters-settings:
     enable-all: true
   nakedret:
     max-func-lines: 0
+  tagalign:
+    align: true
+    sort: true
+    order:
+      - json
+      - yaml
+      - yml
+      - toml
+      - mapstructure
+      - binding
+      - validate
+    strict: true
 
 linters:
   disable-all: true
@@ -124,7 +136,7 @@ linters:
     - sloglint
     - staticcheck
     - stylecheck
-#    - tagalign
+    - tagalign
     - tenv
     - testableexamples
     - testifylint
