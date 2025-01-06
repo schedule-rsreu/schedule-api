@@ -1,7 +1,6 @@
 package config_test
 
 import (
-	"os"
 	"testing"
 
 	"github.com/schedule-rsreu/schedule-api/config"
@@ -9,14 +8,14 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestGetConfigReturnsDefaultValues(t *testing.T) {
-	if err := os.Setenv("MONGO_USERNAME", "mongo"); err != nil {
-		return
-	}
+func TestGetConfig(t *testing.T) {
+	assert.Panics(t, func() {
+		config.Get()
+	}, "config.Get() should panic")
 
-	if err := os.Setenv("MONGO_PASSWORD", "mongo"); err != nil {
-		return
-	}
+	t.Setenv("MONGO_USERNAME", "mongo")
+
+	t.Setenv("MONGO_PASSWORD", "mongo")
 
 	cfg := config.Get()
 	t.Log(cfg)
@@ -28,12 +27,4 @@ func TestGetConfigReturnsDefaultValues(t *testing.T) {
 	assert.Equal(t, "27017", cfg.MongoPort)
 	assert.True(t, cfg.Production)
 	assert.Equal(t, "mongodb://mongo:mongo@mongodb:27017", cfg.GetMongoURI())
-
-	if err := os.Unsetenv("MONGO_USERNAME"); err != nil {
-		return
-	}
-
-	if err := os.Unsetenv("MONGO_PASSWORD"); err != nil {
-		return
-	}
 }
