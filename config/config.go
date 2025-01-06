@@ -16,8 +16,8 @@ type Config struct {
 	Version       string `env:"VERSION"        env-default:"1"`
 	MongoHost     string `env:"MONGO_HOST"     env-default:"mongodb"`
 	MongoPort     string `env:"MONGO_PORT"     env-default:"27017"`
-	MongoUsername string `env:"MONGO_USERNAME" env-default:"mongo"`
-	MongoPassword string `env:"MONGO_PASSWORD" env-default:"mongo"`
+	MongoUsername string `env:"MONGO_USERNAME" env-required:"true"`
+	MongoPassword string `env:"MONGO_PASSWORD" env-required:"true"`
 	Production    bool   `env:"PRODUCTION"     env-default:"true"`
 }
 
@@ -45,8 +45,4 @@ func Get() *Config {
 func (c *Config) GetMongoURI() string {
 	hostPort := net.JoinHostPort(c.MongoHost, c.MongoPort)
 	return fmt.Sprintf("mongodb://%s:%s@%s", c.MongoUsername, c.MongoPassword, hostPort)
-}
-
-func (c *Config) GetMongoDBName() string {
-	return "schedule"
 }
