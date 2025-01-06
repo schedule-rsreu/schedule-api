@@ -4,6 +4,7 @@ import (
 	"errors"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"github.com/schedule-rsreu/schedule-api/internal/services"
 
@@ -24,6 +25,7 @@ func NewRouter(g *echo.Group,
 	}
 
 	scheduleGroup := g.Group("/schedule")
+
 	scheduleGroup.GET("/groups/:group", sh.getScheduleByGroup)    // /groups/344
 	scheduleGroup.GET("/teachers", sh.getTeacherSchedule)         // /teachers?teacher=Конюхов+Алексей+Николаевич
 	scheduleGroup.GET("/teachers/all", sh.getTeachers)            // /teachers/all
@@ -32,6 +34,7 @@ func NewRouter(g *echo.Group,
 	scheduleGroup.GET("/courses", sh.getFacultyCourses)           // /courses?faculty=фвт
 	scheduleGroup.GET("/faculties/course", sh.getCourseFaculties) // /faculties/course?course=1
 	scheduleGroup.POST("/groups/sample", sh.schedulesByGroups)    // groups/sample
+	scheduleGroup.GET("/groups", sh.getCourseFacultyGroups)       // /groups?faculty=фвт&course=3
 }
 
 // getScheduleByGroup
@@ -220,6 +223,41 @@ func (sh *ScheduleHandler) schedulesByGroups(c echo.Context) error {
 	}
 
 	resp, err := sh.s.GetSchedulesByGroups(req.Groups)
+	if err != nil {
+		if errors.As(err, &services.NotFoundError{}) {
+			return echo.NewHTTPError(http.StatusNotFound, err)
+		}
+		return err
+	}
+	return c.JSON(http.StatusOK, resp)
+}
+
+// GetCourseFacultyGroups
+// @Summary     Get course faculty groups
+// @Description Группы факультета курса
+// @Tags        Groups
+// @Router      /api/v1/schedule/groups [get]
+// @Param       course  query  int  true  "course" Enums(1, 2, 3, 4, 5)
+// @Param       faculty  query  string  true  "faculty" Enums(иэф, фаиту, фвт, фрт, фэ)
+// @Success     200  {array}   models.CourseFacultyGroups
+// @Response    200  {array}   models.CourseFacultyGroups
+// @Failure     500  {object}  echo.HTTPError
+// @Failure     404  {object}  echo.HTTPError.
+func (sh *ScheduleHandler) getCourseFacultyGroups(c echo.Context) error {
+	faculty := c.QueryParam("faculty")
+	faculty = strings.ToLower(faculty)
+
+	courseS := c.QueryParam("course")
+	var course int
+	var err error
+	if courseS != "" {
+		course, err = strconv.Atoi(courseS)
+		if err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, "course query param must be integer, got: "+courseS)
+		}
+	}
+
+	resp, err := sh.s.GetGroups(faculty, course)
 	if err != nil {
 		if errors.As(err, &services.NotFoundError{}) {
 			return echo.NewHTTPError(http.StatusNotFound, err)

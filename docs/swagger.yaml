@@ -25,6 +25,31 @@ definitions:
           type: string
         type: array
     type: object
+  github_com_schedule-rsreu_schedule-api_internal_models.CourseFacultyGroups:
+    properties:
+      course:
+        enum:
+        - 1
+        - 2
+        - 3
+        - 4
+        - 5
+        example: 1
+        type: integer
+      faculty:
+        enum:
+        - иэф
+        - фаиту
+        - фвт
+        - фрт
+        - фэ
+        example: фвт
+        type: string
+      groups:
+        items:
+          type: string
+        type: array
+    type: object
   github_com_schedule-rsreu_schedule-api_internal_models.Day:
     properties:
       day:
@@ -378,6 +403,50 @@ paths:
       summary: Get course faculties
       tags:
       - Faculties
+  /api/v1/schedule/groups:
+    get:
+      description: Группы факультета курса
+      parameters:
+      - description: course
+        enum:
+        - 1
+        - 2
+        - 3
+        - 4
+        - 5
+        in: query
+        name: course
+        required: true
+        type: integer
+      - description: faculty
+        enum:
+        - иэф
+        - фаиту
+        - фвт
+        - фрт
+        - фэ
+        in: query
+        name: faculty
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/github_com_schedule-rsreu_schedule-api_internal_models.CourseFacultyGroups'
+            type: array
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/echo.HTTPError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/echo.HTTPError'
+      summary: Get course faculty groups
+      tags:
+      - Groups
   /api/v1/schedule/groups/{group}:
     get:
       description: Get schedule by group

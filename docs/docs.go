@@ -157,6 +157,68 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/v1/schedule/groups": {
+            "get": {
+                "description": "Группы факультета курса",
+                "tags": [
+                    "Groups"
+                ],
+                "summary": "Get course faculty groups",
+                "parameters": [
+                    {
+                        "enum": [
+                            1,
+                            2,
+                            3,
+                            4,
+                            5
+                        ],
+                        "type": "integer",
+                        "description": "course",
+                        "name": "course",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "enum": [
+                            "иэф",
+                            "фаиту",
+                            "фвт",
+                            "фрт",
+                            "фэ"
+                        ],
+                        "type": "string",
+                        "description": "faculty",
+                        "name": "faculty",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/github_com_schedule-rsreu_schedule-api_internal_models.CourseFacultyGroups"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/echo.HTTPError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/echo.HTTPError"
+                        }
+                    }
+                }
+            }
+        },
         "/api/v1/schedule/groups/sample": {
             "post": {
                 "description": "Рассписание для нескольких групп",
@@ -340,6 +402,39 @@ const docTemplate = `{
                             "фрт",
                             "фэ"
                         ]
+                    }
+                }
+            }
+        },
+        "github_com_schedule-rsreu_schedule-api_internal_models.CourseFacultyGroups": {
+            "type": "object",
+            "properties": {
+                "course": {
+                    "type": "integer",
+                    "enum": [
+                        1,
+                        2,
+                        3,
+                        4,
+                        5
+                    ],
+                    "example": 1
+                },
+                "faculty": {
+                    "type": "string",
+                    "enum": [
+                        "иэф",
+                        "фаиту",
+                        "фвт",
+                        "фрт",
+                        "фэ"
+                    ],
+                    "example": "фвт"
+                },
+                "groups": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
                     }
                 }
             }
