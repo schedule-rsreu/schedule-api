@@ -16,12 +16,18 @@ import (
 // @title           Schedule API
 // @version         2.0
 // @description     API for RSREU schedule.
+// @externalDocs.description  GitHub
+// @externalDocs.url          https://github.com/schedule-rsreu/schedule-api
 func NewRouter(e *echo.Echo, scheduleService *services.ScheduleService) {
 	e.GET("/docs", func(c echo.Context) error {
-		return c.Redirect(http.StatusMovedPermanently, "/docs/")
+		return c.Redirect(http.StatusMovedPermanently, "/docs/index.html")
 	})
 
 	e.GET("/docs/*", func(c echo.Context) error {
+		if c.Request().URL.Path == "/docs/" {
+			return c.Redirect(http.StatusMovedPermanently, "/docs/index.html")
+		}
+
 		baseURL := c.Request().Host
 		docs.SwaggerInfo.Host = baseURL
 

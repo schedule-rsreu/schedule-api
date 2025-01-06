@@ -698,6 +698,10 @@ const docTemplate = `{
                 }
             }
         }
+    },
+    "externalDocs": {
+        "description": "GitHub",
+        "url": "https://github.com/schedule-rsreu/schedule-api"
     }
 }`
 

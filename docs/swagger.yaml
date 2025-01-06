@@ -273,6 +273,9 @@ definitions:
     required:
     - groups
     type: object
+externalDocs:
+  description: GitHub
+  url: https://github.com/schedule-rsreu/schedule-api
 info:
   contact: {}
   description: API for RSREU schedule.
