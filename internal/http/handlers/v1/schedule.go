@@ -56,6 +56,9 @@ func (sh *ScheduleHandler) getScheduleByGroup(c echo.Context) error {
 
 	resp, err := sh.s.GetScheduleByGroup(group)
 	if err != nil {
+		if errors.As(err, &services.NotFoundError{}) {
+			return echo.NewHTTPError(http.StatusNotFound, err)
+		}
 		return err
 	}
 

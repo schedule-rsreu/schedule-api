@@ -3,6 +3,7 @@ package services
 import (
 	"errors"
 	"fmt"
+	"strings"
 	"time"
 	_ "time/tzdata"
 
@@ -22,6 +23,8 @@ func NewScheduleService(repo *repo.ScheduleRepo) *ScheduleService {
 }
 
 func (s *ScheduleService) GetScheduleByGroup(group string) (*models.Schedule, error) {
+	group = strings.ToLower(group)
+
 	resp, err := s.Repo.GetScheduleByGroup(group)
 	if err != nil {
 		if errors.Is(err, repo.ErrNoResults) {
