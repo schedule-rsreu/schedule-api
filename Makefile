@@ -16,7 +16,7 @@ $(BIN)/goimports:
 	go install golang.org/x/tools/cmd/goimports@latest
 
 .PHONY: install
-install: $(BIN)/golangci-lint  $(BIN)/goimports  $(BIN)/gotestsum  $(BIN)/tagalign
+install: $(BIN)/golangci-lint  $(BIN)/goimports  $(BIN)/gotestsum
 
 .PHONY: lint
 lint:
