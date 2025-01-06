@@ -17,7 +17,7 @@
 <p align="center">
     API для <a href="https://t.me/schedule_rsreu_bot">бота</a> расписания занятий <a href="https://rsreu.ru/studentu/raspisanie-zanyatij">РГРТУ</a>.
 <br>
-<a href="https://api.rsreu-schedule.ru/swagger/index.html">Swagger documentation</a>
+<a href="https://api.rsreu-schedule.ru/docs/index.html">Swagger documentation</a>
 </p>
 
 ## Запуск
