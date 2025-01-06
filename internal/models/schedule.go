@@ -7,8 +7,10 @@ import (
 )
 
 type DayLessonSchedule struct {
-	Time   string `json:"time"   bson:"time"   example:"08.10-09.45"`
-	Lesson string `json:"lesson" bson:"lesson" example:"л.Высшая математика\nдоц.Конюхов А.Н.   333 С"`
+	Time          string   `json:"time"           bson:"time"           example:"08.10-09.45"`
+	Lesson        string   `json:"lesson"         bson:"lesson"         example:"л.Высшая математика\nдоц.Конюхов А.Н.   333 С"` //nolint:lll // there is no way to fix it
+	TeachersFull  []string `json:"teachers_full"  bson:"teachers_full"  example:"Конюхов Алексей Николаевич"`
+	TeachersShort []string `json:"teachers_short" bson:"teachers_short" example:"Конюхов А.Н."`
 }
 
 type WeekSchedule struct {
