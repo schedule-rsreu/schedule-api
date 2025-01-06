@@ -6,7 +6,7 @@ services:
     container_name: schedule-api
     build: .
     ports:
-      - '8081:8081'
+      - '8081:80'
     restart: always
     networks:
       - default
