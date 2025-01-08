@@ -371,7 +371,7 @@ const docTemplate = `{
         },
         "/api/v1/schedule/teachers/departments": {
             "get": {
-                "description": "Список кафедр по факультету. Если факультет не передана, то возвращаются все кафедры",
+                "description": "Список кафедр. Если факультет не передана, то возвращаются все кафедры.",
                 "tags": [
                     "Teachers"
                 ],
@@ -412,7 +412,7 @@ const docTemplate = `{
         },
         "/api/v1/schedule/teachers/faculties": {
             "get": {
-                "description": "Список кафедр по факультету. Если кафедра не передан, то возвращаются все кафедры",
+                "description": "Список факультетов. Если кафедра не передан, то возвращаются все факультеты.",
                 "tags": [
                     "Teachers"
                 ],
@@ -453,7 +453,7 @@ const docTemplate = `{
         },
         "/api/v1/schedule/teachers/list": {
             "get": {
-                "description": "Список преподавателей по факультету и кафедре",
+                "description": "Список преподавателей по факультету и кафедре. Параметры не обязательны.",
                 "tags": [
                     "Teachers"
                 ],

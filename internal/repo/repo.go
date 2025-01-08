@@ -460,14 +460,14 @@ func (sr *ScheduleRepo) GetTeachersDepartments(faculty *string) ([]*models.Teach
 
 func (sr *ScheduleRepo) GetTeachersList(faculty, department *string) (*models.TeachersList, error) {
 	matchStage := bson.D{}
-	if faculty != nil {
+	if faculty != nil && *faculty != "" {
 		if len(*faculty) > maxFacultyShortLen {
 			matchStage = append(matchStage, bson.E{Key: "faculty", Value: strings.ToLower(*faculty)})
 		} else {
 			matchStage = append(matchStage, bson.E{Key: "faculty_short", Value: *faculty})
 		}
 	}
-	if department != nil {
+	if department != nil && *department != "" {
 		if len(*department) > maxDepartmentShortLen {
 			matchStage = append(matchStage, bson.E{Key: "department", Value: *department})
 		} else {
