@@ -6,6 +6,8 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/schedule-rsreu/schedule-api/pkg/logger"
+
 	"github.com/schedule-rsreu/schedule-api/internal/services"
 
 	"github.com/labstack/echo/v4"
@@ -26,15 +28,22 @@ func NewRouter(g *echo.Group,
 
 	scheduleGroup := g.Group("/schedule")
 
-	scheduleGroup.GET("/groups/:group", sh.getScheduleByGroup)    // /groups/344
-	scheduleGroup.GET("/teachers", sh.getTeacherSchedule)         // /teachers?teacher=Конюхов+Алексей+Николаевич
-	scheduleGroup.GET("/teachers/all", sh.getTeachers)            // /teachers/all
-	scheduleGroup.GET("/day", sh.getDay)                          // /day
+	scheduleGroup.GET("/day", sh.getDay) // /day
+
+	scheduleGroup.GET("/courses", sh.getFacultyCourses) // /courses?faculty=фвт
+
+	scheduleGroup.GET("/groups/:group", sh.getScheduleByGroup) // /groups/344
+	scheduleGroup.POST("/groups/sample", sh.schedulesByGroups) // groups/sample
+	scheduleGroup.GET("/groups", sh.getCourseFacultyGroups)    // /groups?faculty=фвт&course=3
+
 	scheduleGroup.GET("/faculties", sh.getFaculties)              // /faculties
-	scheduleGroup.GET("/courses", sh.getFacultyCourses)           // /courses?faculty=фвт
 	scheduleGroup.GET("/faculties/course", sh.getCourseFaculties) // /faculties/course?course=1
-	scheduleGroup.POST("/groups/sample", sh.schedulesByGroups)    // groups/sample
-	scheduleGroup.GET("/groups", sh.getCourseFacultyGroups)       // /groups?faculty=фвт&course=3
+
+	scheduleGroup.GET("/teachers", sh.getTeacherSchedule)                 // /teachers?teacher=Конюхов+Алексей+Николаевич
+	scheduleGroup.GET("/teachers/all", sh.getTeachers)                    // /teachers/all
+	scheduleGroup.GET("/teachers/list", sh.getTeachersList)               // /teachers/list?faculty=фаиту&department=ВМ
+	scheduleGroup.GET("/teachers/departments", sh.getTeachersDepartments) // /teachers/departments?faculty=фаиту
+	scheduleGroup.GET("/teachers/faculties", sh.getTeachersFaculties)     // /teachers/faculties?department=ВМ
 }
 
 // getScheduleByGroup
@@ -104,7 +113,7 @@ func (sh *ScheduleHandler) getTeacherSchedule(c echo.Context) error {
 // @Failure     500  {object}  echo.HTTPError
 // @Failure     404  {object}  echo.HTTPError.
 func (sh *ScheduleHandler) getTeachers(c echo.Context) error {
-	resp, err := sh.s.GetTeachers()
+	resp, err := sh.s.GetAllTeachers()
 	if err != nil {
 		return err
 	}
@@ -261,6 +270,78 @@ func (sh *ScheduleHandler) getCourseFacultyGroups(c echo.Context) error {
 	}
 
 	resp, err := sh.s.GetGroups(faculty, course)
+	if err != nil {
+		if errors.As(err, &services.NotFoundError{}) {
+			return echo.NewHTTPError(http.StatusNotFound, err)
+		}
+		return err
+	}
+	return c.JSON(http.StatusOK, resp)
+}
+
+// GetTeachersList
+// @Summary     Get teachers list by faculty and department
+// @Description Список преподавателей по факультету и кафедре. Параметры не обязательны.
+// @Tags        Teachers
+// @Router      /api/v1/schedule/teachers/list [get]
+// @Param       faculty  query  string  false  "faculty" example("фаиту", "Факультет вычислительной техники")
+// @Param       department  query  string  false  "department" example("ВМ", "Кафедра высшей математики")
+// @Success     200  {object}   models.TeachersList
+// @Response    200  {object}   models.TeachersList
+// @Failure     500  {object}   echo.HTTPError
+// @Failure     404  {object}   echo.HTTPError.
+func (sh *ScheduleHandler) getTeachersList(c echo.Context) error {
+	faculty := c.QueryParam("faculty")
+	department := c.QueryParam("department")
+
+	resp, err := sh.s.GetTeachersList(&faculty, &department)
+	if err != nil {
+		if errors.As(err, &services.NotFoundError{}) {
+			return echo.NewHTTPError(http.StatusNotFound, err)
+		}
+		logger.GetLoggerFromCtx(c).Err(err).Msg("failed to get teachers list")
+		return err
+	}
+	return c.JSON(http.StatusOK, resp)
+}
+
+// getTeachersFaculties
+// @Summary     Get faculties list by department
+// @Description Список факультетов. Если кафедра не передан, то возвращаются все факультеты.
+// @Tags        Teachers
+// @Router      /api/v1/schedule/teachers/faculties [get]
+// @Param       department  query  string  false  "department" example("ВМ", "Кафедра высшей математики")
+// @Success     200  {array}    models.TeacherFaculty
+// @Response    200  {array}    models.TeacherFaculty
+// @Failure     500  {object}   echo.HTTPError
+// @Failure     404  {object}   echo.HTTPError.
+func (sh *ScheduleHandler) getTeachersFaculties(c echo.Context) error {
+	department := c.QueryParam("department")
+
+	resp, err := sh.s.GetTeachersFaculties(&department)
+	if err != nil {
+		if errors.As(err, &services.NotFoundError{}) {
+			return echo.NewHTTPError(http.StatusNotFound, err)
+		}
+		return err
+	}
+	return c.JSON(http.StatusOK, resp)
+}
+
+// getTeachersDepartments
+// @Summary     Get departments list by faculty
+// @Description Список кафедр. Если факультет не передана, то возвращаются все кафедры.
+// @Tags        Teachers
+// @Router      /api/v1/schedule/teachers/departments [get]
+// @Param       faculty  query  string  false  "faculty" example("фаиту", "Факультет вычислительной техники")
+// @Success     200  {array}    models.TeacherDepartment
+// @Response    200  {array}    models.TeacherDepartment
+// @Failure     500  {object}   echo.HTTPError
+// @Failure     404  {object}   echo.HTTPError.
+func (sh *ScheduleHandler) getTeachersDepartments(c echo.Context) error {
+	faculty := c.QueryParam("faculty")
+
+	resp, err := sh.s.GetTeachersDepartments(&faculty)
 	if err != nil {
 		if errors.As(err, &services.NotFoundError{}) {
 			return echo.NewHTTPError(http.StatusNotFound, err)

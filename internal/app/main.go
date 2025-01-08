@@ -149,6 +149,7 @@ func setupLogger(e *echo.Echo, logger *zerolog.Logger) {
 		LogUserAgent:    true,
 		LogRequestID:    true,
 		LogError:        true,
+		LogRemoteIP:     true,
 
 		LogValuesFunc: func(c echo.Context, v middleware.RequestLoggerValues) error {
 			status := v.Status

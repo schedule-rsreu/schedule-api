@@ -368,6 +368,133 @@ const docTemplate = `{
                     }
                 }
             }
+        },
+        "/api/v1/schedule/teachers/departments": {
+            "get": {
+                "description": "Список кафедр по факультету. Если факультет не передана, то возвращаются все кафедры",
+                "tags": [
+                    "Teachers"
+                ],
+                "summary": "Get departments list by faculty",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "example": "\"фаиту\", \"Факультет вычислительной техники\"",
+                        "description": "faculty",
+                        "name": "faculty",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/github_com_schedule-rsreu_schedule-api_internal_models.TeacherDepartment"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/echo.HTTPError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/echo.HTTPError"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/schedule/teachers/faculties": {
+            "get": {
+                "description": "Список кафедр по факультету. Если кафедра не передан, то возвращаются все кафедры",
+                "tags": [
+                    "Teachers"
+                ],
+                "summary": "Get faculties list by department",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "example": "\"ВМ\", \"Кафедра высшей математики\"",
+                        "description": "department",
+                        "name": "department",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/github_com_schedule-rsreu_schedule-api_internal_models.TeacherFaculty"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/echo.HTTPError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/echo.HTTPError"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/schedule/teachers/list": {
+            "get": {
+                "description": "Список преподавателей по факультету и кафедре",
+                "tags": [
+                    "Teachers"
+                ],
+                "summary": "Get teachers list by faculty and department",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "example": "\"фаиту\", \"Факультет вычислительной техники\"",
+                        "description": "faculty",
+                        "name": "faculty",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "example": "\"ВМ\", \"Кафедра высшей математики\"",
+                        "description": "department",
+                        "name": "department",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_schedule-rsreu_schedule-api_internal_models.TeachersList"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/echo.HTTPError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/echo.HTTPError"
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
@@ -598,6 +725,32 @@ const docTemplate = `{
                 }
             }
         },
+        "github_com_schedule-rsreu_schedule-api_internal_models.TeacherDepartment": {
+            "type": "object",
+            "properties": {
+                "department": {
+                    "type": "string",
+                    "example": "Кафедра вычислительной и прикладной математики"
+                },
+                "department_short": {
+                    "type": "string",
+                    "example": "ВМ"
+                }
+            }
+        },
+        "github_com_schedule-rsreu_schedule-api_internal_models.TeacherFaculty": {
+            "type": "object",
+            "properties": {
+                "faculty": {
+                    "type": "string",
+                    "example": "Факультет автоматики и информационных технологий в управлении"
+                },
+                "faculty_short": {
+                    "type": "string",
+                    "example": "фаиту"
+                }
+            }
+        },
         "github_com_schedule-rsreu_schedule-api_internal_models.TeacherLesson": {
             "type": "object",
             "properties": {
@@ -643,6 +796,26 @@ const docTemplate = `{
         "github_com_schedule-rsreu_schedule-api_internal_models.TeacherSchedule": {
             "type": "object",
             "properties": {
+                "department": {
+                    "type": "string",
+                    "example": "Кафедра высшей математики"
+                },
+                "department_short": {
+                    "type": "string",
+                    "example": "ВМ"
+                },
+                "faculty": {
+                    "type": "string",
+                    "example": "Факультет автоматики и информационных технологий в управлении"
+                },
+                "faculty_short": {
+                    "type": "string",
+                    "example": "фаиту"
+                },
+                "link": {
+                    "type": "string",
+                    "example": "https://rsreu.ru/faculties/faitu/kafedri/vm/prepodavateli/9402-item-9402"
+                },
                 "schedule": {
                     "type": "object",
                     "properties": {
@@ -732,7 +905,11 @@ const docTemplate = `{
                 },
                 "teacher": {
                     "type": "string",
-                    "example": "Конюхов Алексей Николаевич,Маношкин Алексей Борисович"
+                    "example": "Конюхов Алексей Николаевич"
+                },
+                "teacher_short": {
+                    "type": "string",
+                    "example": "Конюхов А.Н."
                 }
             }
         },

@@ -166,6 +166,24 @@ definitions:
       updated_at:
         type: string
     type: object
+  github_com_schedule-rsreu_schedule-api_internal_models.TeacherDepartment:
+    properties:
+      department:
+        example: Кафедра вычислительной и прикладной математики
+        type: string
+      department_short:
+        example: ВМ
+        type: string
+    type: object
+  github_com_schedule-rsreu_schedule-api_internal_models.TeacherFaculty:
+    properties:
+      faculty:
+        example: Факультет автоматики и информационных технологий в управлении
+        type: string
+      faculty_short:
+        example: фаиту
+        type: string
+    type: object
   github_com_schedule-rsreu_schedule-api_internal_models.TeacherLesson:
     properties:
       courses:
@@ -199,6 +217,21 @@ definitions:
     type: object
   github_com_schedule-rsreu_schedule-api_internal_models.TeacherSchedule:
     properties:
+      department:
+        example: Кафедра высшей математики
+        type: string
+      department_short:
+        example: ВМ
+        type: string
+      faculty:
+        example: Факультет автоматики и информационных технологий в управлении
+        type: string
+      faculty_short:
+        example: фаиту
+        type: string
+      link:
+        example: https://rsreu.ru/faculties/faitu/kafedri/vm/prepodavateli/9402-item-9402
+        type: string
       schedule:
         properties:
           denominator:
@@ -257,7 +290,10 @@ definitions:
             type: object
         type: object
       teacher:
-        example: Конюхов Алексей Николаевич,Маношкин Алексей Борисович
+        example: Конюхов Алексей Николаевич
+        type: string
+      teacher_short:
+        example: Конюхов А.Н.
         type: string
     type: object
   github_com_schedule-rsreu_schedule-api_internal_models.TeachersList:
@@ -556,6 +592,92 @@ paths:
           schema:
             $ref: '#/definitions/echo.HTTPError'
       summary: Get teachers
+      tags:
+      - Teachers
+  /api/v1/schedule/teachers/departments:
+    get:
+      description: Список кафедр по факультету. Если факультет не передана, то возвращаются
+        все кафедры
+      parameters:
+      - description: faculty
+        example: '"фаиту", "Факультет вычислительной техники"'
+        in: query
+        name: faculty
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/github_com_schedule-rsreu_schedule-api_internal_models.TeacherDepartment'
+            type: array
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/echo.HTTPError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/echo.HTTPError'
+      summary: Get departments list by faculty
+      tags:
+      - Teachers
+  /api/v1/schedule/teachers/faculties:
+    get:
+      description: Список кафедр по факультету. Если кафедра не передан, то возвращаются
+        все кафедры
+      parameters:
+      - description: department
+        example: '"ВМ", "Кафедра высшей математики"'
+        in: query
+        name: department
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/github_com_schedule-rsreu_schedule-api_internal_models.TeacherFaculty'
+            type: array
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/echo.HTTPError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/echo.HTTPError'
+      summary: Get faculties list by department
+      tags:
+      - Teachers
+  /api/v1/schedule/teachers/list:
+    get:
+      description: Список преподавателей по факультету и кафедре
+      parameters:
+      - description: faculty
+        example: '"фаиту", "Факультет вычислительной техники"'
+        in: query
+        name: faculty
+        type: string
+      - description: department
+        example: '"ВМ", "Кафедра высшей математики"'
+        in: query
+        name: department
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_schedule-rsreu_schedule-api_internal_models.TeachersList'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/echo.HTTPError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/echo.HTTPError'
+      summary: Get teachers list by faculty and department
       tags:
       - Teachers
 swagger: "2.0"

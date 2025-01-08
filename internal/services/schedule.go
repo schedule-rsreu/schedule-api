@@ -9,16 +9,16 @@ import (
 
 	"github.com/schedule-rsreu/schedule-api/internal/models"
 	"github.com/schedule-rsreu/schedule-api/internal/repo"
-	utils "github.com/schedule-rsreu/schedule-api/internal/utils"
+	"github.com/schedule-rsreu/schedule-api/internal/utils"
 )
 
 type ScheduleService struct {
 	Repo *repo.ScheduleRepo
 }
 
-func NewScheduleService(repo *repo.ScheduleRepo) *ScheduleService {
+func NewScheduleService(scheduleRepo *repo.ScheduleRepo) *ScheduleService {
 	return &ScheduleService{
-		Repo: repo,
+		Repo: scheduleRepo,
 	}
 }
 
@@ -126,6 +126,42 @@ func (s *ScheduleService) GetTeacherSchedule(teacher string) (*models.TeacherSch
 	return resp, err
 }
 
-func (s *ScheduleService) GetTeachers() (*models.TeachersList, error) {
+func (s *ScheduleService) GetAllTeachers() (*models.TeachersList, error) {
 	return s.Repo.GetAllTeachers()
+}
+
+func (s *ScheduleService) GetTeachersList(faculty, department *string) (*models.TeachersList, error) {
+	resp, err := s.Repo.GetTeachersList(faculty, department)
+	if err != nil {
+		if errors.Is(err, repo.ErrNoResults) {
+			return nil, NotFoundError{
+				fmt.Sprintf(
+					"teachers for faculty '%v' and department '%v' not found",
+					*faculty, *department)}
+		}
+		return nil, err
+	}
+	return resp, err
+}
+
+func (s *ScheduleService) GetTeachersFaculties(department *string) ([]*models.TeacherFaculty, error) {
+	resp, err := s.Repo.GetTeachersFaculties(department)
+	if err != nil {
+		if errors.Is(err, repo.ErrNoResults) {
+			return nil, NotFoundError{fmt.Sprintf("faculties for department '%v' not found", *department)}
+		}
+		return nil, err
+	}
+	return resp, err
+}
+
+func (s *ScheduleService) GetTeachersDepartments(faculty *string) ([]*models.TeacherDepartment, error) {
+	resp, err := s.Repo.GetTeachersDepartments(faculty)
+	if err != nil {
+		if errors.Is(err, repo.ErrNoResults) {
+			return nil, NotFoundError{fmt.Sprintf("departments for faculty '%v' not found", *faculty)}
+		}
+		return nil, err
+	}
+	return resp, err
 }
