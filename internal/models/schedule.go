@@ -23,8 +23,16 @@ type WeekSchedule struct {
 }
 
 type NumeratorDenominatorSchedule struct {
-	Numerator   WeekSchedule `json:"numerator"   bson:"numerator"`
-	Denominator WeekSchedule `json:"denominator" bson:"denominator"`
+	Numerator       WeekSchedule `json:"numerator"   bson:"numerator"`
+	Denominator     WeekSchedule `json:"denominator" bson:"denominator"`
+	DayLessonsTimes struct {
+		Monday    []string `json:"monday"    bson:"monday"`
+		Tuesday   []string `json:"tuesday"   bson:"tuesday"`
+		Wednesday []string `json:"wednesday" bson:"wednesday"`
+		Thursday  []string `json:"thursday"  bson:"thursday"`
+		Friday    []string `json:"friday"    bson:"friday"`
+		Saturday  []string `json:"saturday"  bson:"saturday"`
+	} `json:"-" bson:"day_lessons_times"`
 }
 
 type Schedule struct {

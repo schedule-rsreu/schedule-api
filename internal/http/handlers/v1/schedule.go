@@ -52,18 +52,21 @@ func NewRouter(g *echo.Group,
 // @Tags        Groups
 // @Router      /api/v1/schedule/groups/{group} [get]
 // @Param       group  path  string  true  "group" example(344)
+// @Param       add_empty_lessons  query  bool  false  "add empty lessons"
 // @Success     200  {object}  models.Schedule
 // @Response    200  {object}  models.Schedule
 // @Failure     500  {object}  echo.HTTPError.
 // @Failure     404  {object}  echo.HTTPError.
 func (sh *ScheduleHandler) getScheduleByGroup(c echo.Context) error {
 	group := c.Param("group")
+	//addEmptyLessons := c.QueryParam("add_empty_lessons") == "true"
+	addEmptyLessons := true
 
 	if group == "" {
 		return echo.NewHTTPError(http.StatusBadRequest, "group query param not found")
 	}
 
-	resp, err := sh.s.GetScheduleByGroup(group)
+	resp, err := sh.s.GetScheduleByGroup(group, addEmptyLessons)
 	if err != nil {
 		if errors.As(err, &services.NotFoundError{}) {
 			return echo.NewHTTPError(http.StatusNotFound, err)
