@@ -176,6 +176,8 @@ func addEmptyLessons(lessons []models.DayLessonSchedule, times []string) []model
 		return lessons
 	}
 
+	const emptyLessonText = "—"
+
 	existingTimes := make(map[string]struct{})
 	for _, lesson := range lessons {
 		existingTimes[lesson.Time] = struct{}{}
@@ -185,7 +187,7 @@ func addEmptyLessons(lessons []models.DayLessonSchedule, times []string) []model
 		if _, exists := existingTimes[time]; !exists {
 			lessons = append(lessons, models.DayLessonSchedule{
 				Time:          time,
-				Lesson:        "\n",
+				Lesson:        emptyLessonText,
 				TeachersFull:  []string{},
 				TeachersShort: []string{},
 			})
@@ -197,7 +199,7 @@ func addEmptyLessons(lessons []models.DayLessonSchedule, times []string) []model
 	})
 
 	for i := len(lessons) - 1; i >= 0; i-- {
-		if lessons[i].Lesson == "\n" {
+		if lessons[i].Lesson == emptyLessonText {
 			lessons = lessons[:i]
 		} else {
 			break
