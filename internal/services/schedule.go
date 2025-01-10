@@ -197,7 +197,7 @@ func addEmptyLessons(lessons []models.DayLessonSchedule, times []string) []model
 	})
 
 	for i := len(lessons) - 1; i >= 0; i-- {
-		if lessons[i].Lesson == "\n\n" {
+		if lessons[i].Lesson == "\n" {
 			lessons = lessons[:i]
 		} else {
 			break
