@@ -59,7 +59,8 @@ func NewRouter(g *echo.Group,
 // @Failure     404  {object}  echo.HTTPError.
 func (sh *ScheduleHandler) getScheduleByGroup(c echo.Context) error {
 	group := c.Param("group")
-	addEmptyLessons := c.QueryParam("add_empty_lessons") == "true"
+	//addEmptyLessons := c.QueryParam("add_empty_lessons") == "true"
+	addEmptyLessons := true
 
 	if group == "" {
 		return echo.NewHTTPError(http.StatusBadRequest, "group query param not found")
