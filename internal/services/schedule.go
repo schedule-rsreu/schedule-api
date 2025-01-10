@@ -185,7 +185,7 @@ func addEmptyLessons(lessons []models.DayLessonSchedule, times []string) []model
 		if _, exists := existingTimes[time]; !exists {
 			lessons = append(lessons, models.DayLessonSchedule{
 				Time:          time,
-				Lesson:        "\n\n",
+				Lesson:        "\n",
 				TeachersFull:  []string{},
 				TeachersShort: []string{},
 			})
