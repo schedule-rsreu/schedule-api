@@ -11,6 +11,8 @@ type DayLessonSchedule struct {
 	Lesson        string   `json:"lesson"         bson:"lesson"         example:"л.Высшая математика\nдоц.Конюхов А.Н.   333 С"` //nolint:lll // there is no way to fix it
 	TeachersFull  []string `json:"teachers_full"  bson:"teachers_full"  example:"Конюхов Алексей Николаевич"`
 	TeachersShort []string `json:"teachers_short" bson:"teachers_short" example:"Конюхов А.Н."`
+	Dates         []string `json:"dates"          bson:"dates"          example:"11.09,09.10,06.11,04.12"`
+	Auditoriums   []string `json:"auditoriums"    bson:"auditoriums"    example:"445 C,445 C,Стадион РГРТУ C"`
 }
 
 type WeekSchedule struct {

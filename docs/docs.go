@@ -42,7 +42,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/models.FacultyCourses"
+                            "$ref": "#/definitions/github_com_schedule-rsreu_schedule-api_internal_models.FacultyCourses"
                         }
                     },
                     "404": {
@@ -71,7 +71,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/models.Day"
+                            "$ref": "#/definitions/github_com_schedule-rsreu_schedule-api_internal_models.Day"
                         }
                     },
                     "500": {
@@ -94,7 +94,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/models.Faculties"
+                            "$ref": "#/definitions/github_com_schedule-rsreu_schedule-api_internal_models.Faculties"
                         }
                     },
                     "404": {
@@ -139,7 +139,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/models.CourseFaculties"
+                            "$ref": "#/definitions/github_com_schedule-rsreu_schedule-api_internal_models.CourseFaculties"
                         }
                     },
                     "404": {
@@ -200,7 +200,7 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/models.CourseFacultyGroups"
+                                "$ref": "#/definitions/github_com_schedule-rsreu_schedule-api_internal_models.CourseFacultyGroups"
                             }
                         }
                     },
@@ -233,7 +233,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/v1.schedulesByGroupsRequest"
+                            "$ref": "#/definitions/internal_http_handlers_v1.schedulesByGroupsRequest"
                         }
                     }
                 ],
@@ -243,7 +243,7 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/models.Schedule"
+                                "$ref": "#/definitions/github_com_schedule-rsreu_schedule-api_internal_models.Schedule"
                             }
                         }
                     },
@@ -289,7 +289,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/models.Schedule"
+                            "$ref": "#/definitions/github_com_schedule-rsreu_schedule-api_internal_models.Schedule"
                         }
                     },
                     "404": {
@@ -328,7 +328,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/models.TeacherSchedule"
+                            "$ref": "#/definitions/github_com_schedule-rsreu_schedule-api_internal_models.TeacherSchedule"
                         }
                     },
                     "404": {
@@ -357,7 +357,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/models.TeachersList"
+                            "$ref": "#/definitions/github_com_schedule-rsreu_schedule-api_internal_models.TeachersList"
                         }
                     },
                     "404": {
@@ -397,7 +397,7 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/models.TeacherDepartment"
+                                "$ref": "#/definitions/github_com_schedule-rsreu_schedule-api_internal_models.TeacherDepartment"
                             }
                         }
                     },
@@ -438,7 +438,7 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/models.TeacherFaculty"
+                                "$ref": "#/definitions/github_com_schedule-rsreu_schedule-api_internal_models.TeacherFaculty"
                             }
                         }
                     },
@@ -484,7 +484,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/models.TeachersList"
+                            "$ref": "#/definitions/github_com_schedule-rsreu_schedule-api_internal_models.TeachersList"
                         }
                     },
                     "404": {
@@ -510,7 +510,7 @@ const docTemplate = `{
                 "message": {}
             }
         },
-        "models.CourseFaculties": {
+        "github_com_schedule-rsreu_schedule-api_internal_models.CourseFaculties": {
             "type": "object",
             "properties": {
                 "course": {
@@ -539,7 +539,7 @@ const docTemplate = `{
                 }
             }
         },
-        "models.CourseFacultyGroups": {
+        "github_com_schedule-rsreu_schedule-api_internal_models.CourseFacultyGroups": {
             "type": "object",
             "properties": {
                 "course": {
@@ -572,7 +572,7 @@ const docTemplate = `{
                 }
             }
         },
-        "models.Day": {
+        "github_com_schedule-rsreu_schedule-api_internal_models.Day": {
             "type": "object",
             "properties": {
                 "day": {
@@ -623,9 +623,32 @@ const docTemplate = `{
                 }
             }
         },
-        "models.DayLessonSchedule": {
+        "github_com_schedule-rsreu_schedule-api_internal_models.DayLessonSchedule": {
             "type": "object",
             "properties": {
+                "auditoriums": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "example": [
+                        "445 C",
+                        "445 C",
+                        "Стадион РГРТУ C"
+                    ]
+                },
+                "dates": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "example": [
+                        "11.09",
+                        "09.10",
+                        "06.11",
+                        "04.12"
+                    ]
+                },
                 "lesson": {
                     "type": "string",
                     "example": "л.Высшая математика\nдоц.Конюхов А.Н.   333 С"
@@ -654,7 +677,7 @@ const docTemplate = `{
                 }
             }
         },
-        "models.Faculties": {
+        "github_com_schedule-rsreu_schedule-api_internal_models.Faculties": {
             "type": "object",
             "properties": {
                 "faculties": {
@@ -665,7 +688,7 @@ const docTemplate = `{
                 }
             }
         },
-        "models.FacultyCourses": {
+        "github_com_schedule-rsreu_schedule-api_internal_models.FacultyCourses": {
             "type": "object",
             "properties": {
                 "courses": {
@@ -687,18 +710,18 @@ const docTemplate = `{
                 }
             }
         },
-        "models.NumeratorDenominatorSchedule": {
+        "github_com_schedule-rsreu_schedule-api_internal_models.NumeratorDenominatorSchedule": {
             "type": "object",
             "properties": {
                 "denominator": {
-                    "$ref": "#/definitions/models.WeekSchedule"
+                    "$ref": "#/definitions/github_com_schedule-rsreu_schedule-api_internal_models.WeekSchedule"
                 },
                 "numerator": {
-                    "$ref": "#/definitions/models.WeekSchedule"
+                    "$ref": "#/definitions/github_com_schedule-rsreu_schedule-api_internal_models.WeekSchedule"
                 }
             }
         },
-        "models.Schedule": {
+        "github_com_schedule-rsreu_schedule-api_internal_models.Schedule": {
             "type": "object",
             "properties": {
                 "course": {
@@ -724,14 +747,14 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "schedule": {
-                    "$ref": "#/definitions/models.NumeratorDenominatorSchedule"
+                    "$ref": "#/definitions/github_com_schedule-rsreu_schedule-api_internal_models.NumeratorDenominatorSchedule"
                 },
                 "updated_at": {
                     "type": "string"
                 }
             }
         },
-        "models.TeacherDepartment": {
+        "github_com_schedule-rsreu_schedule-api_internal_models.TeacherDepartment": {
             "type": "object",
             "properties": {
                 "department": {
@@ -744,7 +767,7 @@ const docTemplate = `{
                 }
             }
         },
-        "models.TeacherFaculty": {
+        "github_com_schedule-rsreu_schedule-api_internal_models.TeacherFaculty": {
             "type": "object",
             "properties": {
                 "faculty": {
@@ -757,9 +780,20 @@ const docTemplate = `{
                 }
             }
         },
-        "models.TeacherLesson": {
+        "github_com_schedule-rsreu_schedule-api_internal_models.TeacherLesson": {
             "type": "object",
             "properties": {
+                "auditoriums": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "example": [
+                        "445 C",
+                        "445 C",
+                        "Стадион РГРТУ C"
+                    ]
+                },
                 "courses": {
                     "type": "array",
                     "items": {
@@ -767,6 +801,18 @@ const docTemplate = `{
                     },
                     "example": [
                         1
+                    ]
+                },
+                "dates": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "example": [
+                        "11.09",
+                        "09.10",
+                        "06.11",
+                        "04.12"
                     ]
                 },
                 "faculties": {
@@ -799,7 +845,7 @@ const docTemplate = `{
                 }
             }
         },
-        "models.TeacherSchedule": {
+        "github_com_schedule-rsreu_schedule-api_internal_models.TeacherSchedule": {
             "type": "object",
             "properties": {
                 "department": {
@@ -831,37 +877,37 @@ const docTemplate = `{
                                 "friday": {
                                     "type": "array",
                                     "items": {
-                                        "$ref": "#/definitions/models.TeacherLesson"
+                                        "$ref": "#/definitions/github_com_schedule-rsreu_schedule-api_internal_models.TeacherLesson"
                                     }
                                 },
                                 "monday": {
                                     "type": "array",
                                     "items": {
-                                        "$ref": "#/definitions/models.TeacherLesson"
+                                        "$ref": "#/definitions/github_com_schedule-rsreu_schedule-api_internal_models.TeacherLesson"
                                     }
                                 },
                                 "saturday": {
                                     "type": "array",
                                     "items": {
-                                        "$ref": "#/definitions/models.TeacherLesson"
+                                        "$ref": "#/definitions/github_com_schedule-rsreu_schedule-api_internal_models.TeacherLesson"
                                     }
                                 },
                                 "thursday": {
                                     "type": "array",
                                     "items": {
-                                        "$ref": "#/definitions/models.TeacherLesson"
+                                        "$ref": "#/definitions/github_com_schedule-rsreu_schedule-api_internal_models.TeacherLesson"
                                     }
                                 },
                                 "tuesday": {
                                     "type": "array",
                                     "items": {
-                                        "$ref": "#/definitions/models.TeacherLesson"
+                                        "$ref": "#/definitions/github_com_schedule-rsreu_schedule-api_internal_models.TeacherLesson"
                                     }
                                 },
                                 "wednesday": {
                                     "type": "array",
                                     "items": {
-                                        "$ref": "#/definitions/models.TeacherLesson"
+                                        "$ref": "#/definitions/github_com_schedule-rsreu_schedule-api_internal_models.TeacherLesson"
                                     }
                                 }
                             }
@@ -872,37 +918,37 @@ const docTemplate = `{
                                 "friday": {
                                     "type": "array",
                                     "items": {
-                                        "$ref": "#/definitions/models.TeacherLesson"
+                                        "$ref": "#/definitions/github_com_schedule-rsreu_schedule-api_internal_models.TeacherLesson"
                                     }
                                 },
                                 "monday": {
                                     "type": "array",
                                     "items": {
-                                        "$ref": "#/definitions/models.TeacherLesson"
+                                        "$ref": "#/definitions/github_com_schedule-rsreu_schedule-api_internal_models.TeacherLesson"
                                     }
                                 },
                                 "saturday": {
                                     "type": "array",
                                     "items": {
-                                        "$ref": "#/definitions/models.TeacherLesson"
+                                        "$ref": "#/definitions/github_com_schedule-rsreu_schedule-api_internal_models.TeacherLesson"
                                     }
                                 },
                                 "thursday": {
                                     "type": "array",
                                     "items": {
-                                        "$ref": "#/definitions/models.TeacherLesson"
+                                        "$ref": "#/definitions/github_com_schedule-rsreu_schedule-api_internal_models.TeacherLesson"
                                     }
                                 },
                                 "tuesday": {
                                     "type": "array",
                                     "items": {
-                                        "$ref": "#/definitions/models.TeacherLesson"
+                                        "$ref": "#/definitions/github_com_schedule-rsreu_schedule-api_internal_models.TeacherLesson"
                                     }
                                 },
                                 "wednesday": {
                                     "type": "array",
                                     "items": {
-                                        "$ref": "#/definitions/models.TeacherLesson"
+                                        "$ref": "#/definitions/github_com_schedule-rsreu_schedule-api_internal_models.TeacherLesson"
                                     }
                                 }
                             }
@@ -919,7 +965,7 @@ const docTemplate = `{
                 }
             }
         },
-        "models.TeachersList": {
+        "github_com_schedule-rsreu_schedule-api_internal_models.TeachersList": {
             "type": "object",
             "properties": {
                 "teachers": {
@@ -934,48 +980,48 @@ const docTemplate = `{
                 }
             }
         },
-        "models.WeekSchedule": {
+        "github_com_schedule-rsreu_schedule-api_internal_models.WeekSchedule": {
             "type": "object",
             "properties": {
                 "friday": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/models.DayLessonSchedule"
+                        "$ref": "#/definitions/github_com_schedule-rsreu_schedule-api_internal_models.DayLessonSchedule"
                     }
                 },
                 "monday": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/models.DayLessonSchedule"
+                        "$ref": "#/definitions/github_com_schedule-rsreu_schedule-api_internal_models.DayLessonSchedule"
                     }
                 },
                 "saturday": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/models.DayLessonSchedule"
+                        "$ref": "#/definitions/github_com_schedule-rsreu_schedule-api_internal_models.DayLessonSchedule"
                     }
                 },
                 "thursday": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/models.DayLessonSchedule"
+                        "$ref": "#/definitions/github_com_schedule-rsreu_schedule-api_internal_models.DayLessonSchedule"
                     }
                 },
                 "tuesday": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/models.DayLessonSchedule"
+                        "$ref": "#/definitions/github_com_schedule-rsreu_schedule-api_internal_models.DayLessonSchedule"
                     }
                 },
                 "wednesday": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/models.DayLessonSchedule"
+                        "$ref": "#/definitions/github_com_schedule-rsreu_schedule-api_internal_models.DayLessonSchedule"
                     }
                 }
             }
         },
-        "v1.schedulesByGroupsRequest": {
+        "internal_http_handlers_v1.schedulesByGroupsRequest": {
             "type": "object",
             "required": [
                 "groups"

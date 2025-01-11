@@ -1,11 +1,13 @@
 package models
 
 type TeacherLesson struct {
-	Time      string   `json:"time"      bson:"time"      example:"08.10-09.45"`
-	Lesson    string   `json:"lesson"    bson:"lesson"    example:"л.Высшая математика\nдоц.Конюхов А.Н.   333 С"`
-	Faculties []string `json:"faculties" bson:"faculties" example:"фаиту,фвт"`
-	Groups    []string `json:"groups"    bson:"groups"    example:"344,345"`
-	Courses   []int    `json:"courses"   bson:"courses"   example:"1"`
+	Time        string   `json:"time"        bson:"time"        example:"08.10-09.45"`
+	Lesson      string   `json:"lesson"      bson:"lesson"      example:"л.Высшая математика\nдоц.Конюхов А.Н.   333 С"`
+	Faculties   []string `json:"faculties"   bson:"faculties"   example:"фаиту,фвт"`
+	Groups      []string `json:"groups"      bson:"groups"      example:"344,345"`
+	Courses     []int    `json:"courses"     bson:"courses"     example:"1"`
+	Dates       []string `json:"dates"       bson:"dates"       example:"11.09,09.10,06.11,04.12"`
+	Auditoriums []string `json:"auditoriums" bson:"auditoriums" example:"445 C,445 C,Стадион РГРТУ C"`
 }
 
 type TeacherSchedule struct {
@@ -49,3 +51,6 @@ type TeacherDepartment struct {
 	Department      string `json:"department"       bson:"department"       example:"Кафедра вычислительной и прикладной математики"` //nolint:lll // there is no way to fix it
 	DepartmentShort string `json:"department_short" bson:"department_short" example:"ВМ"`
 }
+
+/*
+ */

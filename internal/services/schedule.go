@@ -179,7 +179,8 @@ func addEmptyLessons(lessons []models.DayLessonSchedule, times []string) []model
 	const emptyLessonText = "—"
 
 	existingTimes := make(map[string]struct{})
-	for _, lesson := range lessons {
+	for i := range lessons {
+		lesson := &lessons[i]
 		existingTimes[lesson.Time] = struct{}{}
 	}
 

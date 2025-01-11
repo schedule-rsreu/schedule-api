@@ -3,7 +3,7 @@ definitions:
     properties:
       message: {}
     type: object
-  models.CourseFaculties:
+  github_com_schedule-rsreu_schedule-api_internal_models.CourseFaculties:
     properties:
       course:
         enum:
@@ -25,7 +25,7 @@ definitions:
           type: string
         type: array
     type: object
-  models.CourseFacultyGroups:
+  github_com_schedule-rsreu_schedule-api_internal_models.CourseFacultyGroups:
     properties:
       course:
         enum:
@@ -50,7 +50,7 @@ definitions:
           type: string
         type: array
     type: object
-  models.Day:
+  github_com_schedule-rsreu_schedule-api_internal_models.Day:
     properties:
       day:
         enum:
@@ -90,8 +90,25 @@ definitions:
         example: numerator
         type: string
     type: object
-  models.DayLessonSchedule:
+  github_com_schedule-rsreu_schedule-api_internal_models.DayLessonSchedule:
     properties:
+      auditoriums:
+        example:
+        - 445 C
+        - 445 C
+        - Стадион РГРТУ C
+        items:
+          type: string
+        type: array
+      dates:
+        example:
+        - "11.09"
+        - "09.10"
+        - "06.11"
+        - "04.12"
+        items:
+          type: string
+        type: array
       lesson:
         example: |-
           л.Высшая математика
@@ -113,14 +130,14 @@ definitions:
         example: 08.10-09.45
         type: string
     type: object
-  models.Faculties:
+  github_com_schedule-rsreu_schedule-api_internal_models.Faculties:
     properties:
       faculties:
         items:
           type: string
         type: array
     type: object
-  models.FacultyCourses:
+  github_com_schedule-rsreu_schedule-api_internal_models.FacultyCourses:
     properties:
       courses:
         items:
@@ -136,14 +153,14 @@ definitions:
         example: фвт
         type: string
     type: object
-  models.NumeratorDenominatorSchedule:
+  github_com_schedule-rsreu_schedule-api_internal_models.NumeratorDenominatorSchedule:
     properties:
       denominator:
-        $ref: '#/definitions/models.WeekSchedule'
+        $ref: '#/definitions/github_com_schedule-rsreu_schedule-api_internal_models.WeekSchedule'
       numerator:
-        $ref: '#/definitions/models.WeekSchedule'
+        $ref: '#/definitions/github_com_schedule-rsreu_schedule-api_internal_models.WeekSchedule'
     type: object
-  models.Schedule:
+  github_com_schedule-rsreu_schedule-api_internal_models.Schedule:
     properties:
       course:
         example: 1
@@ -162,11 +179,11 @@ definitions:
       id:
         type: string
       schedule:
-        $ref: '#/definitions/models.NumeratorDenominatorSchedule'
+        $ref: '#/definitions/github_com_schedule-rsreu_schedule-api_internal_models.NumeratorDenominatorSchedule'
       updated_at:
         type: string
     type: object
-  models.TeacherDepartment:
+  github_com_schedule-rsreu_schedule-api_internal_models.TeacherDepartment:
     properties:
       department:
         example: Кафедра вычислительной и прикладной математики
@@ -175,7 +192,7 @@ definitions:
         example: ВМ
         type: string
     type: object
-  models.TeacherFaculty:
+  github_com_schedule-rsreu_schedule-api_internal_models.TeacherFaculty:
     properties:
       faculty:
         example: Факультет автоматики и информационных технологий в управлении
@@ -184,13 +201,30 @@ definitions:
         example: фаиту
         type: string
     type: object
-  models.TeacherLesson:
+  github_com_schedule-rsreu_schedule-api_internal_models.TeacherLesson:
     properties:
+      auditoriums:
+        example:
+        - 445 C
+        - 445 C
+        - Стадион РГРТУ C
+        items:
+          type: string
+        type: array
       courses:
         example:
         - 1
         items:
           type: integer
+        type: array
+      dates:
+        example:
+        - "11.09"
+        - "09.10"
+        - "06.11"
+        - "04.12"
+        items:
+          type: string
         type: array
       faculties:
         example:
@@ -215,7 +249,7 @@ definitions:
         example: 08.10-09.45
         type: string
     type: object
-  models.TeacherSchedule:
+  github_com_schedule-rsreu_schedule-api_internal_models.TeacherSchedule:
     properties:
       department:
         example: Кафедра высшей математики
@@ -238,54 +272,54 @@ definitions:
             properties:
               friday:
                 items:
-                  $ref: '#/definitions/models.TeacherLesson'
+                  $ref: '#/definitions/github_com_schedule-rsreu_schedule-api_internal_models.TeacherLesson'
                 type: array
               monday:
                 items:
-                  $ref: '#/definitions/models.TeacherLesson'
+                  $ref: '#/definitions/github_com_schedule-rsreu_schedule-api_internal_models.TeacherLesson'
                 type: array
               saturday:
                 items:
-                  $ref: '#/definitions/models.TeacherLesson'
+                  $ref: '#/definitions/github_com_schedule-rsreu_schedule-api_internal_models.TeacherLesson'
                 type: array
               thursday:
                 items:
-                  $ref: '#/definitions/models.TeacherLesson'
+                  $ref: '#/definitions/github_com_schedule-rsreu_schedule-api_internal_models.TeacherLesson'
                 type: array
               tuesday:
                 items:
-                  $ref: '#/definitions/models.TeacherLesson'
+                  $ref: '#/definitions/github_com_schedule-rsreu_schedule-api_internal_models.TeacherLesson'
                 type: array
               wednesday:
                 items:
-                  $ref: '#/definitions/models.TeacherLesson'
+                  $ref: '#/definitions/github_com_schedule-rsreu_schedule-api_internal_models.TeacherLesson'
                 type: array
             type: object
           numerator:
             properties:
               friday:
                 items:
-                  $ref: '#/definitions/models.TeacherLesson'
+                  $ref: '#/definitions/github_com_schedule-rsreu_schedule-api_internal_models.TeacherLesson'
                 type: array
               monday:
                 items:
-                  $ref: '#/definitions/models.TeacherLesson'
+                  $ref: '#/definitions/github_com_schedule-rsreu_schedule-api_internal_models.TeacherLesson'
                 type: array
               saturday:
                 items:
-                  $ref: '#/definitions/models.TeacherLesson'
+                  $ref: '#/definitions/github_com_schedule-rsreu_schedule-api_internal_models.TeacherLesson'
                 type: array
               thursday:
                 items:
-                  $ref: '#/definitions/models.TeacherLesson'
+                  $ref: '#/definitions/github_com_schedule-rsreu_schedule-api_internal_models.TeacherLesson'
                 type: array
               tuesday:
                 items:
-                  $ref: '#/definitions/models.TeacherLesson'
+                  $ref: '#/definitions/github_com_schedule-rsreu_schedule-api_internal_models.TeacherLesson'
                 type: array
               wednesday:
                 items:
-                  $ref: '#/definitions/models.TeacherLesson'
+                  $ref: '#/definitions/github_com_schedule-rsreu_schedule-api_internal_models.TeacherLesson'
                 type: array
             type: object
         type: object
@@ -296,7 +330,7 @@ definitions:
         example: Конюхов А.Н.
         type: string
     type: object
-  models.TeachersList:
+  github_com_schedule-rsreu_schedule-api_internal_models.TeachersList:
     properties:
       teachers:
         example:
@@ -306,34 +340,34 @@ definitions:
           type: string
         type: array
     type: object
-  models.WeekSchedule:
+  github_com_schedule-rsreu_schedule-api_internal_models.WeekSchedule:
     properties:
       friday:
         items:
-          $ref: '#/definitions/models.DayLessonSchedule'
+          $ref: '#/definitions/github_com_schedule-rsreu_schedule-api_internal_models.DayLessonSchedule'
         type: array
       monday:
         items:
-          $ref: '#/definitions/models.DayLessonSchedule'
+          $ref: '#/definitions/github_com_schedule-rsreu_schedule-api_internal_models.DayLessonSchedule'
         type: array
       saturday:
         items:
-          $ref: '#/definitions/models.DayLessonSchedule'
+          $ref: '#/definitions/github_com_schedule-rsreu_schedule-api_internal_models.DayLessonSchedule'
         type: array
       thursday:
         items:
-          $ref: '#/definitions/models.DayLessonSchedule'
+          $ref: '#/definitions/github_com_schedule-rsreu_schedule-api_internal_models.DayLessonSchedule'
         type: array
       tuesday:
         items:
-          $ref: '#/definitions/models.DayLessonSchedule'
+          $ref: '#/definitions/github_com_schedule-rsreu_schedule-api_internal_models.DayLessonSchedule'
         type: array
       wednesday:
         items:
-          $ref: '#/definitions/models.DayLessonSchedule'
+          $ref: '#/definitions/github_com_schedule-rsreu_schedule-api_internal_models.DayLessonSchedule'
         type: array
     type: object
-  v1.schedulesByGroupsRequest:
+  internal_http_handlers_v1.schedulesByGroupsRequest:
     properties:
       groups:
         example:
@@ -374,7 +408,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/models.FacultyCourses'
+            $ref: '#/definitions/github_com_schedule-rsreu_schedule-api_internal_models.FacultyCourses'
         "404":
           description: Not Found
           schema:
@@ -393,7 +427,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/models.Day'
+            $ref: '#/definitions/github_com_schedule-rsreu_schedule-api_internal_models.Day'
         "500":
           description: Internal Server Error
           schema:
@@ -408,7 +442,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/models.Faculties'
+            $ref: '#/definitions/github_com_schedule-rsreu_schedule-api_internal_models.Faculties'
         "404":
           description: Not Found
           schema:
@@ -439,7 +473,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/models.CourseFaculties'
+            $ref: '#/definitions/github_com_schedule-rsreu_schedule-api_internal_models.CourseFaculties'
         "404":
           description: Not Found
           schema:
@@ -482,7 +516,7 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/models.CourseFacultyGroups'
+              $ref: '#/definitions/github_com_schedule-rsreu_schedule-api_internal_models.CourseFacultyGroups'
             type: array
         "404":
           description: Not Found
@@ -513,7 +547,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/models.Schedule'
+            $ref: '#/definitions/github_com_schedule-rsreu_schedule-api_internal_models.Schedule'
         "404":
           description: Not Found
           schema:
@@ -534,13 +568,13 @@ paths:
         name: groups
         required: true
         schema:
-          $ref: '#/definitions/v1.schedulesByGroupsRequest'
+          $ref: '#/definitions/internal_http_handlers_v1.schedulesByGroupsRequest'
       responses:
         "200":
           description: OK
           schema:
             items:
-              $ref: '#/definitions/models.Schedule'
+              $ref: '#/definitions/github_com_schedule-rsreu_schedule-api_internal_models.Schedule'
             type: array
         "404":
           description: Not Found
@@ -567,7 +601,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/models.TeacherSchedule'
+            $ref: '#/definitions/github_com_schedule-rsreu_schedule-api_internal_models.TeacherSchedule'
         "404":
           description: Not Found
           schema:
@@ -586,7 +620,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/models.TeachersList'
+            $ref: '#/definitions/github_com_schedule-rsreu_schedule-api_internal_models.TeachersList'
         "404":
           description: Not Found
           schema:
@@ -613,7 +647,7 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/models.TeacherDepartment'
+              $ref: '#/definitions/github_com_schedule-rsreu_schedule-api_internal_models.TeacherDepartment'
             type: array
         "404":
           description: Not Found
@@ -641,7 +675,7 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/models.TeacherFaculty'
+              $ref: '#/definitions/github_com_schedule-rsreu_schedule-api_internal_models.TeacherFaculty'
             type: array
         "404":
           description: Not Found
@@ -672,7 +706,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/models.TeachersList'
+            $ref: '#/definitions/github_com_schedule-rsreu_schedule-api_internal_models.TeachersList'
         "404":
           description: Not Found
           schema:
