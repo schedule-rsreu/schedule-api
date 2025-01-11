@@ -3,26 +3,27 @@ package services
 import (
 	"errors"
 	"fmt"
+	"sort"
 	"strings"
 	"time"
 	_ "time/tzdata"
 
 	"github.com/schedule-rsreu/schedule-api/internal/models"
 	"github.com/schedule-rsreu/schedule-api/internal/repo"
-	utils "github.com/schedule-rsreu/schedule-api/internal/utils"
+	"github.com/schedule-rsreu/schedule-api/internal/utils"
 )
 
 type ScheduleService struct {
 	Repo *repo.ScheduleRepo
 }
 
-func NewScheduleService(repo *repo.ScheduleRepo) *ScheduleService {
+func NewScheduleService(scheduleRepo *repo.ScheduleRepo) *ScheduleService {
 	return &ScheduleService{
-		Repo: repo,
+		Repo: scheduleRepo,
 	}
 }
 
-func (s *ScheduleService) GetScheduleByGroup(group string) (*models.Schedule, error) {
+func (s *ScheduleService) GetScheduleByGroup(group string, addEmptyLessons bool) (*models.Schedule, error) {
 	group = strings.ToLower(group)
 
 	resp, err := s.Repo.GetScheduleByGroup(group)
@@ -31,6 +32,10 @@ func (s *ScheduleService) GetScheduleByGroup(group string) (*models.Schedule, er
 			return nil, NotFoundError{fmt.Sprintf("schedule for group %v not found", group)}
 		}
 		return nil, err
+	}
+
+	if addEmptyLessons {
+		s.AddEmptyLessons(&resp.Schedule)
 	}
 	return resp, err
 }
@@ -126,6 +131,99 @@ func (s *ScheduleService) GetTeacherSchedule(teacher string) (*models.TeacherSch
 	return resp, err
 }
 
-func (s *ScheduleService) GetTeachers() (*models.TeachersList, error) {
+func (s *ScheduleService) GetAllTeachers() (*models.TeachersList, error) {
 	return s.Repo.GetAllTeachers()
+}
+
+func (s *ScheduleService) GetTeachersList(faculty, department *string) (*models.TeachersList, error) {
+	resp, err := s.Repo.GetTeachersList(faculty, department)
+	if err != nil {
+		if errors.Is(err, repo.ErrNoResults) {
+			return nil, NotFoundError{
+				fmt.Sprintf(
+					"teachers for faculty '%v' and department '%v' not found",
+					*faculty, *department)}
+		}
+		return nil, err
+	}
+	return resp, err
+}
+
+func (s *ScheduleService) GetTeachersFaculties(department *string) ([]*models.TeacherFaculty, error) {
+	resp, err := s.Repo.GetTeachersFaculties(department)
+	if err != nil {
+		if errors.Is(err, repo.ErrNoResults) {
+			return nil, NotFoundError{fmt.Sprintf("faculties for department '%v' not found", *department)}
+		}
+		return nil, err
+	}
+	return resp, err
+}
+
+func (s *ScheduleService) GetTeachersDepartments(faculty *string) ([]*models.TeacherDepartment, error) {
+	resp, err := s.Repo.GetTeachersDepartments(faculty)
+	if err != nil {
+		if errors.Is(err, repo.ErrNoResults) {
+			return nil, NotFoundError{fmt.Sprintf("departments for faculty '%v' not found", *faculty)}
+		}
+		return nil, err
+	}
+	return resp, err
+}
+
+func addEmptyLessons(lessons []models.DayLessonSchedule, times []string) []models.DayLessonSchedule {
+	if len(times) == 0 {
+		return lessons
+	}
+
+	const emptyLessonText = "—"
+
+	existingTimes := make(map[string]struct{})
+	for i := range lessons {
+		lesson := &lessons[i]
+		existingTimes[lesson.Time] = struct{}{}
+	}
+
+	for _, time := range times {
+		if _, exists := existingTimes[time]; !exists {
+			lessons = append(lessons, models.DayLessonSchedule{
+				Time:          time,
+				Lesson:        emptyLessonText,
+				TeachersFull:  []string{},
+				TeachersShort: []string{},
+			})
+		}
+	}
+
+	sort.Slice(lessons, func(i, j int) bool {
+		return lessons[i].Time < lessons[j].Time
+	})
+
+	for i := len(lessons) - 1; i >= 0; i-- {
+		if lessons[i].Lesson == emptyLessonText {
+			lessons = lessons[:i]
+		} else {
+			break
+		}
+	}
+
+	return lessons
+}
+
+func (s *ScheduleService) AddEmptyLessons(schedule *models.NumeratorDenominatorSchedule) {
+	times := schedule.DayLessonsTimes
+
+	schedule.Denominator.Monday = addEmptyLessons(schedule.Denominator.Monday, times.Monday)
+	schedule.Denominator.Tuesday = addEmptyLessons(schedule.Denominator.Tuesday, times.Tuesday)
+	schedule.Denominator.Wednesday = addEmptyLessons(schedule.Denominator.Wednesday, times.Wednesday)
+	schedule.Denominator.Thursday = addEmptyLessons(schedule.Denominator.Thursday, times.Thursday)
+	schedule.Denominator.Friday = addEmptyLessons(schedule.Denominator.Friday, times.Friday)
+	schedule.Denominator.Saturday = addEmptyLessons(schedule.Denominator.Saturday, times.Saturday)
+
+	schedule.Numerator.Monday = addEmptyLessons(schedule.Numerator.Monday, times.Monday)
+	schedule.Numerator.Tuesday = addEmptyLessons(schedule.Numerator.Tuesday, times.Tuesday)
+	schedule.Numerator.Wednesday = addEmptyLessons(schedule.Numerator.Wednesday, times.Wednesday)
+	schedule.Numerator.Thursday = addEmptyLessons(schedule.Numerator.Thursday, times.Thursday)
+	schedule.Numerator.Friday = addEmptyLessons(schedule.Numerator.Friday, times.Friday)
+	schedule.Numerator.Saturday = addEmptyLessons(schedule.Numerator.Saturday, times.Saturday)
 }

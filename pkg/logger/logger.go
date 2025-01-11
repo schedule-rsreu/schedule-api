@@ -8,11 +8,11 @@ import (
 
 const LoggerCtxKey = "logger"
 
-func GetLoggerFromCtx(c echo.Context) zerolog.Logger {
-	logger, ok := c.Get(LoggerCtxKey).(zerolog.Logger)
+func GetLoggerFromCtx(c echo.Context) *zerolog.Logger {
+	logger, ok := c.Get(LoggerCtxKey).(*zerolog.Logger)
 
 	if !ok {
-		return log.Logger
+		return &log.Logger
 	}
 
 	return logger
