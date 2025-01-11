@@ -46,7 +46,13 @@ jobs:
   build-image:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: "schedule-rsreu/schedule-api:cash"
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          github-token: ${{ secrets.PAT_TOKEN }}
 
-      - name: Build Docker image
-        run: docker build .
