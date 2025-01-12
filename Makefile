@@ -44,6 +44,14 @@ run:
 	make build
 	.\main
 
+.PHONY: brun
+brun:
+	go run -v ./cmd/main.go
+
+.PHONY: run-main-file
+run-main-file:
+	.\main
+
 .PHONY: swag
 swag:
 

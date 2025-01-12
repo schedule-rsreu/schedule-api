@@ -11,6 +11,8 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/labstack/gommon/color"
+
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	mwp "github.com/schedule-rsreu/schedule-api/internal/http/middleware/prometheus"
 
@@ -31,6 +33,20 @@ import (
 )
 
 const contextTimeout = 5 * time.Second
+
+const productionUrl = "https://schedule-rsreu.ru"
+const banner = `
+   _____      __             __      __        ___    ____  ____
+  / ___/_____/ /_  ___  ____/ /_  __/ /__     /   |  / __ \/  _/
+  \__ \/ ___/ __ \/ _ \/ __  / / / / / _ \   / /| | / /_/ // /  
+ ___/ / /__/ / / /  __/ /_/ / /_/ / /  __/  / ___ |/ ____// /   
+/____/\___/_/ /_/\___/\__,_/\__,_/_/\___/  /_/  |_/_/   /___/   %s
+API for RSREU schedule
+___________________________________________
+
+⇨ server started on: %s
+⇨ docs: %s
+`
 
 type CustomValidator struct {
 	validator *validator.Validate
@@ -63,12 +79,22 @@ func Heartbeat(endpoint string) func(http.Handler) http.Handler {
 	return f
 }
 
+func printBanner(version, url string) {
+	colorer := color.New()
+
+	colorer.Printf(banner,
+		colorer.Red("v"+version),
+		colorer.Blue(url),
+		colorer.BlueBg(url+"/docs/index.html"),
+	)
+}
+
 func Run(cfg *config.Config) {
 	logger := zerolog.New(os.Stdout)
 
 	e := echo.New()
-
-	setupEcho(e, &logger)
+	e.HideBanner = true
+	e.HidePort = true
 
 	ctx, cancel := context.WithTimeout(context.Background(), contextTimeout)
 	defer cancel()
@@ -92,15 +118,19 @@ func Run(cfg *config.Config) {
 	handlers.NewRouter(e, services.NewScheduleService(repo.New(client)))
 
 	go func() {
-		logger.Debug().Msg("Open http://" + net.JoinHostPort("localhost", cfg.Port) + "/docs")
+		if cfg.Production {
+			printBanner(cfg.Version, productionUrl)
+		} else {
+			printBanner(cfg.Version, "http://localhost:"+cfg.Port)
+		}
+		setupEcho(e, &logger)
+
 		err := e.Start(net.JoinHostPort(cfg.Host, cfg.Port))
 		if err != nil {
 			logger.Error().Err(err).Msg("app - Run - httpServer.Start")
 			return
 		}
 	}()
-
-	logger.Info().Msg("Server started")
 
 	// Waiting signal
 	interrupt := make(chan os.Signal, 1)
