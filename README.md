@@ -23,7 +23,7 @@
 ## Запуск
 
 Для запуска понадобиться `make` ([скачать](https://cmake.org/download/))
-и `docker` ([инструкции по установке `docker`](https://docs.docker.com/engine/install/)).
+и `docker` ([инструкции по установке](https://docs.docker.com/engine/install/)).
 
 Запуск локально, с поднятой базой данных отдельно. (Базу данных можно поднять в `docker`
 выполнив `docker compose up mongodb -d`):
