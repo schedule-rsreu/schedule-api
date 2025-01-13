@@ -11,6 +11,8 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/schedule-rsreu/schedule-api/pkg/mongodb"
+
 	"github.com/labstack/gommon/color"
 
 	"github.com/prometheus/client_golang/prometheus/promhttp"
@@ -18,13 +20,9 @@ import (
 
 	"github.com/go-playground/validator/v10"
 
+	"github.com/schedule-rsreu/schedule-api/internal/http/handlers"
 	"github.com/schedule-rsreu/schedule-api/internal/repo"
 	"github.com/schedule-rsreu/schedule-api/internal/services"
-	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
-	"go.mongodb.org/mongo-driver/mongo/readpref"
-
-	"github.com/schedule-rsreu/schedule-api/internal/http/handlers"
 
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
@@ -96,26 +94,15 @@ func Run(cfg *config.Config) {
 	e.HideBanner = true
 	e.HidePort = true
 
-	ctx, cancel := context.WithTimeout(context.Background(), contextTimeout)
-	defer cancel()
-
-	client, err := mongo.Connect(ctx, options.Client().ApplyURI(cfg.GetMongoURI()))
-	defer func() {
-		if err = client.Disconnect(ctx); err != nil {
-			panic(err)
-		}
-	}()
-
-	ctx, cancel = context.WithTimeout(context.Background(), contextTimeout)
-	defer cancel()
-	err = client.Ping(ctx, readpref.Primary())
+	mongoClient, err := mongodb.NewMongoClient(cfg.GetMongoURI())
 
 	if err != nil {
 		logger.Error().Err(err).Msg("MongoDB ping failed")
 		return
 	}
+	scheduleDB := mongodb.NewMongoDatabase(mongoClient, cfg.MongoDBName)
 
-	handlers.NewRouter(e, services.NewScheduleService(repo.New(client)))
+	handlers.NewRouter(e, services.NewScheduleService(repo.NewScheduleRepo(scheduleDB)))
 
 	go func() {
 		if cfg.Production {
@@ -139,12 +126,20 @@ func Run(cfg *config.Config) {
 	s := <-interrupt
 	logger.Info().Str("signal", s.String()).Msg("app - Run - signal.Notify")
 
-	ctx, cancel = context.WithTimeout(context.Background(), contextTimeout)
+	ctx, cancel := context.WithTimeout(context.Background(), contextTimeout)
 	defer cancel()
 
 	if err := e.Shutdown(ctx); err != nil {
 		logger.Error().Err(err).Msg("app - Run - httpServer.Shutdown")
 	}
+
+	if err := mongoClient.Disconnect(ctx); err != nil {
+		logger.Error().Err(err).Msg("app - Run - mongoClient.Disconnect")
+		return
+	}
+	logger.Info().Msg("app - Run - mongoClient.Disconnect - exit")
+
+	logger.Info().Msg("app - Run - exit")
 }
 
 func setupEcho(e *echo.Echo, logger *zerolog.Logger) {

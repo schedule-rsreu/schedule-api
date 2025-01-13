@@ -16,18 +16,19 @@ const maxFacultyShortLen = 8
 const maxDepartmentShortLen = 6
 
 type ScheduleRepo struct {
-	mdb                        *mongo.Client
+	mdb                        *mongo.Database
 	scheduleCollection         *mongo.Collection
 	teachersScheduleCollection *mongo.Collection
 }
 
-func New(mdb *mongo.Client) *ScheduleRepo {
-	scheduleCollection := mdb.Database("schedule_database").Collection("schedule")
-	teachersScheduleCollection := mdb.Database("schedule_database").Collection("teachers_schedule")
+const ScheduleCollectionName = "schedule"
+const TeachersScheduleCollectionName = "teachers_schedule"
+
+func NewScheduleRepo(mdb *mongo.Database) *ScheduleRepo {
+	scheduleCollection := mdb.Collection(ScheduleCollectionName)
+	teachersScheduleCollection := mdb.Collection(TeachersScheduleCollectionName)
 	return &ScheduleRepo{mdb, scheduleCollection, teachersScheduleCollection}
 }
-
-// var ErrNoResults = errors.New("no results")
 
 func findOne[T any](filter any, c *mongo.Collection) (*T, error) {
 	var result *T

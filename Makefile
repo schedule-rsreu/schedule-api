@@ -32,7 +32,7 @@ fix:
 
 .PHONY: test
 test:
-	$(BIN)/gotestsum ./... -race
+	$(BIN)/gotestsum ./... -race -v -coverprofile=cover.out -covermode=atomic
 
 .PHONY: build
 build:
@@ -60,6 +60,10 @@ swag:
 .PHONY: d
 d:
 	docker compose up
+
+.PHONY: testcover
+testcover:
+	go test -race -coverprofile=coverage.txt -covermode=atomic ./...
 
 .PHONY: prod
 prod:

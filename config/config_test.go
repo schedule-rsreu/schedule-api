@@ -16,6 +16,7 @@ func TestGetConfig(t *testing.T) {
 	t.Setenv("MONGO_USERNAME", "mongo")
 
 	t.Setenv("MONGO_PASSWORD", "mongo")
+	t.Setenv("MONGO_DB_NAME", "mongo")
 
 	cfg := config.Get()
 	t.Log(cfg)
@@ -27,4 +28,5 @@ func TestGetConfig(t *testing.T) {
 	assert.Equal(t, "27017", cfg.MongoPort)
 	assert.True(t, cfg.Production)
 	assert.Equal(t, "mongodb://mongo:mongo@mongodb:27017", cfg.GetMongoURI())
+	assert.Equal(t, "mongo", cfg.MongoDBName)
 }

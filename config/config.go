@@ -18,6 +18,7 @@ type Config struct {
 	MongoPort     string `env:"MONGO_PORT"     env-default:"27017"`
 	MongoUsername string `env:"MONGO_USERNAME"                       env-required:"true"`
 	MongoPassword string `env:"MONGO_PASSWORD"                       env-required:"true"`
+	MongoDBName   string `env:"MONGO_DB_NAME"                        env-required:"true"`
 	Production    bool   `env:"PRODUCTION"     env-default:"true"`
 }
 
