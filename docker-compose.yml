@@ -13,6 +13,7 @@ services:
     environment:
       - MONGO_HOST=mongodb
       - MONGO_PORT=27017
+      - MONGO_DB_NAME=schedule_database
       - MONGO_USERNAME=${MONGO_USERNAME}
       - MONGO_PASSWORD=${MONGO_PASSWORD}
 
@@ -21,7 +22,6 @@ services:
     ports:
       - "27017:27017"
     environment:
-      - MONGO_DB_NAME=schedule_database
       - MONGO_INITDB_ROOT_USERNAME=${MONGO_USERNAME}
       - MONGO_INITDB_ROOT_PASSWORD=${MONGO_PASSWORD}
     restart: always
