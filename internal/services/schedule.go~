@@ -211,21 +211,19 @@ func addEmptyLessons(lessons []models.DayLessonSchedule, times []string) []model
 }
 
 func (s *ScheduleService) AddEmptyLessons(schedule *models.NumeratorDenominatorSchedule) {
-	times := schedule.Denominator.WeekDayLessonsTimes
+	times := schedule.DayLessonsTimes
 
-	schedule.Denominator.Monday = addEmptyLessons(schedule.Denominator.Monday, times)
-	schedule.Denominator.Tuesday = addEmptyLessons(schedule.Denominator.Tuesday, times)
-	schedule.Denominator.Wednesday = addEmptyLessons(schedule.Denominator.Wednesday, times)
-	schedule.Denominator.Thursday = addEmptyLessons(schedule.Denominator.Thursday, times)
-	schedule.Denominator.Friday = addEmptyLessons(schedule.Denominator.Friday, times)
-	schedule.Denominator.Saturday = addEmptyLessons(schedule.Denominator.Saturday, times)
+	schedule.Denominator.Monday = addEmptyLessons(schedule.Denominator.Monday, times.Monday)
+	schedule.Denominator.Tuesday = addEmptyLessons(schedule.Denominator.Tuesday, times.Tuesday)
+	schedule.Denominator.Wednesday = addEmptyLessons(schedule.Denominator.Wednesday, times.Wednesday)
+	schedule.Denominator.Thursday = addEmptyLessons(schedule.Denominator.Thursday, times.Thursday)
+	schedule.Denominator.Friday = addEmptyLessons(schedule.Denominator.Friday, times.Friday)
+	schedule.Denominator.Saturday = addEmptyLessons(schedule.Denominator.Saturday, times.Saturday)
 
-	times = schedule.Numerator.WeekDayLessonsTimes
-
-	schedule.Numerator.Monday = addEmptyLessons(schedule.Numerator.Monday, times)
-	schedule.Numerator.Tuesday = addEmptyLessons(schedule.Numerator.Tuesday, times)
-	schedule.Numerator.Wednesday = addEmptyLessons(schedule.Numerator.Wednesday, times)
-	schedule.Numerator.Thursday = addEmptyLessons(schedule.Numerator.Thursday, times)
-	schedule.Numerator.Friday = addEmptyLessons(schedule.Numerator.Friday, times)
-	schedule.Numerator.Saturday = addEmptyLessons(schedule.Numerator.Saturday, times)
+	schedule.Numerator.Monday = addEmptyLessons(schedule.Numerator.Monday, times.Monday)
+	schedule.Numerator.Tuesday = addEmptyLessons(schedule.Numerator.Tuesday, times.Tuesday)
+	schedule.Numerator.Wednesday = addEmptyLessons(schedule.Numerator.Wednesday, times.Wednesday)
+	schedule.Numerator.Thursday = addEmptyLessons(schedule.Numerator.Thursday, times.Thursday)
+	schedule.Numerator.Friday = addEmptyLessons(schedule.Numerator.Friday, times.Friday)
+	schedule.Numerator.Saturday = addEmptyLessons(schedule.Numerator.Saturday, times.Saturday)
 }

@@ -56,7 +56,6 @@ func createMongoContainer(ctx context.Context) (testcontainers.Container, *mongo
 			Image:        "mongo:6.0.9",
 			ExposedPorts: []string{port},
 			Env:          env,
-			//WaitingFor:   wait.Strategy(wait.ForLog("Waiting for connections")),
 		},
 		Started: true,
 	}
@@ -626,14 +625,12 @@ func (suite *RepositorySuite) TestGetScheduleByGroup() {
 			Collection(repo.ScheduleCollectionName).
 			Drop(context.Background()))
 	}()
-	suite.Run("when id is not provided", func() {
-		suite.Equal(result.InsertedID, data["_id"])
+	suite.Equal(result.InsertedID, data["_id"])
 
-		createdSchedule, err := suite.repository.GetScheduleByGroup("344")
+	createdSchedule, err := suite.repository.GetScheduleByGroup("344")
 
-		suite.Require().NoError(err)
-		suite.Equal("344", createdSchedule.Group)
-	})
+	suite.Require().NoError(err)
+	suite.Equal("344", createdSchedule.Group)
 }
 
 func (suite *RepositorySuite) TestGetGroups() {
@@ -658,35 +655,33 @@ func (suite *RepositorySuite) TestGetGroups() {
 	err := json.Unmarshal([]byte(testGroupDocs), &data)
 	suite.Require().NoError(err)
 
-	suite.Run("when id is not provided", func() {
-		result, err := suite.
-			testDatabase.
+	result, err := suite.
+		testDatabase.
+		DbInstance.
+		Collection(repo.ScheduleCollectionName).
+		InsertMany(context.Background(), data)
+	suite.Require().NoError(err)
+	defer func() {
+		suite.Require().NoError(suite.testDatabase.
 			DbInstance.
 			Collection(repo.ScheduleCollectionName).
-			InsertMany(context.Background(), data)
-		suite.Require().NoError(err)
-		defer func() {
-			suite.Require().NoError(suite.testDatabase.
-				DbInstance.
-				Collection(repo.ScheduleCollectionName).
-				Drop(context.Background()))
-		}()
+			Drop(context.Background()))
+	}()
 
-		suite.Len(result.InsertedIDs, 3)
+	suite.Len(result.InsertedIDs, 3)
 
-		groups, err := suite.repository.GetGroups("фвт", 3)
-		suite.Require().NoError(err)
+	groups, err := suite.repository.GetGroups("фвт", 3)
+	suite.Require().NoError(err)
 
-		suite.Len(groups.Groups, 2)
+	suite.Len(groups.Groups, 2)
 
-		groups, err = suite.repository.GetGroups("фэ", 0)
-		suite.Require().NoError(err)
-		suite.Len(groups.Groups, 1)
+	groups, err = suite.repository.GetGroups("фэ", 0)
+	suite.Require().NoError(err)
+	suite.Len(groups.Groups, 1)
 
-		groups, err = suite.repository.GetGroups("", 0)
-		suite.Require().NoError(err)
-		suite.Len(groups.Groups, 3)
-	})
+	groups, err = suite.repository.GetGroups("", 0)
+	suite.Require().NoError(err)
+	suite.Len(groups.Groups, 3)
 }
 
 func (suite *RepositorySuite) TestGetFaculties() {
@@ -711,27 +706,25 @@ func (suite *RepositorySuite) TestGetFaculties() {
 	err := json.Unmarshal([]byte(testGroupDocs), &data)
 	suite.Require().NoError(err)
 
-	suite.Run("when id is not provided", func() {
-		result, err := suite.
-			testDatabase.
+	result, err := suite.
+		testDatabase.
+		DbInstance.
+		Collection(repo.ScheduleCollectionName).
+		InsertMany(context.Background(), data)
+	suite.Require().NoError(err)
+	defer func() {
+		suite.Require().NoError(suite.testDatabase.
 			DbInstance.
 			Collection(repo.ScheduleCollectionName).
-			InsertMany(context.Background(), data)
-		suite.Require().NoError(err)
-		defer func() {
-			suite.Require().NoError(suite.testDatabase.
-				DbInstance.
-				Collection(repo.ScheduleCollectionName).
-				Drop(context.Background()))
-		}()
+			Drop(context.Background()))
+	}()
 
-		suite.Len(result.InsertedIDs, 3)
+	suite.Len(result.InsertedIDs, 3)
 
-		faculties, err := suite.repository.GetFaculties()
-		suite.Require().NoError(err)
+	faculties, err := suite.repository.GetFaculties()
+	suite.Require().NoError(err)
 
-		suite.Len(faculties.Faculties, 2)
-	})
+	suite.Len(faculties.Faculties, 2)
 }
 func (suite *RepositorySuite) TestGetCourseFaculties() {
 	const testGroupDocs = `
@@ -769,21 +762,19 @@ func (suite *RepositorySuite) TestGetCourseFaculties() {
 			Drop(context.Background()))
 	}()
 
-	suite.Run("when id is not provided", func() {
-		courseFaculties, err := suite.repository.GetCourseFaculties(3)
-		suite.Require().NoError(err)
+	courseFaculties, err := suite.repository.GetCourseFaculties(3)
+	suite.Require().NoError(err)
 
-		suite.Len(courseFaculties.Faculties, 1)
+	suite.Len(courseFaculties.Faculties, 1)
 
-		courseFaculties, err = suite.repository.GetCourseFaculties(4)
-		suite.Require().NoError(err)
+	courseFaculties, err = suite.repository.GetCourseFaculties(4)
+	suite.Require().NoError(err)
 
-		suite.Len(courseFaculties.Faculties, 1)
+	suite.Len(courseFaculties.Faculties, 1)
 
-		courseFaculties, err = suite.repository.GetCourseFaculties(1)
-		suite.Nil(courseFaculties)
-		suite.Require().Equal(err, repo.ErrNoResults)
-	})
+	courseFaculties, err = suite.repository.GetCourseFaculties(1)
+	suite.Nil(courseFaculties)
+	suite.Require().Equal(err, repo.ErrNoResults)
 }
 
 func (suite *RepositorySuite) TestGetFacultyCourses() {
@@ -828,6 +819,51 @@ func (suite *RepositorySuite) TestGetFacultyCourses() {
 
 	facultyCourses, err = suite.repository.GetFacultyCourses("abc")
 	suite.Nil(facultyCourses)
+	suite.Require().Equal(err, repo.ErrNoResults)
+}
+
+func (suite *RepositorySuite) TestGetCourseFacultyGroups() {
+	const testGroupDocs = `
+	[
+		{	  "group": "23434",
+			  "course": 3,
+			  "faculty": "фвт"
+		},
+		{	  "group": "345",
+			  "course": 3,
+			  "faculty": "фвт"
+		},
+		{	  "group": "016",
+			  "course": 4,
+			  "faculty": "фэ"
+		}
+	]
+	`
+	var data []interface{}
+
+	err := json.Unmarshal([]byte(testGroupDocs), &data)
+	suite.Require().NoError(err)
+
+	result, err := suite.
+		testDatabase.
+		DbInstance.
+		Collection(repo.ScheduleCollectionName).
+		InsertMany(context.Background(), data)
+	suite.Require().NoError(err)
+	defer func() {
+		suite.Require().NoError(suite.testDatabase.
+			DbInstance.
+			Collection(repo.ScheduleCollectionName).
+			Drop(context.Background()))
+	}()
+	suite.Len(result.InsertedIDs, 3)
+
+	courseGroups, err := suite.repository.GetCourseFacultyGroups("фвт", 3)
+	suite.Require().NoError(err)
+	suite.Len(courseGroups.Groups, 2)
+
+	courseGroups, err = suite.repository.GetCourseFacultyGroups("фвт", 4)
+	suite.Nil(courseGroups)
 	suite.Require().Equal(err, repo.ErrNoResults)
 }
 

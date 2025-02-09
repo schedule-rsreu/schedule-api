@@ -4,7 +4,6 @@ BIN=bin
 
 export GOBIN=$(CURDIR)/$(BIN)# for windows
 
-#export GOBIN=$(PWD)/$(BIN) # for unix
 
 $(BIN)/golangci-lint:
 	go install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.63.4

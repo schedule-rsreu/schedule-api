@@ -16,31 +16,22 @@ type DayLessonSchedule struct {
 }
 
 type WeekSchedule struct {
-	Monday    []DayLessonSchedule `json:"monday"    bson:"monday"`
-	Tuesday   []DayLessonSchedule `json:"tuesday"   bson:"tuesday"`
-	Wednesday []DayLessonSchedule `json:"wednesday" bson:"wednesday"`
-	Thursday  []DayLessonSchedule `json:"thursday"  bson:"thursday"`
-	Friday    []DayLessonSchedule `json:"friday"    bson:"friday"`
-	Saturday  []DayLessonSchedule `json:"saturday"  bson:"saturday"`
+	Monday              []DayLessonSchedule `json:"monday"    bson:"monday"`
+	Tuesday             []DayLessonSchedule `json:"tuesday"   bson:"tuesday"`
+	Wednesday           []DayLessonSchedule `json:"wednesday" bson:"wednesday"`
+	Thursday            []DayLessonSchedule `json:"thursday"  bson:"thursday"`
+	Friday              []DayLessonSchedule `json:"friday"    bson:"friday"`
+	Saturday            []DayLessonSchedule `json:"saturday"  bson:"saturday"`
+	WeekDayLessonsTimes []string            `json:"-"         bson:"week_day_lessons_times"`
 }
 
 type NumeratorDenominatorSchedule struct {
-	Numerator       WeekSchedule `json:"numerator"   bson:"numerator"`
-	Denominator     WeekSchedule `json:"denominator" bson:"denominator"`
-	DayLessonsTimes struct {
-		Monday    []string `json:"monday"    bson:"monday"`
-		Tuesday   []string `json:"tuesday"   bson:"tuesday"`
-		Wednesday []string `json:"wednesday" bson:"wednesday"`
-		Thursday  []string `json:"thursday"  bson:"thursday"`
-		Friday    []string `json:"friday"    bson:"friday"`
-		Saturday  []string `json:"saturday"  bson:"saturday"`
-	} `json:"-" bson:"day_lessons_times"`
+	Numerator   WeekSchedule `json:"numerator"   bson:"numerator"`
+	Denominator WeekSchedule `json:"denominator" bson:"denominator"`
 }
 
 type Schedule struct {
 	UpdatedAt time.Time                    `json:"updated_at" bson:"updated_at"`
-	File      string                       `json:"file"       bson:"file"`
-	FileHash  string                       `json:"file_hash"  bson:"file_hash"  example:"5427593514859b0701e8e12ecbce1b0b"`
 	Faculty   string                       `json:"faculty"    bson:"faculty"    example:"фвт"`
 	Group     string                       `json:"group"      bson:"group"      example:"344"`
 	Schedule  NumeratorDenominatorSchedule `json:"schedule"   bson:"schedule"`

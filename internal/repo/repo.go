@@ -145,13 +145,6 @@ func (sr *ScheduleRepo) GetGroups(facultyName string, course int) (*models.Cours
 		}}},
 	}
 
-	stageFacultyCourse := append(mongo.Pipeline{
-		bson.D{{Key: "$match", Value: bson.D{
-			{Key: "faculty", Value: facultyName},
-			{Key: "course", Value: course},
-		}}},
-	}, stageBase...)
-
 	stageFaculty := append(mongo.Pipeline{
 		bson.D{{Key: "$match", Value: bson.D{
 			{Key: "faculty", Value: facultyName},
@@ -162,8 +155,6 @@ func (sr *ScheduleRepo) GetGroups(facultyName string, course int) (*models.Cours
 
 	if facultyName == "" || course == 0 {
 		switch {
-		case facultyName != "" && course != 0:
-			stage = stageFacultyCourse
 		case facultyName != "":
 			stage = stageFaculty
 		default:
