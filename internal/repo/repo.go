@@ -147,7 +147,7 @@ func (sr *ScheduleRepo) GetGroups(facultyName string, course int) (*models.Cours
 
 	var stage mongo.Pipeline
 
-	if facultyName != "" || course != 0 {
+	if facultyName == "" || course == 0 {
 		if facultyName != "" {
 			stage = append(stage, mongo.Pipeline{
 				bson.D{{Key: "$match", Value: bson.D{
