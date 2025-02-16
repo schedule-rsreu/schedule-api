@@ -23,12 +23,11 @@ type Config struct {
 }
 
 var (
-	config Config
-	once   sync.Once
+	config Config    //nolint:gochecknoglobals,lll // Global config is initialized once and accessed throughout the application.
+	once   sync.Once //nolint:gochecknoglobals,lll // Ensures the config is initialized only once, which requires a global sync.Once.
 )
 
 func Get() *Config {
-
 	once.Do(func() {
 		err := godotenv.Load()
 

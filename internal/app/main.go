@@ -11,6 +11,8 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/schedule-rsreu/schedule-api/internal/http/middleware/dwh"
+
 	"github.com/schedule-rsreu/schedule-api/pkg/mongodb"
 
 	"github.com/labstack/gommon/color"
@@ -153,6 +155,7 @@ func setupEcho(e *echo.Echo, logger *zerolog.Logger) {
 	e.Use(middleware.Recover())
 	e.Use(middleware.CORS())
 	e.Use(middleware.RequestID())
+	e.Use(dwh.New(logger, "", "", "secret"))
 
 	setupLogger(e, logger)
 }

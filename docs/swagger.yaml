@@ -168,11 +168,6 @@ definitions:
       faculty:
         example: фвт
         type: string
-      file:
-        type: string
-      file_hash:
-        example: 5427593514859b0701e8e12ecbce1b0b
-        type: string
       group:
         example: "344"
         type: string
@@ -485,6 +480,27 @@ paths:
       summary: Get course faculties
       tags:
       - Faculties
+  /api/v1/schedule/faculties/courses:
+    get:
+      description: Факультеты с курсами
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/github_com_schedule-rsreu_schedule-api_internal_models.FacultyCourses'
+            type: array
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/echo.HTTPError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/echo.HTTPError'
+      summary: Get faculties with courses
+      tags:
+      - Faculties
   /api/v1/schedule/groups:
     get:
       description: Группы факультета курса
@@ -498,7 +514,6 @@ paths:
         - 5
         in: query
         name: course
-        required: true
         type: integer
       - description: faculty
         enum:
@@ -509,7 +524,6 @@ paths:
         - фэ
         in: query
         name: faculty
-        required: true
         type: string
       responses:
         "200":

@@ -145,23 +145,26 @@ func (sr *ScheduleRepo) GetGroups(facultyName string, course int) (*models.Cours
 		}}},
 	}
 
-	stageFaculty := append(mongo.Pipeline{
-		bson.D{{Key: "$match", Value: bson.D{
-			{Key: "faculty", Value: facultyName},
-		}}},
-	}, stageBase...)
-
 	var stage mongo.Pipeline
 
-	if facultyName == "" || course == 0 {
-		switch {
-		case facultyName != "":
-			stage = stageFaculty
-		default:
-			stage = append(mongo.Pipeline{
-				bson.D{{Key: "$match", Value: bson.D{}}},
-			}, stageBase...)
+	if facultyName != "" || course != 0 {
+		if facultyName != "" {
+			stage = append(stage, mongo.Pipeline{
+				bson.D{{Key: "$match", Value: bson.D{
+					{Key: "faculty", Value: facultyName},
+				}}},
+			}...)
 		}
+
+		if course != 0 {
+			stage = append(stage, mongo.Pipeline{
+				bson.D{{Key: "$match", Value: bson.D{
+					{Key: "course", Value: course},
+				}}},
+			}...)
+		}
+
+		stage = append(stage, stageBase...)
 	} else {
 		stage = mongo.Pipeline{
 			bson.D{{
@@ -321,6 +324,35 @@ func (sr *ScheduleRepo) GetFacultyCourses(facultyName string) (*models.FacultyCo
 	}
 
 	return aggregateOne[models.FacultyCourses](stage, sr.scheduleCollection)
+}
+
+func (sr *ScheduleRepo) GetFacultiesWithCourses() (*models.FacultiesCourses, error) {
+	pipeline := mongo.Pipeline{
+		{{Key: "$group", Value: bson.D{
+			{Key: "_id", Value: "$faculty"},
+			{Key: "courses", Value: bson.D{{Key: "$addToSet", Value: "$course"}}},
+		}}},
+		{{Key: "$project", Value: bson.D{
+			{Key: "_id", Value: 0},
+			{Key: "faculty", Value: "$_id"},
+			{Key: "courses", Value: bson.D{{Key: "$setIntersection", Value: bson.A{"$courses", "$courses"}}}},
+		}}},
+		{{Key: "$sort", Value: bson.D{
+			{Key: "faculty", Value: 1},
+		}}},
+	}
+
+	fc, err := aggregateAll[models.FacultyCourses](pipeline, sr.scheduleCollection)
+
+	if err != nil {
+		return nil, err
+	}
+	var res models.FacultiesCourses
+	for _, f := range fc {
+		res = append(res, *f)
+	}
+
+	return &res, nil
 }
 
 func (sr *ScheduleRepo) GetCourseFaculties(course int) (*models.CourseFaculties, error) {

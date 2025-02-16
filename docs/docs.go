@@ -157,6 +157,38 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/v1/schedule/faculties/courses": {
+            "get": {
+                "description": "Факультеты с курсами",
+                "tags": [
+                    "Faculties"
+                ],
+                "summary": "Get faculties with courses",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/github_com_schedule-rsreu_schedule-api_internal_models.FacultyCourses"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/echo.HTTPError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/echo.HTTPError"
+                        }
+                    }
+                }
+            }
+        },
         "/api/v1/schedule/groups": {
             "get": {
                 "description": "Группы факультета курса",
@@ -176,8 +208,7 @@ const docTemplate = `{
                         "type": "integer",
                         "description": "course",
                         "name": "course",
-                        "in": "query",
-                        "required": true
+                        "in": "query"
                     },
                     {
                         "enum": [
@@ -190,8 +221,7 @@ const docTemplate = `{
                         "type": "string",
                         "description": "faculty",
                         "name": "faculty",
-                        "in": "query",
-                        "required": true
+                        "in": "query"
                     }
                 ],
                 "responses": {
@@ -731,13 +761,6 @@ const docTemplate = `{
                 "faculty": {
                     "type": "string",
                     "example": "фвт"
-                },
-                "file": {
-                    "type": "string"
-                },
-                "file_hash": {
-                    "type": "string",
-                    "example": "5427593514859b0701e8e12ecbce1b0b"
                 },
                 "group": {
                     "type": "string",

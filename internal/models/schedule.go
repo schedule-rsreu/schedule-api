@@ -54,6 +54,8 @@ type FacultyCourses struct {
 	Courses []int  `json:"courses" bson:"courses"`
 }
 
+type FacultiesCourses []FacultyCourses
+
 type CourseFaculties struct {
 	Faculties []string `json:"faculties" bson:"faculties" enums:"иэф,фаиту,фвт,фрт,фэ"`
 	Course    int      `json:"course"    bson:"course"    enums:"1,2,3,4,5"                            example:"1"`

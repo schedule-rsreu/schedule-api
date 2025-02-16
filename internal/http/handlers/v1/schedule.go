@@ -36,8 +36,9 @@ func NewRouter(g *echo.Group,
 	scheduleGroup.POST("/groups/sample", sh.schedulesByGroups) // groups/sample
 	scheduleGroup.GET("/groups", sh.getCourseFacultyGroups)    // /groups?faculty=фвт&course=3
 
-	scheduleGroup.GET("/faculties", sh.getFaculties)              // /faculties
-	scheduleGroup.GET("/faculties/course", sh.getCourseFaculties) // /faculties/course?course=1
+	scheduleGroup.GET("/faculties", sh.getFaculties)                // /faculties
+	scheduleGroup.GET("/faculties/course", sh.getCourseFaculties)   // /faculties/course?course=1
+	scheduleGroup.GET("/faculties/courses", sh.getFacultiesCourses) // /faculties/course?course=1
 
 	scheduleGroup.GET("/teachers", sh.getTeacherSchedule)                 // /teachers?teacher=Конюхов+Алексей+Николаевич
 	scheduleGroup.GET("/teachers/all", sh.getTeachers)                    // /teachers/all
@@ -215,6 +216,26 @@ type schedulesByGroupsRequest struct {
 	Groups []string `json:"groups" validate:"required" example:"344,345,346"`
 }
 
+// getFacultiesCourses
+// @Summary     Get faculties with courses
+// @Description Факультеты с курсами
+// @Tags        Faculties
+// @Router      /api/v1/schedule/faculties/courses [get]
+// @Success     200  {object}  models.FacultiesCourses
+// @Response    200  {object}  models.FacultiesCourses
+// @Failure     500  {object}  echo.HTTPError
+// @Failure     404  {object}  echo.HTTPError.
+func (sh *ScheduleHandler) getFacultiesCourses(c echo.Context) error {
+	resp, err := sh.s.GetFacultiesWithCourses()
+	if err != nil {
+		if errors.As(err, &services.NotFoundError{}) {
+			return echo.NewHTTPError(http.StatusNotFound, err)
+		}
+		return err
+	}
+	return c.JSON(http.StatusOK, resp)
+}
+
 // schedulesByGroups
 // @Summary     Get schedules by groups
 // @Description Рассписание для нескольких групп
@@ -251,8 +272,8 @@ func (sh *ScheduleHandler) schedulesByGroups(c echo.Context) error {
 // @Description Группы факультета курса
 // @Tags        Groups
 // @Router      /api/v1/schedule/groups [get]
-// @Param       course  query  int  true  "course" Enums(1, 2, 3, 4, 5)
-// @Param       faculty  query  string  true  "faculty" Enums(иэф, фаиту, фвт, фрт, фэ)
+// @Param       course  query  int  false  "course" Enums(1, 2, 3, 4, 5)
+// @Param       faculty  query  string  false  "faculty" Enums(иэф, фаиту, фвт, фрт, фэ)
 // @Success     200  {array}   models.CourseFacultyGroups
 // @Response    200  {array}   models.CourseFacultyGroups
 // @Failure     500  {object}  echo.HTTPError

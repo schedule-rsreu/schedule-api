@@ -210,6 +210,18 @@ func addEmptyLessons(lessons []models.DayLessonSchedule, times []string) []model
 	return lessons
 }
 
+func (s *ScheduleService) GetFacultiesWithCourses() (*models.FacultiesCourses, error) {
+	resp, err := s.Repo.GetFacultiesWithCourses()
+
+	if err != nil {
+		if errors.Is(err, repo.ErrNoResults) {
+			return nil, NotFoundError{"no results"}
+		}
+		return nil, err
+	}
+	return resp, err
+}
+
 func (s *ScheduleService) AddEmptyLessons(schedule *models.NumeratorDenominatorSchedule) {
 	times := schedule.Denominator.WeekDayLessonsTimes
 
