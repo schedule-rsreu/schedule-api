@@ -482,20 +482,21 @@ func (sr *ScheduleRepo) GetTeachersDepartments(faculty *string) ([]*models.Teach
 	return aggregateAll[models.TeacherDepartment](pipeline, sr.teachersScheduleCollection)
 }
 
-func (sr *ScheduleRepo) GetTeachersList(faculty, department *string) (*models.TeachersList, error) {
+func (sr *ScheduleRepo) GetTeachersList(faculty, department string) (*models.TeachersList, error) {
+
 	matchStage := bson.D{}
-	if faculty != nil && *faculty != "" {
-		if len(*faculty) > maxFacultyShortLen {
-			matchStage = append(matchStage, bson.E{Key: "faculty", Value: strings.ToLower(*faculty)})
+	if faculty != "" {
+		if len([]rune(faculty)) > maxFacultyShortLen {
+			matchStage = append(matchStage, bson.E{Key: "faculty", Value: faculty})
 		} else {
-			matchStage = append(matchStage, bson.E{Key: "faculty_short", Value: *faculty})
+			matchStage = append(matchStage, bson.E{Key: "faculty_short", Value: strings.ToLower(faculty)})
 		}
 	}
-	if department != nil && *department != "" {
-		if len(*department) > maxDepartmentShortLen {
-			matchStage = append(matchStage, bson.E{Key: "department", Value: *department})
+	if department != "" {
+		if len([]rune(department)) > maxDepartmentShortLen {
+			matchStage = append(matchStage, bson.E{Key: "department", Value: department})
 		} else {
-			matchStage = append(matchStage, bson.E{Key: "department_short", Value: *department})
+			matchStage = append(matchStage, bson.E{Key: "department_short", Value: department})
 		}
 	}
 

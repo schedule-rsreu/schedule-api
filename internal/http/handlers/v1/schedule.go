@@ -317,7 +317,7 @@ func (sh *ScheduleHandler) getTeachersList(c echo.Context) error {
 	faculty := c.QueryParam("faculty")
 	department := c.QueryParam("department")
 
-	resp, err := sh.s.GetTeachersList(&faculty, &department)
+	resp, err := sh.s.GetTeachersList(faculty, department)
 	if err != nil {
 		if errors.As(err, &services.NotFoundError{}) {
 			return echo.NewHTTPError(http.StatusNotFound, err)

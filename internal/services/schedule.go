@@ -135,14 +135,14 @@ func (s *ScheduleService) GetAllTeachers() (*models.TeachersList, error) {
 	return s.Repo.GetAllTeachers()
 }
 
-func (s *ScheduleService) GetTeachersList(faculty, department *string) (*models.TeachersList, error) {
+func (s *ScheduleService) GetTeachersList(faculty, department string) (*models.TeachersList, error) {
 	resp, err := s.Repo.GetTeachersList(faculty, department)
 	if err != nil {
 		if errors.Is(err, repo.ErrNoResults) {
 			return nil, NotFoundError{
 				fmt.Sprintf(
 					"teachers for faculty '%v' and department '%v' not found",
-					*faculty, *department)}
+					faculty, department)}
 		}
 		return nil, err
 	}
