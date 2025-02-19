@@ -149,22 +149,22 @@ func (s *ScheduleService) GetTeachersList(faculty, department string) (*models.T
 	return resp, err
 }
 
-func (s *ScheduleService) GetTeachersFaculties(department *string) ([]*models.TeacherFaculty, error) {
+func (s *ScheduleService) GetTeachersFaculties(department string) ([]*models.TeacherFaculty, error) {
 	resp, err := s.Repo.GetTeachersFaculties(department)
 	if err != nil {
 		if errors.Is(err, repo.ErrNoResults) {
-			return nil, NotFoundError{fmt.Sprintf("faculties for department '%v' not found", *department)}
+			return nil, NotFoundError{fmt.Sprintf("faculties for department '%v' not found", department)}
 		}
 		return nil, err
 	}
 	return resp, err
 }
 
-func (s *ScheduleService) GetTeachersDepartments(faculty *string) ([]*models.TeacherDepartment, error) {
+func (s *ScheduleService) GetTeachersDepartments(faculty string) ([]*models.TeacherDepartment, error) {
 	resp, err := s.Repo.GetTeachersDepartments(faculty)
 	if err != nil {
 		if errors.Is(err, repo.ErrNoResults) {
-			return nil, NotFoundError{fmt.Sprintf("departments for faculty '%v' not found", *faculty)}
+			return nil, NotFoundError{fmt.Sprintf("departments for faculty '%v' not found", faculty)}
 		}
 		return nil, err
 	}

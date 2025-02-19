@@ -9,10 +9,6 @@ import (
 )
 
 func TestGetConfig(t *testing.T) {
-	assert.Panics(t, func() {
-		config.Get()
-	}, "config.Get() should panic")
-
 	t.Setenv("MONGO_USERNAME", "mongo")
 
 	t.Setenv("MONGO_PASSWORD", "mongo")

@@ -341,7 +341,7 @@ func (sh *ScheduleHandler) getTeachersList(c echo.Context) error {
 func (sh *ScheduleHandler) getTeachersFaculties(c echo.Context) error {
 	department := c.QueryParam("department")
 
-	resp, err := sh.s.GetTeachersFaculties(&department)
+	resp, err := sh.s.GetTeachersFaculties(department)
 	if err != nil {
 		if errors.As(err, &services.NotFoundError{}) {
 			return echo.NewHTTPError(http.StatusNotFound, err)
@@ -364,7 +364,7 @@ func (sh *ScheduleHandler) getTeachersFaculties(c echo.Context) error {
 func (sh *ScheduleHandler) getTeachersDepartments(c echo.Context) error {
 	faculty := c.QueryParam("faculty")
 
-	resp, err := sh.s.GetTeachersDepartments(&faculty)
+	resp, err := sh.s.GetTeachersDepartments(faculty)
 	if err != nil {
 		if errors.As(err, &services.NotFoundError{}) {
 			return echo.NewHTTPError(http.StatusNotFound, err)

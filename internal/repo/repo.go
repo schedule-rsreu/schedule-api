@@ -413,14 +413,14 @@ func (sr *ScheduleRepo) GetAllTeachers() (*models.TeachersList, error) {
 	return aggregateOne[models.TeachersList](pipeline, sr.teachersScheduleCollection)
 }
 
-func (sr *ScheduleRepo) GetTeachersFaculties(department *string) ([]*models.TeacherFaculty, error) {
+func (sr *ScheduleRepo) GetTeachersFaculties(department string) ([]*models.TeacherFaculty, error) {
 	matchStage := bson.D{}
 
-	if department != nil && *department != "" {
-		if len(*department) > maxDepartmentShortLen {
-			matchStage = append(matchStage, bson.E{Key: "department", Value: *department})
+	if department != "" {
+		if len([]rune(department)) > maxDepartmentShortLen {
+			matchStage = append(matchStage, bson.E{Key: "department", Value: department})
 		} else {
-			matchStage = append(matchStage, bson.E{Key: "department_short", Value: *department})
+			matchStage = append(matchStage, bson.E{Key: "department_short", Value: department})
 		}
 	}
 	pipeline := mongo.Pipeline{
@@ -448,13 +448,13 @@ func (sr *ScheduleRepo) GetTeachersFaculties(department *string) ([]*models.Teac
 	return aggregateAll[models.TeacherFaculty](pipeline, sr.teachersScheduleCollection)
 }
 
-func (sr *ScheduleRepo) GetTeachersDepartments(faculty *string) ([]*models.TeacherDepartment, error) {
+func (sr *ScheduleRepo) GetTeachersDepartments(faculty string) ([]*models.TeacherDepartment, error) {
 	matchStage := bson.D{}
-	if faculty != nil && *faculty != "" {
-		if len(*faculty) > maxFacultyShortLen {
-			matchStage = append(matchStage, bson.E{Key: "faculty", Value: *faculty})
+	if faculty != "" {
+		if len([]rune(faculty)) > maxFacultyShortLen {
+			matchStage = append(matchStage, bson.E{Key: "faculty", Value: faculty})
 		} else {
-			matchStage = append(matchStage, bson.E{Key: "faculty_short", Value: strings.ToLower(*faculty)})
+			matchStage = append(matchStage, bson.E{Key: "faculty_short", Value: strings.ToLower(faculty)})
 		}
 	}
 	pipeline := mongo.Pipeline{
@@ -483,7 +483,6 @@ func (sr *ScheduleRepo) GetTeachersDepartments(faculty *string) ([]*models.Teach
 }
 
 func (sr *ScheduleRepo) GetTeachersList(faculty, department string) (*models.TeachersList, error) {
-
 	matchStage := bson.D{}
 	if faculty != "" {
 		if len([]rune(faculty)) > maxFacultyShortLen {
