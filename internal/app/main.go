@@ -3,6 +3,7 @@ package app
 import (
 	"context"
 	"errors"
+	"fmt"
 	"net"
 	"net/http"
 	"os"
@@ -10,6 +11,8 @@ import (
 	"strings"
 	"syscall"
 	"time"
+
+	"github.com/schedule-rsreu/schedule-api/pkg/postgres"
 
 	"github.com/schedule-rsreu/schedule-api/internal/http/middleware/dwh"
 
@@ -90,6 +93,7 @@ func printBanner(version, url string) {
 }
 
 func Run(cfg *config.Config) {
+	fmt.Println(cfg.PostgresDSN)
 	logger := zerolog.New(os.Stdout)
 
 	e := echo.New()
@@ -102,9 +106,16 @@ func Run(cfg *config.Config) {
 		logger.Error().Err(err).Msg("MongoDB ping failed")
 		return
 	}
-	scheduleDB := mongodb.NewMongoDatabase(mongoClient, cfg.MongoDBName)
 
-	handlers.NewRouter(e, services.NewScheduleService(repo.NewScheduleRepo(scheduleDB)))
+	mongoDB := mongodb.NewMongoDatabase(mongoClient, cfg.MongoDBName)
+
+	postgresDB, err := postgres.New(cfg.PostgresDSN)
+	if err != nil {
+		logger.Error().Err(err).Msg("Postgres connection failed")
+		os.Exit(1)
+	}
+
+	handlers.NewRouter(e, services.NewScheduleService(repo.NewScheduleRepo(mongoDB, postgresDB)))
 
 	go func() {
 		if cfg.Production {
@@ -135,6 +146,8 @@ func Run(cfg *config.Config) {
 		logger.Error().Err(err).Msg("app - Run - httpServer.Shutdown")
 	}
 
+	postgresDB.Close()
+	logger.Info().Msg("app - Run - postgresDB.Close - exit")
 	if err := mongoClient.Disconnect(ctx); err != nil {
 		logger.Error().Err(err).Msg("app - Run - mongoClient.Disconnect")
 		return

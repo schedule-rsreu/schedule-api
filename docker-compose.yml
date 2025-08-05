@@ -8,6 +8,9 @@ services:
     ports:
       - '8081:80'
     restart: always
+    depends_on:
+      - postgres
+      - mongodb
     networks:
       - default
     environment:
@@ -16,6 +19,7 @@ services:
       - MONGO_DB_NAME=schedule_database
       - MONGO_USERNAME=${MONGO_USERNAME}
       - MONGO_PASSWORD=${MONGO_PASSWORD}
+      - POSTGRES_DSN=${POSTGRES_DSN}
 
   mongodb:
     image: mongo:6.0.9
@@ -30,8 +34,34 @@ services:
     networks:
       - default
 
+  postgres:
+    image: postgres:17.5
+    restart: always
+    environment:
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_DB: ${POSTGRES_DB}
+#    ports:
+#      - "7433:5432"
+    volumes:
+      - postgres_data_volume:/var/lib/postgresql/data
+
+  pgadmin:
+    image: dpage/pgadmin4:8.11
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD
+    ports:
+      - "31270:80"
+    volumes:
+      - pgadmin-data_volume:/var/lib/pgadmin
+    labels:
+      logging: "promtail"
+      logging_jobname: "containerlogs"
 volumes:
   mongodb_volume:
+  pgadmin-data_volume:
+  postgres_data_volume:
 
 networks:
   default:

@@ -19,6 +19,7 @@ type Config struct {
 	MongoUsername string `env:"MONGO_USERNAME"                       env-required:"true"`
 	MongoPassword string `env:"MONGO_PASSWORD"                       env-required:"true"`
 	MongoDBName   string `env:"MONGO_DB_NAME"                        env-required:"true"`
+	PostgresDSN   string `env:"POSTGRES_DSN"                         env-required:"true"`
 	Production    bool   `env:"PRODUCTION"     env-default:"true"`
 }
 

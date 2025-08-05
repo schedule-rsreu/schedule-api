@@ -31,6 +31,8 @@ issues:
   exclude-use-default: false
 
 linters-settings:
+  go:
+    version: "1.24.5"
   revive:
     confidence: 0.1
     rules:

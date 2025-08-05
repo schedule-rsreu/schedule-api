@@ -54,25 +54,28 @@ func NewRouter(g *echo.Group,
 // @Router      /api/v1/schedule/groups/{group} [get]
 // @Param       group  path  string  true  "group" example(344)
 // @Param       add_empty_lessons  query  bool  false  "add empty lessons"
-// @Success     200  {object}  models.Schedule
-// @Response    200  {object}  models.Schedule
+// @Param       date  query  string  false  "date" example(2025-07-13)
+// @Success     200  {object}  models.StudentSchedule
+// @Response    200  {object}  models.StudentSchedule
 // @Failure     500  {object}  echo.HTTPError.
 // @Failure     404  {object}  echo.HTTPError.
 func (sh *ScheduleHandler) getScheduleByGroup(c echo.Context) error {
 	group := c.Param("group")
 	addEmptyLessons := c.QueryParam("add_empty_lessons") == "true"
+	date := c.QueryParam("date")
 
 	if group == "" {
 		return echo.NewHTTPError(http.StatusBadRequest, "group query param not found")
 	}
 
-	resp, err := sh.s.GetScheduleByGroup(group, addEmptyLessons)
+	resp, err := sh.s.GetScheduleByGroup(group, addEmptyLessons, date)
 	if err != nil {
 		if errors.As(err, &services.NotFoundError{}) {
 			return echo.NewHTTPError(http.StatusNotFound, err)
 		}
 		return err
 	}
+	resp.LessonsTimes = nil
 
 	return c.JSON(http.StatusOK, resp)
 }
@@ -82,19 +85,26 @@ func (sh *ScheduleHandler) getScheduleByGroup(c echo.Context) error {
 // @Description Расписание преподавателя
 // @Tags        Teachers
 // @Router      /api/v1/schedule/teachers [get]
-// @Param       teacher  query  string  true  "teacher" example("Конюхов Алексей Николаевич")
+// @Param       teacher_id  query  int  true  "teacher" example("Конюхов Алексей Николаевич")
+// @Param       date  query  string  false  "date" example(2025-07-13)
 // @Success     200  {object}  models.TeacherSchedule
 // @Response    200  {object}  models.TeacherSchedule
 // @Failure     500  {object}  echo.HTTPError.
 // @Failure     404  {object}  echo.HTTPError.
 func (sh *ScheduleHandler) getTeacherSchedule(c echo.Context) error {
-	teacher := c.QueryParam("teacher")
+	teacherID := c.QueryParam("teacher_id")
+	date := c.QueryParam("date")
 
-	if teacher == "" {
-		return echo.NewHTTPError(http.StatusBadRequest, "teacher query param not found")
+	if teacherID == "" {
+		return echo.NewHTTPError(http.StatusBadRequest, "teacher_id query param not found")
 	}
 
-	resp, err := sh.s.GetTeacherSchedule(teacher)
+	teacherIdInt, err := strconv.Atoi(teacherID)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, "teacher_id query param must be integer")
+	}
+
+	resp, err := sh.s.GetTeacherSchedule(teacherIdInt, date)
 
 	if err != nil {
 		if errors.As(err, &services.NotFoundError{}) {
@@ -102,6 +112,8 @@ func (sh *ScheduleHandler) getTeacherSchedule(c echo.Context) error {
 		}
 		return err
 	}
+
+	resp.LessonsTimes = nil
 
 	return c.JSON(http.StatusOK, resp)
 }
@@ -190,7 +202,7 @@ func (sh *ScheduleHandler) getFacultyCourses(c echo.Context) error {
 // @Description Факультеты курса
 // @Tags        Faculties
 // @Router      /api/v1/schedule/faculties/course [get]
-// @Param       course  query  int  true  "course" Enums(1, 2, 3, 4, 5)
+// @Param       course  query  int  true  "course" Enums(1, 2, 3, 4, 5, 6)
 // @Success     200  {object}  models.CourseFaculties
 // @Response    200  {object}  models.CourseFaculties
 // @Failure     500  {object}  echo.HTTPError
@@ -242,12 +254,15 @@ func (sh *ScheduleHandler) getFacultiesCourses(c echo.Context) error {
 // @Tags        Groups
 // @Router      /api/v1/schedule/groups/sample [post]
 // @Param       groups  body   schedulesByGroupsRequest  true  "groups"
-// @Success     200  {array}   models.Schedule
-// @Response    200  {array}   models.Schedule
+// @Param       date  query  string  false  "date" example(2025-07-13)
+// @Success     200  {array}   models.StudentSchedule
+// @Response    200  {array}   models.StudentSchedule
 // @Failure     500  {object}  echo.HTTPError
 // @Failure     404  {object}  echo.HTTPError.
 func (sh *ScheduleHandler) schedulesByGroups(c echo.Context) error {
 	var req schedulesByGroupsRequest
+
+	date := c.QueryParam("date")
 
 	if err := c.Bind(&req); err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
@@ -257,13 +272,18 @@ func (sh *ScheduleHandler) schedulesByGroups(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
 
-	resp, err := sh.s.GetSchedulesByGroups(req.Groups)
+	resp, err := sh.s.GetSchedulesByGroups(date, req.Groups)
 	if err != nil {
 		if errors.As(err, &services.NotFoundError{}) {
 			return echo.NewHTTPError(http.StatusNotFound, err)
 		}
 		return err
 	}
+
+	for _, schedule := range resp {
+		schedule.LessonsTimes = nil
+	}
+
 	return c.JSON(http.StatusOK, resp)
 }
 
@@ -272,7 +292,7 @@ func (sh *ScheduleHandler) schedulesByGroups(c echo.Context) error {
 // @Description Группы факультета курса
 // @Tags        Groups
 // @Router      /api/v1/schedule/groups [get]
-// @Param       course  query  int  false  "course" Enums(1, 2, 3, 4, 5)
+// @Param       course  query  int  false  "course" Enums(1, 2, 3, 4, 5, 6)
 // @Param       faculty  query  string  false  "faculty" Enums(иэф, фаиту, фвт, фрт, фэ)
 // @Success     200  {array}   models.CourseFacultyGroups
 // @Response    200  {array}   models.CourseFacultyGroups
@@ -307,17 +327,27 @@ func (sh *ScheduleHandler) getCourseFacultyGroups(c echo.Context) error {
 // @Description Список преподавателей по факультету и кафедре. Параметры не обязательны.
 // @Tags        Teachers
 // @Router      /api/v1/schedule/teachers/list [get]
-// @Param       faculty  query  string  false  "faculty" example("фаиту", "Факультет вычислительной техники")
-// @Param       department  query  string  false  "department" example("ВМ", "Кафедра высшей математики")
+// @Param       faculty_id  query  int  false  "faculty_id" example(4)
+// @Param       department_id  query  int  false  "department_id" example(17)
 // @Success     200  {object}   models.TeachersList
 // @Response    200  {object}   models.TeachersList
 // @Failure     500  {object}   echo.HTTPError
 // @Failure     404  {object}   echo.HTTPError.
 func (sh *ScheduleHandler) getTeachersList(c echo.Context) error {
-	faculty := c.QueryParam("faculty")
-	department := c.QueryParam("department")
+	facultyID := c.QueryParam("faculty_id")
+	departmentID := c.QueryParam("department_id")
 
-	resp, err := sh.s.GetTeachersList(faculty, department)
+	facultyIDInt, err := strconv.Atoi(facultyID)
+	if facultyID != "" && err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, "faculty_id query param must be integer, got: "+facultyID)
+	}
+
+	departmentIDInt, err := strconv.Atoi(departmentID)
+	if departmentID != "" && err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, "department_id query param must be integer, got: "+departmentID)
+	}
+
+	resp, err := sh.s.GetTeachersList(facultyIDInt, departmentIDInt)
 	if err != nil {
 		if errors.As(err, &services.NotFoundError{}) {
 			return echo.NewHTTPError(http.StatusNotFound, err)
@@ -333,15 +363,20 @@ func (sh *ScheduleHandler) getTeachersList(c echo.Context) error {
 // @Description Список факультетов. Если кафедра не передан, то возвращаются все факультеты.
 // @Tags        Teachers
 // @Router      /api/v1/schedule/teachers/faculties [get]
-// @Param       department  query  string  false  "department" example("ВМ", "Кафедра высшей математики")
-// @Success     200  {array}    models.TeacherFaculty
-// @Response    200  {array}    models.TeacherFaculty
+// @Param       department_id  query  int  false  "department_id" example(123)
+// @Success     200  {array}    models.Faculty
+// @Response    200  {array}    models.Faculty
 // @Failure     500  {object}   echo.HTTPError
 // @Failure     404  {object}   echo.HTTPError.
 func (sh *ScheduleHandler) getTeachersFaculties(c echo.Context) error {
-	department := c.QueryParam("department")
+	departmentId := c.QueryParam("department_id")
 
-	resp, err := sh.s.GetTeachersFaculties(department)
+	departmentIdInt, err := strconv.Atoi(departmentId)
+	if departmentId != "" && err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, "department_id query param must be integer, got: "+departmentId)
+	}
+
+	resp, err := sh.s.GetTeachersFaculties(departmentIdInt)
 	if err != nil {
 		if errors.As(err, &services.NotFoundError{}) {
 			return echo.NewHTTPError(http.StatusNotFound, err)
@@ -356,15 +391,20 @@ func (sh *ScheduleHandler) getTeachersFaculties(c echo.Context) error {
 // @Description Список кафедр. Если факультет не передана, то возвращаются все кафедры.
 // @Tags        Teachers
 // @Router      /api/v1/schedule/teachers/departments [get]
-// @Param       faculty  query  string  false  "faculty" example("фаиту", "Факультет вычислительной техники")
-// @Success     200  {array}    models.TeacherDepartment
-// @Response    200  {array}    models.TeacherDepartment
+// @Param       faculty_id  query  int  false  "faculty_id" example(1)
+// @Success     200  {array}    models.Department
+// @Response    200  {array}    models.Department
 // @Failure     500  {object}   echo.HTTPError
 // @Failure     404  {object}   echo.HTTPError.
 func (sh *ScheduleHandler) getTeachersDepartments(c echo.Context) error {
-	faculty := c.QueryParam("faculty")
+	facultyID := c.QueryParam("faculty_id")
 
-	resp, err := sh.s.GetTeachersDepartments(faculty)
+	facultyIDInt, err := strconv.Atoi(facultyID)
+	if facultyID != "" && err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, "faculty_id query param must be integer, got: "+facultyID)
+	}
+
+	resp, err := sh.s.GetTeachersDepartments(facultyIDInt)
 	if err != nil {
 		if errors.As(err, &services.NotFoundError{}) {
 			return echo.NewHTTPError(http.StatusNotFound, err)
