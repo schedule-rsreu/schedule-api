@@ -45,6 +45,16 @@ func NewRouter(g *echo.Group,
 	scheduleGroup.GET("/teachers/list", sh.getTeachersList)               // /teachers/list?faculty=фаиту&department=ВМ
 	scheduleGroup.GET("/teachers/departments", sh.getTeachersDepartments) // /teachers/departments?faculty=фаиту
 	scheduleGroup.GET("/teachers/faculties", sh.getTeachersFaculties)     // /teachers/faculties?department=ВМ
+
+	scheduleGroup.GET("/auditoriums", sh.getAuditoriumSchedule) // /auditoriums
+	scheduleGroup.GET("/auditoriums/list", sh.getAuditoriumList)
+	scheduleGroup.GET("/auditoriums/:auditorium_id", sh.getAuditorium)
+
+	scheduleGroup.GET("/buildings", sh.getBuildings)
+	scheduleGroup.GET("/buildings/:id", sh.getBuilding)
+
+	scheduleGroup.GET("/lesson/types", sh.getLessonTypes) // /auditoriums
+
 }
 
 // getScheduleByGroup
@@ -412,4 +422,173 @@ func (sh *ScheduleHandler) getTeachersDepartments(c echo.Context) error {
 		return err
 	}
 	return c.JSON(http.StatusOK, resp)
+}
+
+// getAuditoriumSchedule
+// @Summary     Get auditorium schedule
+// @Description Get auditorium schedule by auditorium_id
+// @Tags        Auditoriums
+// @Router      /api/v1/schedule/auditoriums [get]
+// @Param       auditorium_id  query  int  true  "auditorium_id" example(12)
+// @Param       date  query  string  false  "date" example(2025-06-13)
+// @Success     200  {object}  models.AuditoriumSchedule
+// @Response    200  {object}  models.AuditoriumSchedule
+// @Failure     500  {object}  echo.HTTPError.
+// @Failure     404  {object}  echo.HTTPError.
+func (sh *ScheduleHandler) getAuditoriumSchedule(c echo.Context) error {
+	auditoriumIdStr := c.QueryParam("auditorium_id")
+
+	if auditoriumIdStr == "" {
+		return echo.NewHTTPError(http.StatusBadRequest, "auditorium_id query param not found")
+	}
+
+	auditoriumIdInt, err := strconv.Atoi(auditoriumIdStr)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, "auditorium_id query param must be integer")
+	}
+
+	date := c.QueryParam("date")
+
+	resp, err := sh.s.GetAuditoriumSchedule(auditoriumIdInt, date)
+	if err != nil {
+		if errors.As(err, &services.NotFoundError{}) {
+			return echo.NewHTTPError(http.StatusNotFound, err)
+		}
+		return err
+	}
+
+	return c.JSON(http.StatusOK, resp)
+}
+
+// getAuditoriumList
+// @Summary     Get auditoriums list
+// @Description Get auditoriums list by building_id (if building_id is 0 or not provided, returns all auditoriums)
+// @Tags        Auditoriums
+// @Router      /api/v1/schedule/auditoriums/list [get]
+// @Param       building_id  query  int  false  "building_id" example(1)
+// @Success     200  {array}   models.Auditorium
+// @Response    200  {array}   models.Auditorium
+// @Failure     500  {object}  echo.HTTPError
+// @Failure     404  {object}  echo.HTTPError
+func (sh *ScheduleHandler) getAuditoriumList(c echo.Context) error {
+	buildingIdStr := c.QueryParam("building_id")
+
+	buildingIdInt := 0 // Default to 0 to get all auditoriums
+	if buildingIdStr != "" {
+		var err error
+		buildingIdInt, err = strconv.Atoi(buildingIdStr)
+		if err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, "building_id query param must be integer")
+		}
+	}
+
+	resp, err := sh.s.GetAuditoriumsList(buildingIdInt)
+	if err != nil {
+		if errors.As(err, &services.NotFoundError{}) {
+			return echo.NewHTTPError(http.StatusNotFound, err)
+		}
+		return err
+	}
+
+	return c.JSON(http.StatusOK, resp)
+}
+
+// getAuditorium
+// @Summary     Get auditorium
+// @Description Get auditorium by auditorium_id
+// @Tags        Auditoriums
+// @Router      /api/v1/schedule/auditoriums/{auditorium_id} [get]
+// @Param       auditorium_id  path  int  true  "auditorium_id" example(12)
+// @Success     200  {object}  models.Auditorium
+// @Response    200  {object}  models.Auditorium
+// @Failure     500  {object}  echo.HTTPError
+// @Failure     404  {object}  echo.HTTPError
+func (sh *ScheduleHandler) getAuditorium(c echo.Context) error {
+	auditoriumIdStr := c.Param("auditorium_id")
+
+	if auditoriumIdStr == "" {
+		return echo.NewHTTPError(http.StatusBadRequest, "auditorium_id path param not found")
+	}
+
+	auditoriumIdInt, err := strconv.Atoi(auditoriumIdStr)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, "auditorium_id path param must be integer")
+	}
+
+	resp, err := sh.s.GetAuditorium(auditoriumIdInt)
+	if err != nil {
+		if errors.As(err, &services.NotFoundError{}) {
+			return echo.NewHTTPError(http.StatusNotFound, err)
+		}
+		return err
+	}
+
+	return c.JSON(http.StatusOK, resp)
+}
+
+// getBuildings
+// @Summary     Get buildings list
+// @Description Get all buildings list
+// @Tags        Buildings
+// @Router      /api/v1/schedule/buildings [get]
+// @Success     200  {array}   models.Building
+// @Response    200  {array}   models.Building
+// @Failure     500  {object}  echo.HTTPError
+// @Failure     404  {object}  echo.HTTPError
+func (sh *ScheduleHandler) getBuildings(c echo.Context) error {
+	resp, err := sh.s.GetBuildingsList()
+	if err != nil {
+		if errors.As(err, &services.NotFoundError{}) {
+			return echo.NewHTTPError(http.StatusNotFound, err)
+		}
+		return err
+	}
+
+	return c.JSON(http.StatusOK, resp)
+}
+
+// getBuilding
+// @Summary     Get building
+// @Description Get building by id
+// @Tags        Buildings
+// @Router      /api/v1/schedule/buildings/{id} [get]
+// @Param       id  path  int  true  "building id" example(1)
+// @Success     200  {object}  models.Building
+// @Response    200  {object}  models.Building
+// @Failure     500  {object}  echo.HTTPError
+// @Failure     404  {object}  echo.HTTPError
+func (sh *ScheduleHandler) getBuilding(c echo.Context) error {
+	buildingIdStr := c.Param("id")
+
+	if buildingIdStr == "" {
+		return echo.NewHTTPError(http.StatusBadRequest, "id path param not found")
+	}
+
+	buildingIdInt, err := strconv.Atoi(buildingIdStr)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, "id path param must be integer")
+	}
+
+	resp, err := sh.s.GetBuilding(buildingIdInt)
+	if err != nil {
+		if errors.As(err, &services.NotFoundError{}) {
+			return echo.NewHTTPError(http.StatusNotFound, err)
+		}
+		return err
+	}
+
+	return c.JSON(http.StatusOK, resp)
+}
+
+// getLessonTypes
+// @Summary     Get lesson types
+// @Description Get lesson types
+// @Tags        Lesson
+// @Router      /api/v1/schedule/lesson/types [get]
+// @Success     200  {array}  models.LessonType
+// @Response    200  {object}  models.LessonType
+// @Failure     500  {object}  echo.HTTPError.
+// @Failure     404  {object}  echo.HTTPError.
+func (sh *ScheduleHandler) getLessonTypes(c echo.Context) error {
+	return c.JSON(http.StatusOK, sh.s.GetLessonTypes())
 }

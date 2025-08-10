@@ -13,3 +13,21 @@ type NumeratorDenominator[TWeek StudentWeek | TeacherWeek | AuditoriumWeek] stru
 	Numerator   TWeek `json:"numerator"   bson:"numerator"`
 	Denominator TWeek `json:"denominator" bson:"denominator"`
 }
+
+type LessonType struct {
+	Type       string `json:"type" example:"lab"`
+	Decryption string `json:"decryption" example:"лабораторная"`
+}
+
+var LessonTypes = []LessonType{
+	{Type: "lecture", Decryption: "лекция"},
+	{Type: "lab", Decryption: "лабораторная"},
+	{Type: "practice", Decryption: "практика"},
+	{Type: "coursework", Decryption: "курсовая работа"},
+	{Type: "course_project", Decryption: "курсовой проект"},
+	{Type: "exam", Decryption: "экзамен"},
+	{Type: "zachet", Decryption: "зачет"},
+	{Type: "consultation", Decryption: "консультация"},
+	{Type: "elective", Decryption: "факультатив"},
+	{Type: "unknown", Decryption: ""},
+}

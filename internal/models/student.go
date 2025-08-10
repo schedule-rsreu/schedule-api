@@ -29,7 +29,7 @@ type StudentSchedule struct {
 	Course            int                               `json:"course"             bson:"course"             example:"1"`
 	NumeratorPeriod   string                            `json:"numerator_period"   bson:"numerator_period"   example:"16.06-22.06"`
 	DenominatorPeriod string                            `json:"denominator_period" bson:"denominator_period" example:"09.06-15.06"`
-	InputWeekType     string                            `json:"input_week_type"`
+	InputWeekType     string                            `json:"input_week_type" example:"numerator"`
 	Schedule          NumeratorDenominator[StudentWeek] `json:"schedule"           bson:"schedule"`
 	LessonsTimes      []string                          `json:"lessons_times,omitempty"                  db:"lessons_times"`
 }

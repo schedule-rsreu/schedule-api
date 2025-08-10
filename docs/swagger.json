@@ -7,6 +7,203 @@
         "version": "2.0"
     },
     "paths": {
+        "/api/v1/schedule/auditoriums": {
+            "get": {
+                "description": "Get auditorium schedule by auditorium_id",
+                "tags": [
+                    "Auditoriums"
+                ],
+                "summary": "Get auditorium schedule",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "example": 12,
+                        "description": "auditorium_id",
+                        "name": "auditorium_id",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "example": "2025-06-13",
+                        "description": "date",
+                        "name": "date",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_schedule-rsreu_schedule-api_internal_models.AuditoriumSchedule"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/echo.HTTPError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/echo.HTTPError"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/schedule/auditoriums/list": {
+            "get": {
+                "description": "Get auditoriums list by building_id (if building_id is 0 or not provided, returns all auditoriums)",
+                "tags": [
+                    "Auditoriums"
+                ],
+                "summary": "Get auditoriums list",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "example": 1,
+                        "description": "building_id",
+                        "name": "building_id",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/github_com_schedule-rsreu_schedule-api_internal_models.Auditorium"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/echo.HTTPError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/echo.HTTPError"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/schedule/auditoriums/{auditorium_id}": {
+            "get": {
+                "description": "Get auditorium by auditorium_id",
+                "tags": [
+                    "Auditoriums"
+                ],
+                "summary": "Get auditorium",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "example": 12,
+                        "description": "auditorium_id",
+                        "name": "auditorium_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_schedule-rsreu_schedule-api_internal_models.Auditorium"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/echo.HTTPError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/echo.HTTPError"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/schedule/buildings": {
+            "get": {
+                "description": "Get all buildings list",
+                "tags": [
+                    "Buildings"
+                ],
+                "summary": "Get buildings list",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/github_com_schedule-rsreu_schedule-api_internal_models.Building"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/echo.HTTPError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/echo.HTTPError"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/schedule/buildings/{id}": {
+            "get": {
+                "description": "Get building by id",
+                "tags": [
+                    "Buildings"
+                ],
+                "summary": "Get building",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "example": 1,
+                        "description": "building id",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_schedule-rsreu_schedule-api_internal_models.Building"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/echo.HTTPError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/echo.HTTPError"
+                        }
+                    }
+                }
+            }
+        },
         "/api/v1/schedule/courses": {
             "get": {
                 "description": "Курсы факультета",
@@ -345,6 +542,35 @@
                 }
             }
         },
+        "/api/v1/schedule/lesson/types": {
+            "get": {
+                "description": "Get lesson types",
+                "tags": [
+                    "Lesson"
+                ],
+                "summary": "Get lesson types",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_schedule-rsreu_schedule-api_internal_models.LessonType"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/echo.HTTPError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/echo.HTTPError"
+                        }
+                    }
+                }
+            }
+        },
         "/api/v1/schedule/teachers": {
             "get": {
                 "description": "Расписание преподавателя",
@@ -574,9 +800,133 @@
                 }
             }
         },
+        "github_com_schedule-rsreu_schedule-api_internal_models.AuditoriumLesson": {
+            "type": "object",
+            "properties": {
+                "courses": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    },
+                    "example": [
+                        1
+                    ]
+                },
+                "date": {
+                    "type": "string",
+                    "example": "2025-06-18"
+                },
+                "faculties": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "example": [
+                        "фаиту",
+                        "фвт"
+                    ]
+                },
+                "groups": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "example": [
+                        "344",
+                        "345"
+                    ]
+                },
+                "lesson": {
+                    "type": "string",
+                    "example": "л.Высшая математика\nдоц.Конюхов А.Н.   333 С"
+                },
+                "teachers": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_schedule-rsreu_schedule-api_internal_models.StudentTeacherInfo"
+                    }
+                },
+                "time": {
+                    "type": "string",
+                    "example": "08.10-09.45"
+                },
+                "type": {
+                    "type": "string",
+                    "example": "lab,practice"
+                }
+            }
+        },
+        "github_com_schedule-rsreu_schedule-api_internal_models.AuditoriumSchedule": {
+            "type": "object",
+            "properties": {
+                "auditorium": {
+                    "$ref": "#/definitions/github_com_schedule-rsreu_schedule-api_internal_models.Auditorium"
+                },
+                "denominator_period": {
+                    "type": "string",
+                    "example": "09.06-15.06"
+                },
+                "input_week_type": {
+                    "type": "string",
+                    "example": "numerator"
+                },
+                "numerator_period": {
+                    "type": "string",
+                    "example": "16.06-22.06"
+                },
+                "schedule": {
+                    "$ref": "#/definitions/github_com_schedule-rsreu_schedule-api_internal_models.NumeratorDenominator-github_com_schedule-rsreu_schedule-api_internal_models_AuditoriumWeek"
+                }
+            }
+        },
+        "github_com_schedule-rsreu_schedule-api_internal_models.AuditoriumWeek": {
+            "type": "object",
+            "properties": {
+                "friday": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_schedule-rsreu_schedule-api_internal_models.AuditoriumLesson"
+                    }
+                },
+                "monday": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_schedule-rsreu_schedule-api_internal_models.AuditoriumLesson"
+                    }
+                },
+                "saturday": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_schedule-rsreu_schedule-api_internal_models.AuditoriumLesson"
+                    }
+                },
+                "thursday": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_schedule-rsreu_schedule-api_internal_models.AuditoriumLesson"
+                    }
+                },
+                "tuesday": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_schedule-rsreu_schedule-api_internal_models.AuditoriumLesson"
+                    }
+                },
+                "wednesday": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_schedule-rsreu_schedule-api_internal_models.AuditoriumLesson"
+                    }
+                }
+            }
+        },
         "github_com_schedule-rsreu_schedule-api_internal_models.Building": {
             "type": "object",
             "properties": {
+                "id": {
+                    "type": "integer",
+                    "example": 1
+                },
                 "letter": {
                     "type": "string",
                     "example": "C"
@@ -770,6 +1120,30 @@
                 }
             }
         },
+        "github_com_schedule-rsreu_schedule-api_internal_models.LessonType": {
+            "type": "object",
+            "properties": {
+                "decryption": {
+                    "type": "string",
+                    "example": "лабораторная"
+                },
+                "type": {
+                    "type": "string",
+                    "example": "lab"
+                }
+            }
+        },
+        "github_com_schedule-rsreu_schedule-api_internal_models.NumeratorDenominator-github_com_schedule-rsreu_schedule-api_internal_models_AuditoriumWeek": {
+            "type": "object",
+            "properties": {
+                "denominator": {
+                    "$ref": "#/definitions/github_com_schedule-rsreu_schedule-api_internal_models.AuditoriumWeek"
+                },
+                "numerator": {
+                    "$ref": "#/definitions/github_com_schedule-rsreu_schedule-api_internal_models.AuditoriumWeek"
+                }
+            }
+        },
         "github_com_schedule-rsreu_schedule-api_internal_models.NumeratorDenominator-github_com_schedule-rsreu_schedule-api_internal_models_StudentWeek": {
             "type": "object",
             "properties": {
@@ -847,7 +1221,8 @@
                     "example": "344"
                 },
                 "input_week_type": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "numerator"
                 },
                 "lessons_times": {
                     "type": "array",
@@ -1008,7 +1383,8 @@
                     "example": 1
                 },
                 "input_week_type": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "numerator"
                 },
                 "lessons_times": {
                     "type": "array",

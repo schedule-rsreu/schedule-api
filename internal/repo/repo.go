@@ -184,6 +184,7 @@ lesson_rows AS (
     t.full_name,
     lat.auditorium_id,
     a.number AS auditorium_number,
+	b.id AS building_id,
     b.letter AS building_letter,
     b.title AS building_title,
     l.date AS raw_date
@@ -230,6 +231,7 @@ teacher_aud_data AS (
           'number', auditorium_number,
           'display_name', auditorium_number || ' ' || building_letter,
           'building', jsonb_build_object(
+			'id', building_id,
             'letter', building_letter,
             'title', building_title
           )
@@ -484,6 +486,7 @@ lesson_rows AS (
     t.full_name,
     lat.auditorium_id,
     a.number AS auditorium_number,
+	b.id AS building_id,
     b.letter AS building_letter,
     b.title AS building_title,
     l.date AS raw_date
@@ -536,6 +539,7 @@ teacher_aud_data AS (
           'number', lr.auditorium_number,
           'display_name', lr.auditorium_number || ' ' || lr.building_letter,
           'building', jsonb_build_object(
+			'id', lr.building_id,
             'letter', lr.building_letter,
             'title', lr.building_title
           )
@@ -931,6 +935,7 @@ lesson_rows AS (
     to_char(l.date, 'YYYY-MM-DD') AS date,
     a.id AS auditorium_id,
     a.number AS auditorium_number,
+	b.id AS building_id,
     b.letter AS building_letter,
     b.title AS building_title,
     l.date AS raw_date
@@ -1002,7 +1007,7 @@ lesson_with_auds AS (
       FROM (
         SELECT DISTINCT jsonb_build_object(
           'id', lr.auditorium_id,
-          'building', jsonb_build_object('letter', lr.building_letter, 'title', lr.building_title),
+          'building', jsonb_build_object('id', lr.building_id, 'letter', lr.building_letter, 'title', lr.building_title),
           'number', lr.auditorium_number,
           'display_name', lr.auditorium_number || ' ' || lr.building_letter
         ) AS aud
@@ -1352,4 +1357,375 @@ FROM (
 ) teacher_data;
 `
 	return findOneJson[models.TeachersList](sr.pg.DB, query, facultyID, departmentID)
+}
+
+func (sr *ScheduleRepo) GetAuditoriumSchedule(startDate, endDate time.Time, auditoriumID int) (*models.AuditoriumSchedule, error) {
+	const query = `
+WITH params AS (
+  SELECT
+    $1::date AS start_date,
+    $2::date AS end_date,
+    $3::int AS auditorium_id
+),
+
+weekdays AS (
+  SELECT unnest(ARRAY[
+    'monday'::text,
+    'tuesday',
+    'wednesday',
+    'thursday',
+    'friday',
+    'saturday'
+  ]) AS weekday
+),
+
+lesson_rows AS (
+  SELECT
+    l.id AS lesson_id,
+    trim(lower(to_char(l.date, 'Day'))) AS weekday,
+    l.time,
+    l.title,
+    l.type,
+    l.week_type,
+    to_char(l.date, 'YYYY-MM-DD') AS date,
+    l.start_time,
+    l.end_time,
+    l.group_id,
+    g.number AS group_number,
+    g.course,
+    f.title_short AS faculty,
+    lat.teacher_id,
+    t.short_name,
+    t.full_name,
+    l.date AS raw_date
+  FROM lesson l
+  JOIN params p ON true
+  JOIN lesson_auditorium_teacher lat ON lat.lesson_id = l.id AND lat.auditorium_id = p.auditorium_id
+  JOIN "group" g ON l.group_id = g.id
+  JOIN faculty f ON g.faculty_id = f.id
+  LEFT JOIN teacher t ON lat.teacher_id = t.id
+  WHERE l.date BETWEEN p.start_date AND p.end_date
+),
+
+lesson_core AS (
+  SELECT DISTINCT
+    lesson_id,
+    weekday,
+    time,
+    title,
+    type,
+    week_type,
+    date,
+    start_time,
+    end_time,
+    raw_date
+  FROM lesson_rows
+),
+
+auditorium_info AS (
+  SELECT 
+    a.id,
+    a.number,
+    a.number || ' ' || b.letter AS display_name,
+	b.id AS building_id,
+    b.letter AS building_letter,
+    b.title AS building_title
+  FROM auditorium a
+  JOIN building b ON a.building_id = b.id
+  JOIN params p ON a.id = p.auditorium_id
+),
+
+-- Агрегируем данные о группах, факультетах, курсах и преподавателях для каждой комбинации время+дата+тип+название
+lesson_aggregated_data AS (
+  SELECT
+    lr.weekday,
+    lr.time,
+    lr.title,
+    lr.type,
+    lr.week_type,
+    lr.date,
+    lr.start_time,
+    lr.end_time,
+    lr.raw_date,
+    array_agg(DISTINCT lr.faculty ORDER BY lr.faculty) AS faculties,
+    array_agg(DISTINCT lr.group_number ORDER BY lr.group_number) AS groups,
+    array_agg(DISTINCT lr.course ORDER BY lr.course) AS courses,
+    jsonb_agg(
+      DISTINCT 
+      CASE 
+        WHEN lr.teacher_id IS NOT NULL THEN
+          jsonb_build_object(
+            'id', lr.teacher_id,
+            'short_name', lr.short_name,
+            'full_name', lr.full_name
+          )
+      END
+    ) FILTER (WHERE lr.teacher_id IS NOT NULL) AS teachers
+  FROM lesson_rows lr
+  GROUP BY lr.weekday, lr.time, lr.title, lr.type, lr.week_type, lr.date, lr.start_time, lr.end_time, lr.raw_date
+),
+
+lesson_with_details AS (
+  SELECT
+    weekday,
+    time,
+    title,
+    type,
+    week_type,
+    date,
+    start_time,
+    end_time,
+    raw_date,
+    faculties,
+    groups,
+    courses,
+    COALESCE(teachers, '[]'::jsonb) AS teachers
+  FROM lesson_aggregated_data
+),
+
+-- Определяем точные недели из входных параметров
+input_weeks AS (
+  SELECT
+    p.start_date AS first_week_monday,
+    p.start_date + INTERVAL '7 days' AS second_week_monday,
+    p.*
+  FROM params p
+),
+
+-- Референсные занятия до/после для классификации
+reference_lesson AS (
+  SELECT
+    iw.*,
+    rl_before.lesson_date AS ref_lesson_date_before,
+    rl_before.week_type AS ref_lesson_type_before,
+    rl_after.lesson_date AS ref_lesson_date_after,
+    rl_after.week_type AS ref_lesson_type_after
+  FROM input_weeks iw
+  LEFT JOIN LATERAL (
+    SELECT l.date AS lesson_date, l.week_type
+    FROM lesson l
+    JOIN lesson_auditorium_teacher lat ON lat.lesson_id = l.id AND lat.auditorium_id = iw.auditorium_id
+    WHERE l.date < iw.first_week_monday
+    ORDER BY l.date DESC
+    LIMIT 1
+  ) rl_before ON true
+  LEFT JOIN LATERAL (
+    SELECT l.date AS lesson_date, l.week_type
+    FROM lesson l
+    JOIN lesson_auditorium_teacher lat ON lat.lesson_id = l.id AND lat.auditorium_id = iw.auditorium_id
+    WHERE l.date > iw.second_week_monday + INTERVAL '6 days'
+    ORDER BY l.date ASC
+    LIMIT 1
+  ) rl_after ON true
+),
+
+week_classification AS (
+  SELECT
+    rl.*,
+    (
+      SELECT l.week_type FROM lesson_with_details l 
+      WHERE l.raw_date BETWEEN rl.first_week_monday 
+        AND rl.first_week_monday + INTERVAL '6 days'
+      LIMIT 1
+    ) AS first_week_actual_type,
+    (
+      SELECT l.week_type FROM lesson_with_details l 
+      WHERE l.raw_date BETWEEN rl.second_week_monday 
+        AND rl.second_week_monday + INTERVAL '6 days'
+      LIMIT 1
+    ) AS second_week_actual_type,
+    CASE 
+      WHEN rl.ref_lesson_date_before IS NOT NULL THEN
+        CASE 
+          WHEN rl.ref_lesson_type_before = 'numerator' THEN
+            CASE WHEN (EXTRACT(EPOCH FROM (rl.first_week_monday::timestamp - date_trunc('week', rl.ref_lesson_date_before)::timestamp)) / (7 * 24 * 3600))::int % 2 = 0
+              THEN 'numerator' ELSE 'denominator' END
+          ELSE
+            CASE WHEN (EXTRACT(EPOCH FROM (rl.first_week_monday::timestamp - date_trunc('week', rl.ref_lesson_date_before)::timestamp)) / (7 * 24 * 3600))::int % 2 = 0
+              THEN 'denominator' ELSE 'numerator' END
+        END
+      WHEN rl.ref_lesson_date_after IS NOT NULL THEN
+        CASE 
+          WHEN rl.ref_lesson_type_after = 'numerator' THEN
+            CASE WHEN (EXTRACT(EPOCH FROM (date_trunc('week', rl.ref_lesson_date_after)::timestamp - rl.first_week_monday::timestamp)) / (7 * 24 * 3600))::int % 2 = 0
+              THEN 'numerator' ELSE 'denominator' END
+          ELSE
+            CASE WHEN (EXTRACT(EPOCH FROM (date_trunc('week', rl.ref_lesson_date_after)::timestamp - rl.first_week_monday::timestamp)) / (7 * 24 * 3600))::int % 2 = 0
+              THEN 'denominator' ELSE 'numerator' END
+        END
+      ELSE 'numerator'
+    END AS predicted_first_week_type
+  FROM reference_lesson rl
+),
+
+final_week_types AS (
+  SELECT
+    wc.*,
+    COALESCE(wc.first_week_actual_type, wc.predicted_first_week_type) AS final_first_week_type,
+    COALESCE(
+      wc.second_week_actual_type, 
+      CASE WHEN COALESCE(wc.first_week_actual_type, wc.predicted_first_week_type) = 'numerator' 
+        THEN 'denominator' ELSE 'numerator' END
+    ) AS final_second_week_type
+  FROM week_classification wc
+),
+
+period_strings AS (
+  SELECT
+    CASE WHEN fwt.final_first_week_type = 'numerator' 
+      THEN to_char(fwt.first_week_monday, 'DD.MM') || '-' || to_char(fwt.first_week_monday + INTERVAL '6 days', 'DD.MM')
+      ELSE to_char(fwt.second_week_monday, 'DD.MM') || '-' || to_char(fwt.second_week_monday + INTERVAL '6 days', 'DD.MM')
+    END AS numerator_period,
+    CASE WHEN fwt.final_first_week_type = 'denominator' 
+      THEN to_char(fwt.first_week_monday, 'DD.MM') || '-' || to_char(fwt.first_week_monday + INTERVAL '6 days', 'DD.MM')
+      ELSE to_char(fwt.second_week_monday, 'DD.MM') || '-' || to_char(fwt.second_week_monday + INTERVAL '6 days', 'DD.MM')
+    END AS denominator_period,
+    fwt.final_first_week_type AS input_week_type
+  FROM final_week_types fwt
+),
+
+grouped_lessons AS (
+  SELECT
+    week_type,
+    weekday,
+    json_agg(
+      jsonb_build_object(
+        'time', time,
+        'date', date,
+        'type', type,
+        'lesson', title,
+        'faculties', faculties,
+        'groups', groups,
+        'courses', courses,
+        'teachers', teachers
+      ) ORDER BY start_time
+    ) AS lessons
+  FROM lesson_with_details
+  GROUP BY week_type, weekday
+),
+
+numerator_raw AS (
+  SELECT weekday, lessons FROM grouped_lessons WHERE week_type = 'numerator'
+),
+denominator_raw AS (
+  SELECT weekday, lessons FROM grouped_lessons WHERE week_type = 'denominator'
+),
+
+numerator_filled AS (
+  SELECT w.weekday, COALESCE(n.lessons, '[]'::json) AS lessons
+  FROM weekdays w
+  LEFT JOIN numerator_raw n ON w.weekday = n.weekday
+),
+denominator_filled AS (
+  SELECT w.weekday, COALESCE(d.lessons, '[]'::json) AS lessons
+  FROM weekdays w
+  LEFT JOIN denominator_raw d ON w.weekday = d.weekday
+)
+
+SELECT json_build_object(
+  'auditorium', json_build_object(
+    'id', ai.id,
+    'number', ai.number,
+    'display_name', ai.display_name,
+    'building', json_build_object(
+	  'id', ai.building_id,
+      'letter', ai.building_letter,
+      'title', ai.building_title
+    )
+  ),
+  'numerator_period', ps.numerator_period,
+  'denominator_period', ps.denominator_period,
+  'input_week_type', ps.input_week_type,
+  'schedule', json_build_object(
+    'numerator', json_build_object(
+      'monday',    (SELECT lessons FROM numerator_filled WHERE weekday = 'monday'),
+      'tuesday',   (SELECT lessons FROM numerator_filled WHERE weekday = 'tuesday'),
+      'wednesday', (SELECT lessons FROM numerator_filled WHERE weekday = 'wednesday'),
+      'thursday',  (SELECT lessons FROM numerator_filled WHERE weekday = 'thursday'),
+      'friday',    (SELECT lessons FROM numerator_filled WHERE weekday = 'friday'),
+      'saturday',  (SELECT lessons FROM numerator_filled WHERE weekday = 'saturday')
+    ),
+    'denominator', json_build_object(
+      'monday',    (SELECT lessons FROM denominator_filled WHERE weekday = 'monday'),
+      'tuesday',   (SELECT lessons FROM denominator_filled WHERE weekday = 'tuesday'),
+      'wednesday', (SELECT lessons FROM denominator_filled WHERE weekday = 'wednesday'),
+      'thursday',  (SELECT lessons FROM denominator_filled WHERE weekday = 'thursday'),
+      'friday',    (SELECT lessons FROM denominator_filled WHERE weekday = 'friday'),
+      'saturday',  (SELECT lessons FROM denominator_filled WHERE weekday = 'saturday')
+    )
+  )
+) AS schedule_json
+FROM auditorium_info ai
+CROSS JOIN period_strings ps;
+`
+	return findOneJson[models.AuditoriumSchedule](sr.pg.DB, query, startDate, endDate, auditoriumID)
+}
+
+func (r *ScheduleRepo) GetAuditorium(auditoriumID int) (*models.Auditorium, error) {
+	const query = `
+        SELECT json_build_object(
+            'id', a.id,
+            'number', a.number,
+            'display_name', a.number || ' ' || b.letter,
+            'building', json_build_object(
+                'id', b.id,
+                'letter', b.letter,
+                'title', b.title
+            )
+        ) AS auditorium_json
+        FROM auditorium a
+        JOIN building b ON a.building_id = b.id
+        WHERE a.id = $1
+    `
+	return findOneJson[models.Auditorium](r.pg.DB, query, auditoriumID)
+}
+
+func (r *ScheduleRepo) GetAuditoriumsList(buildingId int) ([]*models.Auditorium, error) {
+	const query = `
+        SELECT json_agg(
+            json_build_object(
+                'id', a.id,
+                'number', a.number,
+                'display_name', a.number || ' ' || b.letter,
+                'building', json_build_object(
+                    'id', b.id,
+                    'letter', b.letter,
+                    'title', b.title
+                )
+            ) ORDER BY b.id, a.number
+        ) AS auditoriums_json
+        FROM auditorium a
+        JOIN building b ON a.building_id = b.id
+        WHERE ($1 = 0 OR b.id = $1)
+    `
+	res, err := findOneJson[[]*models.Auditorium](r.pg.DB, query, buildingId)
+	return *res, err
+}
+
+func (r *ScheduleRepo) GetBuildingsList() ([]*models.Building, error) {
+	const query = `
+        SELECT json_agg(
+            json_build_object(
+                'id', b.id,
+                'letter', b.letter,
+                'title', b.title
+            ) ORDER BY b.id
+        ) AS buildings_json
+        FROM building b
+    `
+	res, err := findOneJson[[]*models.Building](r.pg.DB, query)
+	return *res, err
+}
+
+func (r *ScheduleRepo) GetBuilding(buildingId int) (*models.Building, error) {
+	const query = `
+        SELECT json_build_object(
+            'id', b.id,
+            'letter', b.letter,
+            'title', b.title
+        ) AS building_json
+        FROM building b
+        WHERE b.id = $1
+    `
+	return findOneJson[models.Building](r.pg.DB, query, buildingId)
 }

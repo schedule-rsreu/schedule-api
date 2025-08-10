@@ -17,8 +17,95 @@ definitions:
         example: "445"
         type: string
     type: object
+  github_com_schedule-rsreu_schedule-api_internal_models.AuditoriumLesson:
+    properties:
+      courses:
+        example:
+        - 1
+        items:
+          type: integer
+        type: array
+      date:
+        example: "2025-06-18"
+        type: string
+      faculties:
+        example:
+        - фаиту
+        - фвт
+        items:
+          type: string
+        type: array
+      groups:
+        example:
+        - "344"
+        - "345"
+        items:
+          type: string
+        type: array
+      lesson:
+        example: |-
+          л.Высшая математика
+          доц.Конюхов А.Н.   333 С
+        type: string
+      teachers:
+        items:
+          $ref: '#/definitions/github_com_schedule-rsreu_schedule-api_internal_models.StudentTeacherInfo'
+        type: array
+      time:
+        example: 08.10-09.45
+        type: string
+      type:
+        example: lab,practice
+        type: string
+    type: object
+  github_com_schedule-rsreu_schedule-api_internal_models.AuditoriumSchedule:
+    properties:
+      auditorium:
+        $ref: '#/definitions/github_com_schedule-rsreu_schedule-api_internal_models.Auditorium'
+      denominator_period:
+        example: 09.06-15.06
+        type: string
+      input_week_type:
+        example: numerator
+        type: string
+      numerator_period:
+        example: 16.06-22.06
+        type: string
+      schedule:
+        $ref: '#/definitions/github_com_schedule-rsreu_schedule-api_internal_models.NumeratorDenominator-github_com_schedule-rsreu_schedule-api_internal_models_AuditoriumWeek'
+    type: object
+  github_com_schedule-rsreu_schedule-api_internal_models.AuditoriumWeek:
+    properties:
+      friday:
+        items:
+          $ref: '#/definitions/github_com_schedule-rsreu_schedule-api_internal_models.AuditoriumLesson'
+        type: array
+      monday:
+        items:
+          $ref: '#/definitions/github_com_schedule-rsreu_schedule-api_internal_models.AuditoriumLesson'
+        type: array
+      saturday:
+        items:
+          $ref: '#/definitions/github_com_schedule-rsreu_schedule-api_internal_models.AuditoriumLesson'
+        type: array
+      thursday:
+        items:
+          $ref: '#/definitions/github_com_schedule-rsreu_schedule-api_internal_models.AuditoriumLesson'
+        type: array
+      tuesday:
+        items:
+          $ref: '#/definitions/github_com_schedule-rsreu_schedule-api_internal_models.AuditoriumLesson'
+        type: array
+      wednesday:
+        items:
+          $ref: '#/definitions/github_com_schedule-rsreu_schedule-api_internal_models.AuditoriumLesson'
+        type: array
+    type: object
   github_com_schedule-rsreu_schedule-api_internal_models.Building:
     properties:
+      id:
+        example: 1
+        type: integer
       letter:
         example: C
         type: string
@@ -162,6 +249,22 @@ definitions:
         example: фвт
         type: string
     type: object
+  github_com_schedule-rsreu_schedule-api_internal_models.LessonType:
+    properties:
+      decryption:
+        example: лабораторная
+        type: string
+      type:
+        example: lab
+        type: string
+    type: object
+  ? github_com_schedule-rsreu_schedule-api_internal_models.NumeratorDenominator-github_com_schedule-rsreu_schedule-api_internal_models_AuditoriumWeek
+  : properties:
+      denominator:
+        $ref: '#/definitions/github_com_schedule-rsreu_schedule-api_internal_models.AuditoriumWeek'
+      numerator:
+        $ref: '#/definitions/github_com_schedule-rsreu_schedule-api_internal_models.AuditoriumWeek'
+    type: object
   ? github_com_schedule-rsreu_schedule-api_internal_models.NumeratorDenominator-github_com_schedule-rsreu_schedule-api_internal_models_StudentWeek
   : properties:
       denominator:
@@ -216,6 +319,7 @@ definitions:
         example: "344"
         type: string
       input_week_type:
+        example: numerator
         type: string
       lessons_times:
         items:
@@ -328,6 +432,7 @@ definitions:
         example: 1
         type: integer
       input_week_type:
+        example: numerator
         type: string
       lessons_times:
         items:
@@ -401,6 +506,138 @@ info:
   title: Schedule API
   version: "2.0"
 paths:
+  /api/v1/schedule/auditoriums:
+    get:
+      description: Get auditorium schedule by auditorium_id
+      parameters:
+      - description: auditorium_id
+        example: 12
+        in: query
+        name: auditorium_id
+        required: true
+        type: integer
+      - description: date
+        example: "2025-06-13"
+        in: query
+        name: date
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_schedule-rsreu_schedule-api_internal_models.AuditoriumSchedule'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/echo.HTTPError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/echo.HTTPError'
+      summary: Get auditorium schedule
+      tags:
+      - Auditoriums
+  /api/v1/schedule/auditoriums/{auditorium_id}:
+    get:
+      description: Get auditorium by auditorium_id
+      parameters:
+      - description: auditorium_id
+        example: 12
+        in: path
+        name: auditorium_id
+        required: true
+        type: integer
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_schedule-rsreu_schedule-api_internal_models.Auditorium'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/echo.HTTPError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/echo.HTTPError'
+      summary: Get auditorium
+      tags:
+      - Auditoriums
+  /api/v1/schedule/auditoriums/list:
+    get:
+      description: Get auditoriums list by building_id (if building_id is 0 or not
+        provided, returns all auditoriums)
+      parameters:
+      - description: building_id
+        example: 1
+        in: query
+        name: building_id
+        type: integer
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/github_com_schedule-rsreu_schedule-api_internal_models.Auditorium'
+            type: array
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/echo.HTTPError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/echo.HTTPError'
+      summary: Get auditoriums list
+      tags:
+      - Auditoriums
+  /api/v1/schedule/buildings:
+    get:
+      description: Get all buildings list
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/github_com_schedule-rsreu_schedule-api_internal_models.Building'
+            type: array
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/echo.HTTPError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/echo.HTTPError'
+      summary: Get buildings list
+      tags:
+      - Buildings
+  /api/v1/schedule/buildings/{id}:
+    get:
+      description: Get building by id
+      parameters:
+      - description: building id
+        example: 1
+        in: path
+        name: id
+        required: true
+        type: integer
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_schedule-rsreu_schedule-api_internal_models.Building'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/echo.HTTPError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/echo.HTTPError'
+      summary: Get building
+      tags:
+      - Buildings
   /api/v1/schedule/courses:
     get:
       description: Курсы факультета
@@ -630,6 +867,25 @@ paths:
       summary: Get schedules by groups
       tags:
       - Groups
+  /api/v1/schedule/lesson/types:
+    get:
+      description: Get lesson types
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_schedule-rsreu_schedule-api_internal_models.LessonType'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/echo.HTTPError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/echo.HTTPError'
+      summary: Get lesson types
+      tags:
+      - Lesson
   /api/v1/schedule/teachers:
     get:
       description: Расписание преподавателя

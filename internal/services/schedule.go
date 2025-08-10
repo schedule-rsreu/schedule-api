@@ -271,3 +271,71 @@ func (s *ScheduleService) AddEmptyLessons(schedule *models.NumeratorDenominator[
 	schedule.Numerator.Friday = addEmptyLessons(schedule.Numerator.Friday, times)
 	schedule.Numerator.Saturday = addEmptyLessons(schedule.Numerator.Saturday, times)
 }
+
+func (s *ScheduleService) GetAuditoriumSchedule(auditoriumID int, dateStr string) (*models.AuditoriumSchedule, error) {
+	date, err := ParseDateOrNow(dateStr)
+	if err != nil {
+		return nil, err
+	}
+
+	startDate, endDate := utils.GetWeekBounds(date)
+	resp, err := s.Repo.GetAuditoriumSchedule(startDate, endDate, auditoriumID)
+	if err != nil {
+		if errors.Is(err, repo.ErrNoResults) {
+			return nil, NotFoundError{fmt.Sprintf("schedules for auditorium `%v` not found", auditoriumID)}
+		}
+		return nil, err
+	}
+	return resp, err
+}
+
+func (s *ScheduleService) GetAuditorium(auditoriumID int) (*models.Auditorium, error) {
+	resp, err := s.Repo.GetAuditorium(auditoriumID)
+	if err != nil {
+		if errors.Is(err, repo.ErrNoResults) {
+			return nil, NotFoundError{fmt.Sprintf("auditorium with id '%v' not found", auditoriumID)}
+		}
+		return nil, err
+	}
+	return resp, err
+}
+
+func (s *ScheduleService) GetAuditoriumsList(buildingID int) ([]*models.Auditorium, error) {
+	resp, err := s.Repo.GetAuditoriumsList(buildingID)
+	if err != nil {
+		if errors.Is(err, repo.ErrNoResults) {
+			if buildingID == 0 {
+				return nil, NotFoundError{"auditoriums not found"}
+			}
+			return nil, NotFoundError{fmt.Sprintf("auditoriums for building '%v' not found", buildingID)}
+		}
+		return nil, err
+	}
+	return resp, err
+}
+
+func (s *ScheduleService) GetBuildingsList() ([]*models.Building, error) {
+	resp, err := s.Repo.GetBuildingsList()
+	if err != nil {
+		if errors.Is(err, repo.ErrNoResults) {
+			return nil, NotFoundError{"buildings not found"}
+		}
+		return nil, err
+	}
+	return resp, err
+}
+
+func (s *ScheduleService) GetBuilding(buildingID int) (*models.Building, error) {
+	resp, err := s.Repo.GetBuilding(buildingID)
+	if err != nil {
+		if errors.Is(err, repo.ErrNoResults) {
+			return nil, NotFoundError{fmt.Sprintf("building with id '%v' not found", buildingID)}
+		}
+		return nil, err
+	}
+	return resp, err
+}
+
+func (s *ScheduleService) GetLessonTypes() []models.LessonType {
+	return models.LessonTypes
+}
