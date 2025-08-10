@@ -21,7 +21,7 @@ type LessonType struct {
 
 var LessonTypes = []LessonType{
 	{Type: "lecture", Description: "лекция"},
-	{Type: "lab", Description: "лабораторная"},
+	{Type: "lab", Description: "лабораторная работа"},
 	{Type: "practice", Description: "практика"},
 	{Type: "coursework", Description: "курсовая работа"},
 	{Type: "course_project", Description: "курсовой проект"},
