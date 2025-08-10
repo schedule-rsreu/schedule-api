@@ -1131,7 +1131,7 @@ const docTemplate = `{
         "github_com_schedule-rsreu_schedule-api_internal_models.LessonType": {
             "type": "object",
             "properties": {
-                "decryption": {
+                "description": {
                     "type": "string",
                     "example": "лабораторная"
                 },

@@ -251,7 +251,7 @@ definitions:
     type: object
   github_com_schedule-rsreu_schedule-api_internal_models.LessonType:
     properties:
-      decryption:
+      description:
         example: лабораторная
         type: string
       type:
