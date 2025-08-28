@@ -351,23 +351,70 @@ period_strings AS (
   FROM final_week_types fwt
 ),
 
+-- Функция для форматирования типа занятия
+type_formatter AS (
+  SELECT 
+    lwt.*,
+    CASE lwt.type
+      WHEN 'lecture' THEN 'Лек.'
+      WHEN 'lab' THEN 'Лаб.'
+      WHEN 'practice' THEN 'Упр.'
+      WHEN 'coursework' THEN 'Курс. раб.'
+      WHEN 'course_project' THEN 'Курс. проект'
+      WHEN 'exam' THEN 'Экз.'
+      WHEN 'zachet' THEN 'Зач.'
+      WHEN 'consultation' THEN 'Конс.'
+      WHEN 'elective' THEN 'Факультатив'
+      WHEN 'unknown' THEN ''
+      ELSE COALESCE(lwt.type, '')
+    END AS formatted_type,
+    -- Формирование строки с преподавателями и аудиториями
+    (
+      SELECT string_agg(
+        CASE 
+          WHEN ta->>'teacher' IS NOT NULL AND ta->>'auditorium' IS NOT NULL THEN
+            (ta->'teacher'->>'short_name') || ' ' || (ta->'auditorium'->>'display_name')
+          WHEN ta->>'teacher' IS NOT NULL AND ta->>'auditorium' IS NULL THEN
+            (ta->'teacher'->>'short_name')
+          WHEN ta->>'teacher' IS NULL AND ta->>'auditorium' IS NOT NULL THEN
+            (ta->'auditorium'->>'display_name')
+          ELSE ''
+        END,
+        E'\n'
+        ORDER BY ta
+      )
+      FROM jsonb_array_elements(COALESCE(lwt.teacher_auditoriums, '[]'::jsonb)) AS ta
+    ) AS teacher_auditorium_string
+  FROM lesson_with_teachers lwt
+),
+
 grouped_lessons AS (
   SELECT
-    week_type,
-    weekday,
+    tf.week_type,
+    tf.weekday,
     json_agg(
       jsonb_build_object(
-        'lesson', title,
-        'type', type,
-        'date', date,
-        'time', time,
-        'start_time', start_time,
-        'end_time', end_time,
-        'teacher_auditoriums', COALESCE(teacher_auditoriums, '[]'::jsonb)
-      ) ORDER BY start_time
+        'lesson', CASE 
+          WHEN tf.formatted_type != '' AND tf.teacher_auditorium_string IS NOT NULL AND tf.teacher_auditorium_string != '' THEN
+            tf.formatted_type || ' ' || tf.title || E',\n' || tf.teacher_auditorium_string
+          WHEN tf.formatted_type != '' AND (tf.teacher_auditorium_string IS NULL OR tf.teacher_auditorium_string = '') THEN
+            tf.formatted_type || ' ' || tf.title
+          WHEN (tf.formatted_type = '' OR tf.formatted_type IS NULL) AND tf.teacher_auditorium_string IS NOT NULL AND tf.teacher_auditorium_string != '' THEN
+            tf.title || E',\n' || tf.teacher_auditorium_string
+          ELSE
+            tf.title
+        END,
+        'title', tf.title,
+        'type', tf.type,
+        'date', tf.date,
+        'time', tf.time,
+        'start_time', tf.start_time,
+        'end_time', tf.end_time,
+        'teacher_auditoriums', COALESCE(tf.teacher_auditoriums, '[]'::jsonb)
+      ) ORDER BY tf.start_time
     ) AS lessons
-  FROM lesson_with_teachers
-  GROUP BY week_type, weekday
+  FROM type_formatter tf
+  GROUP BY tf.week_type, tf.weekday
 ),
 
 -- объединённые времена занятий по обеим неделям (для поля lessons_times)
@@ -1174,50 +1221,108 @@ period_strings AS (
   FROM final_week_types fwt
 ),
 
+-- Функция для форматирования типа занятия
+type_formatter AS (
+  SELECT 
+    lwa.*,
+    CASE lwa.type
+      WHEN 'lecture' THEN 'Лек.'
+      WHEN 'lab' THEN 'Лаб.'
+      WHEN 'practice' THEN 'Упр.'
+      WHEN 'coursework' THEN 'Курс. раб.'
+      WHEN 'course_project' THEN 'Курс. проект'
+      WHEN 'exam' THEN 'Экз.'
+      WHEN 'zachet' THEN 'Зач.'
+      WHEN 'consultation' THEN 'Конс.'
+      WHEN 'elective' THEN 'Факультатив'
+      WHEN 'unknown' THEN ''
+      ELSE COALESCE(lwa.type, '')
+    END AS formatted_type,
+    -- Формирование строки с группами
+    (
+      SELECT CASE 
+        WHEN string_agg(lg.group_number, ', ' ORDER BY lg.group_number) IS NOT NULL 
+        THEN 'гр. ' || string_agg(lg.group_number, ', ' ORDER BY lg.group_number)
+        ELSE NULL
+      END
+      FROM lesson_groups lg
+      WHERE lg.time = lwa.time
+        AND to_char(lg.date, 'YYYY-MM-DD') = lwa.date
+        AND lg.week_type = lwa.week_type
+        AND lg.group_number IS NOT NULL
+    ) AS groups_string,
+    -- Формирование строки с аудиторией
+    (
+      CASE
+        WHEN lwa.auditoriums IS NULL OR jsonb_array_length(lwa.auditoriums) = 0 THEN NULL
+        ELSE (lwa.auditoriums->0->>'display_name')
+      END
+    ) AS auditorium_string
+  FROM lesson_with_auds lwa
+),
+
 grouped_lessons AS (
   SELECT
-    week_type,
-    weekday,
+    tf.week_type,
+    tf.weekday,
     json_agg(
       jsonb_build_object(
-        'time', time,
-        'lesson', title,
-        'type', type,
-        'date', date,
+        'time', tf.time,
+        'lesson', CASE 
+          WHEN tf.formatted_type != '' AND tf.groups_string IS NOT NULL AND tf.groups_string != '' AND tf.auditorium_string IS NOT NULL AND tf.auditorium_string != '' THEN
+            tf.formatted_type || ' ' || tf.title || ' ' || tf.auditorium_string || E',\n' || tf.groups_string
+          WHEN tf.formatted_type != '' AND tf.groups_string IS NOT NULL AND tf.groups_string != '' AND (tf.auditorium_string IS NULL OR tf.auditorium_string = '') THEN
+            tf.formatted_type || ' ' || tf.title || E',\n' || tf.groups_string
+          WHEN tf.formatted_type != '' AND (tf.groups_string IS NULL OR tf.groups_string = '') AND tf.auditorium_string IS NOT NULL AND tf.auditorium_string != '' THEN
+            tf.formatted_type || ' ' || tf.title || ' ' || tf.auditorium_string
+          WHEN tf.formatted_type != '' AND (tf.groups_string IS NULL OR tf.groups_string = '') AND (tf.auditorium_string IS NULL OR tf.auditorium_string = '') THEN
+            tf.formatted_type || ' ' || tf.title
+          WHEN (tf.formatted_type = '' OR tf.formatted_type IS NULL) AND tf.groups_string IS NOT NULL AND tf.groups_string != '' AND tf.auditorium_string IS NOT NULL AND tf.auditorium_string != '' THEN
+            tf.title || ' ' || tf.auditorium_string || E',\n' || tf.groups_string
+          WHEN (tf.formatted_type = '' OR tf.formatted_type IS NULL) AND tf.groups_string IS NOT NULL AND tf.groups_string != '' AND (tf.auditorium_string IS NULL OR tf.auditorium_string = '') THEN
+            tf.title || E',\n' || tf.groups_string
+          WHEN (tf.formatted_type = '' OR tf.formatted_type IS NULL) AND (tf.groups_string IS NULL OR tf.groups_string = '') AND tf.auditorium_string IS NOT NULL AND tf.auditorium_string != '' THEN
+            tf.title || ' ' || tf.auditorium_string
+          ELSE
+            tf.title
+        END,
+        'title', tf.title,
+        'type', tf.type,
+        'date', tf.date,
         'faculties', (
           SELECT array_agg(DISTINCT lg.faculty_short ORDER BY lg.faculty_short)
           FROM lesson_groups lg
-          WHERE lg.time = lesson_with_auds.time
-            AND to_char(lg.date, 'YYYY-MM-DD') = lesson_with_auds.date
-            AND lg.week_type = lesson_with_auds.week_type
+          WHERE lg.time = tf.time
+            AND to_char(lg.date, 'YYYY-MM-DD') = tf.date
+            AND lg.week_type = tf.week_type
             AND lg.faculty_short IS NOT NULL
         ),
         'groups', (
           SELECT array_agg(DISTINCT lg.group_number ORDER BY lg.group_number)
           FROM lesson_groups lg
-          WHERE lg.time = lesson_with_auds.time
-            AND to_char(lg.date, 'YYYY-MM-DD') = lesson_with_auds.date
-            AND lg.week_type = lesson_with_auds.week_type
+          WHERE lg.time = tf.time
+            AND to_char(lg.date, 'YYYY-MM-DD') = tf.date
+            AND lg.week_type = tf.week_type
             AND lg.group_number IS NOT NULL
         ),
         'courses', (
           SELECT array_agg(DISTINCT lg.course ORDER BY lg.course)
           FROM lesson_groups lg
-          WHERE lg.time = lesson_with_auds.time
-            AND to_char(lg.date, 'YYYY-MM-DD') = lesson_with_auds.date
-            AND lg.week_type = lesson_with_auds.week_type
+          WHERE lg.time = tf.time
+            AND to_char(lg.date, 'YYYY-MM-DD') = tf.date
+            AND lg.week_type = tf.week_type
             AND lg.course IS NOT NULL
         ),
         'auditorium', (
           CASE
-            WHEN auditoriums IS NULL OR jsonb_array_length(auditoriums) = 0 THEN NULL
-            ELSE (auditoriums->0)
+            WHEN tf.auditoriums IS NULL OR jsonb_array_length(tf.auditoriums) = 0 THEN NULL
+            ELSE (tf.auditoriums->0)
           END
         )
-      ) ORDER BY time
+      ) ORDER BY tf.time
     ) AS lessons
-  FROM lesson_with_auds
-  GROUP BY week_type, weekday
+  FROM type_formatter tf
+  GROUP BY tf.week_type, tf.weekday
 ),
 
 numerator_raw AS (
@@ -1512,22 +1617,75 @@ lesson_aggregated_data AS (
   GROUP BY lr.weekday, lr.time, lr.title, lr.type, lr.week_type, lr.date, lr.start_time, lr.end_time, lr.raw_date
 ),
 
+-- Функция для форматирования типа занятия
+type_formatter AS (
+  SELECT 
+    lad.*,
+    CASE lad.type
+      WHEN 'lecture' THEN 'Лек.'
+      WHEN 'lab' THEN 'Лаб.'
+      WHEN 'practice' THEN 'Упр.'
+      WHEN 'coursework' THEN 'Курс. раб.'
+      WHEN 'course_project' THEN 'Курс. проект'
+      WHEN 'exam' THEN 'Экз.'
+      WHEN 'zachet' THEN 'Зач.'
+      WHEN 'consultation' THEN 'Конс.'
+      WHEN 'elective' THEN 'Факультатив'
+      WHEN 'unknown' THEN ''
+      ELSE COALESCE(lad.type, '')
+    END AS formatted_type,
+    -- Формирование строки с преподавателями
+    (
+      SELECT string_agg(
+        teacher_elem->>'short_name',
+        E'\n'
+        ORDER BY teacher_elem->>'short_name'
+      )
+      FROM jsonb_array_elements(COALESCE(lad.teachers, '[]'::jsonb)) AS teacher_elem
+    ) AS teachers_string,
+    -- Формирование строки с группами
+    CASE 
+      WHEN array_length(lad.groups, 1) > 0 THEN
+        'гр. ' || array_to_string(lad.groups, ', ')
+      ELSE NULL
+    END AS groups_string
+  FROM lesson_aggregated_data lad
+),
+
 lesson_with_details AS (
   SELECT
-    weekday,
-    time,
-    title,
-    type,
-    week_type,
-    date,
-    start_time,
-    end_time,
-    raw_date,
-    faculties,
-    groups,
-    courses,
-    COALESCE(teachers, '[]'::jsonb) AS teachers
-  FROM lesson_aggregated_data
+    tf.weekday,
+    tf.time,
+    tf.title,
+    tf.type,
+    tf.week_type,
+    tf.date,
+    tf.start_time,
+    tf.end_time,
+    tf.raw_date,
+    tf.faculties,
+    tf.groups,
+    tf.courses,
+    COALESCE(tf.teachers, '[]'::jsonb) AS teachers,
+    CASE 
+      WHEN tf.formatted_type != '' AND tf.teachers_string IS NOT NULL AND tf.teachers_string != '' AND tf.groups_string IS NOT NULL THEN
+        tf.formatted_type || ' ' || tf.title || E',\n' || tf.teachers_string || ' ' || tf.groups_string
+      WHEN tf.formatted_type != '' AND tf.teachers_string IS NOT NULL AND tf.teachers_string != '' AND tf.groups_string IS NULL THEN
+        tf.formatted_type || ' ' || tf.title || E',\n' || tf.teachers_string
+      WHEN tf.formatted_type != '' AND (tf.teachers_string IS NULL OR tf.teachers_string = '') AND tf.groups_string IS NOT NULL THEN
+        tf.formatted_type || ' ' || tf.title || E',\n' || tf.groups_string
+      WHEN tf.formatted_type != '' AND (tf.teachers_string IS NULL OR tf.teachers_string = '') AND tf.groups_string IS NULL THEN
+        tf.formatted_type || ' ' || tf.title
+      WHEN (tf.formatted_type = '' OR tf.formatted_type IS NULL) AND tf.teachers_string IS NOT NULL AND tf.teachers_string != '' AND tf.groups_string IS NOT NULL THEN
+        tf.title || E',\n' || tf.teachers_string || ' ' || tf.groups_string
+      WHEN (tf.formatted_type = '' OR tf.formatted_type IS NULL) AND tf.teachers_string IS NOT NULL AND tf.teachers_string != '' AND tf.groups_string IS NULL THEN
+        tf.title || E',\n' || tf.teachers_string
+      WHEN (tf.formatted_type = '' OR tf.formatted_type IS NULL) AND (tf.teachers_string IS NULL OR tf.teachers_string = '') AND tf.groups_string IS NOT NULL THEN
+        tf.title || E',\n' || tf.groups_string
+      ELSE
+        tf.title
+    END AS lesson_formatted
+  FROM type_formatter tf
 ),
 
 -- Определяем точные недели из входных параметров
@@ -1640,7 +1798,8 @@ grouped_lessons AS (
         'time', time,
         'date', date,
         'type', type,
-        'lesson', title,
+        'lesson', lesson_formatted,
+        'title', title,
         'faculties', faculties,
         'groups', groups,
         'courses', courses,

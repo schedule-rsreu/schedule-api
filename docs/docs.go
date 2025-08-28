@@ -846,7 +846,7 @@ const docTemplate = `{
                 },
                 "lesson": {
                     "type": "string",
-                    "example": "л.Высшая математика\nдоц.Конюхов А.Н.   333 С"
+                    "example": "Лек. Высшая математика\nКонюхов А.Н. 333 С"
                 },
                 "teachers": {
                     "type": "array",
@@ -857,6 +857,10 @@ const docTemplate = `{
                 "time": {
                     "type": "string",
                     "example": "08.10-09.45"
+                },
+                "title": {
+                    "type": "string",
+                    "example": "Высшая математика"
                 },
                 "type": {
                     "type": "string",
@@ -1187,7 +1191,7 @@ const docTemplate = `{
                 },
                 "lesson": {
                     "type": "string",
-                    "example": "Высшая математика"
+                    "example": "Лек. Высшая математика\nКонюхов А.Н. 333 С"
                 },
                 "start_time": {
                     "type": "string",
@@ -1202,6 +1206,10 @@ const docTemplate = `{
                 "time": {
                     "type": "string",
                     "example": "08.10-09.45"
+                },
+                "title": {
+                    "type": "string",
+                    "example": "Высшая математика"
                 },
                 "type": {
                     "type": "string",
@@ -1357,11 +1365,15 @@ const docTemplate = `{
                 },
                 "lesson": {
                     "type": "string",
-                    "example": "л.Высшая математика\nдоц.Конюхов А.Н.   333 С"
+                    "example": "Лек. Высшая математика\nКонюхов А.Н. 333 С"
                 },
                 "time": {
                     "type": "string",
                     "example": "08.10-09.45"
+                },
+                "title": {
+                    "type": "string",
+                    "example": "Высшая математика"
                 },
                 "type": {
                     "type": "string",

@@ -2,7 +2,8 @@ package models
 
 type TeacherLesson struct {
 	Time       string     `json:"time"        bson:"time"        example:"08.10-09.45"`
-	Lesson     string     `json:"lesson"      bson:"lesson"      example:"л.Высшая математика\nдоц.Конюхов А.Н.   333 С"`
+	Lesson     string     `json:"lesson"      bson:"lesson"      example:"Лек. Высшая математика\nКонюхов А.Н. 333 С"` //nolint:lll // there is no way to fix it
+	Title      string     `json:"title"       bson:"title"       example:"Высшая математика"`                          //nolint:lll // there is no way to fix it
 	Type       string     `json:"type"        bson:"type"        example:"lab,practice"`
 	Date       string     `json:"date"        bson:"date"        example:"2025-06-18"`
 	Faculties  []string   `json:"faculties"   bson:"faculties"   example:"фаиту,фвт"`

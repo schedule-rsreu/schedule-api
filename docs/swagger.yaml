@@ -44,8 +44,8 @@ definitions:
         type: array
       lesson:
         example: |-
-          л.Высшая математика
-          доц.Конюхов А.Н.   333 С
+          Лек. Высшая математика
+          Конюхов А.Н. 333 С
         type: string
       teachers:
         items:
@@ -53,6 +53,9 @@ definitions:
         type: array
       time:
         example: 08.10-09.45
+        type: string
+      title:
+        example: Высшая математика
         type: string
       type:
         example: lab,practice
@@ -288,7 +291,9 @@ definitions:
         example: 2025-06-18T16:55:00
         type: string
       lesson:
-        example: Высшая математика
+        example: |-
+          Лек. Высшая математика
+          Конюхов А.Н. 333 С
         type: string
       start_time:
         example: 2025-06-18T15:20:00
@@ -299,6 +304,9 @@ definitions:
         type: array
       time:
         example: 08.10-09.45
+        type: string
+      title:
+        example: Высшая математика
         type: string
       type:
         example: lab,practice
@@ -406,11 +414,14 @@ definitions:
         type: array
       lesson:
         example: |-
-          л.Высшая математика
-          доц.Конюхов А.Н.   333 С
+          Лек. Высшая математика
+          Конюхов А.Н. 333 С
         type: string
       time:
         example: 08.10-09.45
+        type: string
+      title:
+        example: Высшая математика
         type: string
       type:
         example: lab,practice
