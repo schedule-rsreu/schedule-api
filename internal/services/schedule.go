@@ -46,7 +46,7 @@ func (s *ScheduleService) GetScheduleByGroup(group string, addEmptyLessons bool,
 
 	startDate, endDate := utils.GetWeekBounds(date)
 
-	group = strings.ToLower(group)
+	group = strings.ToUpper(group)
 
 	resp, err := s.Repo.GetScheduleByGroup(group, startDate, endDate)
 	if err != nil {
