@@ -1,6 +1,7 @@
 package services
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"sort"
@@ -38,7 +39,7 @@ func ParseDateOrNow(dateStr string) (time.Time, error) {
 	return date, nil
 }
 
-func (s *ScheduleService) GetScheduleByGroup(group string, addEmptyLessons bool, dateStr string) (*models.StudentSchedule, error) {
+func (s *ScheduleService) GetScheduleByGroup(ctx context.Context, group string, addEmptyLessons bool, dateStr string) (*models.StudentSchedule, error) {
 	date, err := ParseDateOrNow(dateStr)
 	if err != nil {
 		return nil, err
@@ -48,7 +49,7 @@ func (s *ScheduleService) GetScheduleByGroup(group string, addEmptyLessons bool,
 
 	group = strings.ToUpper(group)
 
-	resp, err := s.Repo.GetScheduleByGroup(group, startDate, endDate)
+	resp, err := s.Repo.GetScheduleByGroup(ctx, group, startDate, endDate)
 	if err != nil {
 		if errors.Is(err, repo.ErrNoResults) {
 			return nil, NotFoundError{fmt.Sprintf("schedule for group %v not found", group)}
@@ -62,7 +63,7 @@ func (s *ScheduleService) GetScheduleByGroup(group string, addEmptyLessons bool,
 	return resp, err
 }
 
-func (s *ScheduleService) GetSchedulesByGroups(dateStr string, groups []string) ([]*models.StudentSchedule, error) {
+func (s *ScheduleService) GetSchedulesByGroups(ctx context.Context, dateStr string, groups []string) ([]*models.StudentSchedule, error) {
 
 	date, err := ParseDateOrNow(dateStr)
 	if err != nil {
@@ -70,7 +71,7 @@ func (s *ScheduleService) GetSchedulesByGroups(dateStr string, groups []string) 
 	}
 
 	startDate, endDate := utils.GetWeekBounds(date)
-	resp, err := s.Repo.GetSchedulesByGroups(startDate, endDate, groups)
+	resp, err := s.Repo.GetSchedulesByGroups(ctx, startDate, endDate, groups)
 	if err != nil {
 		if errors.Is(err, repo.ErrNoResults) {
 			return nil, NotFoundError{fmt.Sprintf("schedules for groups `%v` not found", groups)}
@@ -80,8 +81,8 @@ func (s *ScheduleService) GetSchedulesByGroups(dateStr string, groups []string) 
 	return resp, err
 }
 
-func (s *ScheduleService) GetGroups(facultyName string, course int) (*models.CourseFacultyGroups, error) {
-	resp, err := s.Repo.GetGroups(facultyName, course)
+func (s *ScheduleService) GetGroups(ctx context.Context, facultyName string, course int) (*models.CourseFacultyGroups, error) {
+	resp, err := s.Repo.GetGroups(ctx, facultyName, course)
 	if err != nil {
 		if errors.Is(err, repo.ErrNoResults) {
 			return nil, NotFoundError{fmt.Sprintf("groups for faculty %v and course %v not found", facultyName, course)}
@@ -91,8 +92,8 @@ func (s *ScheduleService) GetGroups(facultyName string, course int) (*models.Cou
 	return resp, err
 }
 
-func (s *ScheduleService) GetFaculties() (*models.Faculties, error) {
-	resp, err := s.Repo.GetFaculties()
+func (s *ScheduleService) GetFaculties(ctx context.Context) (*models.Faculties, error) {
+	resp, err := s.Repo.GetFaculties(ctx)
 	if err != nil {
 		if errors.Is(err, repo.ErrNoResults) {
 			return nil, NotFoundError{"faculties not found"}
@@ -101,8 +102,8 @@ func (s *ScheduleService) GetFaculties() (*models.Faculties, error) {
 	}
 	return resp, err
 }
-func (s *ScheduleService) GetFacultyCourses(facultyName string) (*models.FacultyCourses, error) {
-	resp, err := s.Repo.GetFacultyCourses(facultyName)
+func (s *ScheduleService) GetFacultyCourses(ctx context.Context, facultyName string) (*models.FacultyCourses, error) {
+	resp, err := s.Repo.GetFacultyCourses(ctx, facultyName)
 	if err != nil {
 		if errors.Is(err, repo.ErrNoResults) {
 			return nil, NotFoundError{fmt.Sprintf("courses for faculty %v not found", facultyName)}
@@ -112,8 +113,8 @@ func (s *ScheduleService) GetFacultyCourses(facultyName string) (*models.Faculty
 	return resp, err
 }
 
-func (s *ScheduleService) GetCourseFaculties(course int) (*models.CourseFaculties, error) {
-	resp, err := s.Repo.GetCourseFaculties(course)
+func (s *ScheduleService) GetCourseFaculties(ctx context.Context, course int) (*models.CourseFaculties, error) {
+	resp, err := s.Repo.GetCourseFaculties(ctx, course)
 	if err != nil {
 		if errors.Is(err, repo.ErrNoResults) {
 			return nil, NotFoundError{fmt.Sprintf("faculties for course %v not found", course)}
@@ -123,7 +124,7 @@ func (s *ScheduleService) GetCourseFaculties(course int) (*models.CourseFacultie
 	return resp, err
 }
 
-func (s *ScheduleService) GetDay() (*models.Day, error) {
+func (s *ScheduleService) GetDay(ctx context.Context) (*models.Day, error) {
 	w := utils.GetWeekType()
 
 	loc, err := time.LoadLocation("Europe/Moscow")
@@ -149,13 +150,13 @@ func (s *ScheduleService) GetDay() (*models.Day, error) {
 	}, nil
 }
 
-func (s *ScheduleService) GetTeacherSchedule(teacherID int, dateStr string) (*models.TeacherSchedule, error) {
+func (s *ScheduleService) GetTeacherSchedule(ctx context.Context, teacherID int, dateStr string) (*models.TeacherSchedule, error) {
 	date, err := ParseDateOrNow(dateStr)
 	if err != nil {
 		return nil, err
 	}
 	startDate, endDate := utils.GetWeekBounds(date)
-	resp, err := s.Repo.GetTeacherSchedule(teacherID, startDate, endDate)
+	resp, err := s.Repo.GetTeacherSchedule(ctx, teacherID, startDate, endDate)
 	if err != nil {
 		if errors.Is(err, repo.ErrNoResults) {
 			return nil, NotFoundError{fmt.Sprintf("schedule for teacher '%v' not found", teacherID)}
@@ -165,12 +166,12 @@ func (s *ScheduleService) GetTeacherSchedule(teacherID int, dateStr string) (*mo
 	return resp, err
 }
 
-func (s *ScheduleService) GetAllTeachers() (*models.TeachersList, error) {
-	return s.Repo.GetAllTeachers()
+func (s *ScheduleService) GetAllTeachers(ctx context.Context) (*models.TeachersList, error) {
+	return s.Repo.GetAllTeachers(ctx)
 }
 
-func (s *ScheduleService) GetTeachersList(facultyID, departmentID int) (*models.TeachersList, error) {
-	resp, err := s.Repo.GetTeachersList(facultyID, departmentID)
+func (s *ScheduleService) GetTeachersList(ctx context.Context, facultyID, departmentID int) (*models.TeachersList, error) {
+	resp, err := s.Repo.GetTeachersList(ctx, facultyID, departmentID)
 	if err != nil {
 		if errors.Is(err, repo.ErrNoResults) {
 			return nil, NotFoundError{
@@ -183,8 +184,8 @@ func (s *ScheduleService) GetTeachersList(facultyID, departmentID int) (*models.
 	return resp, err
 }
 
-func (s *ScheduleService) GetTeachersFaculties(departmentID int) ([]*models.Faculty, error) {
-	resp, err := s.Repo.GetTeachersFaculties(departmentID)
+func (s *ScheduleService) GetTeachersFaculties(ctx context.Context, departmentID int) ([]*models.Faculty, error) {
+	resp, err := s.Repo.GetTeachersFaculties(ctx, departmentID)
 	if err != nil {
 		if errors.Is(err, repo.ErrNoResults) {
 			return nil, NotFoundError{fmt.Sprintf("faculties for department with id '%v' not found", departmentID)}
@@ -194,8 +195,8 @@ func (s *ScheduleService) GetTeachersFaculties(departmentID int) ([]*models.Facu
 	return resp, err
 }
 
-func (s *ScheduleService) GetTeachersDepartments(facultyID int) ([]*models.Department, error) {
-	resp, err := s.Repo.GetTeachersDepartments(facultyID)
+func (s *ScheduleService) GetTeachersDepartments(ctx context.Context, facultyID int) ([]*models.Department, error) {
+	resp, err := s.Repo.GetTeachersDepartments(ctx, facultyID)
 	if err != nil {
 		if errors.Is(err, repo.ErrNoResults) {
 			return nil, NotFoundError{fmt.Sprintf("departments for faculty '%v' not found", facultyID)}
@@ -243,8 +244,8 @@ func addEmptyLessons(lessons []models.StudentLesson, times []string) []models.St
 	return lessons
 }
 
-func (s *ScheduleService) GetFacultiesWithCourses() (*models.FacultiesCourses, error) {
-	resp, err := s.Repo.GetFacultiesWithCourses()
+func (s *ScheduleService) GetFacultiesWithCourses(ctx context.Context) (*models.FacultiesCourses, error) {
+	resp, err := s.Repo.GetFacultiesWithCourses(ctx)
 
 	if err != nil {
 		if errors.Is(err, repo.ErrNoResults) {
@@ -272,14 +273,14 @@ func (s *ScheduleService) AddEmptyLessons(schedule *models.NumeratorDenominator[
 	schedule.Numerator.Saturday = addEmptyLessons(schedule.Numerator.Saturday, times)
 }
 
-func (s *ScheduleService) GetAuditoriumSchedule(auditoriumID int, dateStr string) (*models.AuditoriumSchedule, error) {
+func (s *ScheduleService) GetAuditoriumSchedule(ctx context.Context, auditoriumID int, dateStr string) (*models.AuditoriumSchedule, error) {
 	date, err := ParseDateOrNow(dateStr)
 	if err != nil {
 		return nil, err
 	}
 
 	startDate, endDate := utils.GetWeekBounds(date)
-	resp, err := s.Repo.GetAuditoriumSchedule(startDate, endDate, auditoriumID)
+	resp, err := s.Repo.GetAuditoriumSchedule(ctx, startDate, endDate, auditoriumID)
 	if err != nil {
 		if errors.Is(err, repo.ErrNoResults) {
 			return nil, NotFoundError{fmt.Sprintf("schedules for auditorium `%v` not found", auditoriumID)}
@@ -289,8 +290,8 @@ func (s *ScheduleService) GetAuditoriumSchedule(auditoriumID int, dateStr string
 	return resp, err
 }
 
-func (s *ScheduleService) GetAuditorium(auditoriumID int) (*models.Auditorium, error) {
-	resp, err := s.Repo.GetAuditorium(auditoriumID)
+func (s *ScheduleService) GetAuditorium(ctx context.Context, auditoriumID int) (*models.Auditorium, error) {
+	resp, err := s.Repo.GetAuditorium(ctx, auditoriumID)
 	if err != nil {
 		if errors.Is(err, repo.ErrNoResults) {
 			return nil, NotFoundError{fmt.Sprintf("auditorium with id '%v' not found", auditoriumID)}
@@ -300,8 +301,8 @@ func (s *ScheduleService) GetAuditorium(auditoriumID int) (*models.Auditorium, e
 	return resp, err
 }
 
-func (s *ScheduleService) GetAuditoriumsList(buildingID int) ([]*models.Auditorium, error) {
-	resp, err := s.Repo.GetAuditoriumsList(buildingID)
+func (s *ScheduleService) GetAuditoriumsList(ctx context.Context, buildingID int) ([]*models.Auditorium, error) {
+	resp, err := s.Repo.GetAuditoriumsList(ctx, buildingID)
 	if err != nil {
 		if errors.Is(err, repo.ErrNoResults) {
 			if buildingID == 0 {
@@ -314,8 +315,8 @@ func (s *ScheduleService) GetAuditoriumsList(buildingID int) ([]*models.Auditori
 	return resp, err
 }
 
-func (s *ScheduleService) GetBuildingsList() ([]*models.Building, error) {
-	resp, err := s.Repo.GetBuildingsList()
+func (s *ScheduleService) GetBuildingsList(ctx context.Context) ([]*models.Building, error) {
+	resp, err := s.Repo.GetBuildingsList(ctx)
 	if err != nil {
 		if errors.Is(err, repo.ErrNoResults) {
 			return nil, NotFoundError{"buildings not found"}
@@ -325,8 +326,8 @@ func (s *ScheduleService) GetBuildingsList() ([]*models.Building, error) {
 	return resp, err
 }
 
-func (s *ScheduleService) GetBuilding(buildingID int) (*models.Building, error) {
-	resp, err := s.Repo.GetBuilding(buildingID)
+func (s *ScheduleService) GetBuilding(ctx context.Context, buildingID int) (*models.Building, error) {
+	resp, err := s.Repo.GetBuilding(ctx, buildingID)
 	if err != nil {
 		if errors.Is(err, repo.ErrNoResults) {
 			return nil, NotFoundError{fmt.Sprintf("building with id '%v' not found", buildingID)}

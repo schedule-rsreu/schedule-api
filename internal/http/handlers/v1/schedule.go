@@ -70,6 +70,7 @@ func NewRouter(g *echo.Group,
 // @Failure     500  {object}  echo.HTTPError.
 // @Failure     404  {object}  echo.HTTPError.
 func (sh *ScheduleHandler) getScheduleByGroup(c echo.Context) error {
+	ctx := c.Request().Context()
 	group := c.Param("group")
 	addEmptyLessons := c.QueryParam("add_empty_lessons") == "true"
 	date := c.QueryParam("date")
@@ -78,7 +79,7 @@ func (sh *ScheduleHandler) getScheduleByGroup(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, "group query param not found")
 	}
 
-	resp, err := sh.s.GetScheduleByGroup(group, addEmptyLessons, date)
+	resp, err := sh.s.GetScheduleByGroup(ctx, group, addEmptyLessons, date)
 	if err != nil {
 		if errors.As(err, &services.NotFoundError{}) {
 			return echo.NewHTTPError(http.StatusNotFound, err)
@@ -113,8 +114,8 @@ func (sh *ScheduleHandler) getTeacherSchedule(c echo.Context) error {
 	if err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, "teacher_id query param must be integer")
 	}
-
-	resp, err := sh.s.GetTeacherSchedule(teacherIdInt, date)
+	ctx := c.Request().Context()
+	resp, err := sh.s.GetTeacherSchedule(ctx, teacherIdInt, date)
 
 	if err != nil {
 		if errors.As(err, &services.NotFoundError{}) {
@@ -138,7 +139,9 @@ func (sh *ScheduleHandler) getTeacherSchedule(c echo.Context) error {
 // @Failure     500  {object}  echo.HTTPError
 // @Failure     404  {object}  echo.HTTPError.
 func (sh *ScheduleHandler) getTeachers(c echo.Context) error {
-	resp, err := sh.s.GetAllTeachers()
+	ctx := c.Request().Context()
+
+	resp, err := sh.s.GetAllTeachers(ctx)
 	if err != nil {
 		return err
 	}
@@ -154,7 +157,9 @@ func (sh *ScheduleHandler) getTeachers(c echo.Context) error {
 // @Response    200  {object}  models.Day
 // @Failure     500  {object}  echo.HTTPError.
 func (sh *ScheduleHandler) getDay(c echo.Context) error {
-	resp, err := sh.s.GetDay()
+	ctx := c.Request().Context()
+
+	resp, err := sh.s.GetDay(ctx)
 	if err != nil {
 		return err
 	}
@@ -171,7 +176,9 @@ func (sh *ScheduleHandler) getDay(c echo.Context) error {
 // @Failure     500  {object}  echo.HTTPError
 // @Failure     404  {object}  echo.HTTPError.
 func (sh *ScheduleHandler) getFaculties(c echo.Context) error {
-	resp, err := sh.s.GetFaculties()
+	ctx := c.Request().Context()
+
+	resp, err := sh.s.GetFaculties(ctx)
 	if err != nil {
 		if errors.As(err, &services.NotFoundError{}) {
 			return echo.NewHTTPError(http.StatusNotFound, err)
@@ -192,12 +199,15 @@ func (sh *ScheduleHandler) getFaculties(c echo.Context) error {
 // @Failure     500  {object}  echo.HTTPError
 // @Failure     404  {object}  echo.HTTPError.
 func (sh *ScheduleHandler) getFacultyCourses(c echo.Context) error {
+
 	faculty := c.QueryParam("faculty")
 	if faculty == "" {
 		return echo.NewHTTPError(http.StatusBadRequest, "faculty query param not found")
 	}
 
-	resp, err := sh.s.GetFacultyCourses(faculty)
+	ctx := c.Request().Context()
+
+	resp, err := sh.s.GetFacultyCourses(ctx, faculty)
 	if err != nil {
 		if errors.As(err, &services.NotFoundError{}) {
 			return echo.NewHTTPError(http.StatusNotFound, err)
@@ -224,7 +234,9 @@ func (sh *ScheduleHandler) getCourseFaculties(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, "course query param must be integer")
 	}
 
-	resp, err := sh.s.GetCourseFaculties(course)
+	ctx := c.Request().Context()
+
+	resp, err := sh.s.GetCourseFaculties(ctx, course)
 	if err != nil {
 		if errors.As(err, &services.NotFoundError{}) {
 			return echo.NewHTTPError(http.StatusNotFound, err)
@@ -248,7 +260,9 @@ type schedulesByGroupsRequest struct {
 // @Failure     500  {object}  echo.HTTPError
 // @Failure     404  {object}  echo.HTTPError.
 func (sh *ScheduleHandler) getFacultiesCourses(c echo.Context) error {
-	resp, err := sh.s.GetFacultiesWithCourses()
+	ctx := c.Request().Context()
+
+	resp, err := sh.s.GetFacultiesWithCourses(ctx)
 	if err != nil {
 		if errors.As(err, &services.NotFoundError{}) {
 			return echo.NewHTTPError(http.StatusNotFound, err)
@@ -282,7 +296,9 @@ func (sh *ScheduleHandler) schedulesByGroups(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
 
-	resp, err := sh.s.GetSchedulesByGroups(date, req.Groups)
+	ctx := c.Request().Context()
+
+	resp, err := sh.s.GetSchedulesByGroups(ctx, date, req.Groups)
 	if err != nil {
 		if errors.As(err, &services.NotFoundError{}) {
 			return echo.NewHTTPError(http.StatusNotFound, err)
@@ -321,8 +337,9 @@ func (sh *ScheduleHandler) getCourseFacultyGroups(c echo.Context) error {
 			return echo.NewHTTPError(http.StatusBadRequest, "course query param must be integer, got: "+courseS)
 		}
 	}
+	ctx := c.Request().Context()
 
-	resp, err := sh.s.GetGroups(faculty, course)
+	resp, err := sh.s.GetGroups(ctx, faculty, course)
 	if err != nil {
 		if errors.As(err, &services.NotFoundError{}) {
 			return echo.NewHTTPError(http.StatusNotFound, err)
@@ -357,7 +374,9 @@ func (sh *ScheduleHandler) getTeachersList(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, "department_id query param must be integer, got: "+departmentID)
 	}
 
-	resp, err := sh.s.GetTeachersList(facultyIDInt, departmentIDInt)
+	ctx := c.Request().Context()
+
+	resp, err := sh.s.GetTeachersList(ctx, facultyIDInt, departmentIDInt)
 	if err != nil {
 		if errors.As(err, &services.NotFoundError{}) {
 			return echo.NewHTTPError(http.StatusNotFound, err)
@@ -386,7 +405,9 @@ func (sh *ScheduleHandler) getTeachersFaculties(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, "department_id query param must be integer, got: "+departmentId)
 	}
 
-	resp, err := sh.s.GetTeachersFaculties(departmentIdInt)
+	ctx := c.Request().Context()
+
+	resp, err := sh.s.GetTeachersFaculties(ctx, departmentIdInt)
 	if err != nil {
 		if errors.As(err, &services.NotFoundError{}) {
 			return echo.NewHTTPError(http.StatusNotFound, err)
@@ -414,7 +435,9 @@ func (sh *ScheduleHandler) getTeachersDepartments(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, "faculty_id query param must be integer, got: "+facultyID)
 	}
 
-	resp, err := sh.s.GetTeachersDepartments(facultyIDInt)
+	ctx := c.Request().Context()
+
+	resp, err := sh.s.GetTeachersDepartments(ctx, facultyIDInt)
 	if err != nil {
 		if errors.As(err, &services.NotFoundError{}) {
 			return echo.NewHTTPError(http.StatusNotFound, err)
@@ -449,7 +472,9 @@ func (sh *ScheduleHandler) getAuditoriumSchedule(c echo.Context) error {
 
 	date := c.QueryParam("date")
 
-	resp, err := sh.s.GetAuditoriumSchedule(auditoriumIdInt, date)
+	ctx := c.Request().Context()
+
+	resp, err := sh.s.GetAuditoriumSchedule(ctx, auditoriumIdInt, date)
 	if err != nil {
 		if errors.As(err, &services.NotFoundError{}) {
 			return echo.NewHTTPError(http.StatusNotFound, err)
@@ -482,7 +507,9 @@ func (sh *ScheduleHandler) getAuditoriumList(c echo.Context) error {
 		}
 	}
 
-	resp, err := sh.s.GetAuditoriumsList(buildingIdInt)
+	ctx := c.Request().Context()
+
+	resp, err := sh.s.GetAuditoriumsList(ctx, buildingIdInt)
 	if err != nil {
 		if errors.As(err, &services.NotFoundError{}) {
 			return echo.NewHTTPError(http.StatusNotFound, err)
@@ -515,7 +542,9 @@ func (sh *ScheduleHandler) getAuditorium(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, "auditorium_id path param must be integer")
 	}
 
-	resp, err := sh.s.GetAuditorium(auditoriumIdInt)
+	ctx := c.Request().Context()
+
+	resp, err := sh.s.GetAuditorium(ctx, auditoriumIdInt)
 	if err != nil {
 		if errors.As(err, &services.NotFoundError{}) {
 			return echo.NewHTTPError(http.StatusNotFound, err)
@@ -536,7 +565,9 @@ func (sh *ScheduleHandler) getAuditorium(c echo.Context) error {
 // @Failure     500  {object}  echo.HTTPError
 // @Failure     404  {object}  echo.HTTPError
 func (sh *ScheduleHandler) getBuildings(c echo.Context) error {
-	resp, err := sh.s.GetBuildingsList()
+	ctx := c.Request().Context()
+
+	resp, err := sh.s.GetBuildingsList(ctx)
 	if err != nil {
 		if errors.As(err, &services.NotFoundError{}) {
 			return echo.NewHTTPError(http.StatusNotFound, err)
@@ -568,8 +599,9 @@ func (sh *ScheduleHandler) getBuilding(c echo.Context) error {
 	if err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, "id path param must be integer")
 	}
+	ctx := c.Request().Context()
 
-	resp, err := sh.s.GetBuilding(buildingIdInt)
+	resp, err := sh.s.GetBuilding(ctx, buildingIdInt)
 	if err != nil {
 		if errors.As(err, &services.NotFoundError{}) {
 			return echo.NewHTTPError(http.StatusNotFound, err)
