@@ -20,6 +20,7 @@ services:
     networks:
       - traefik
       - prometheus
+      - tempo
 
 networks:
   traefik:
@@ -28,4 +29,8 @@ networks:
 
   prometheus:
     name: prometheus
+    external: true
+
+  tempo:
+    name: tempo
     external: true

@@ -20,6 +20,8 @@ services:
       - MONGO_USERNAME=${MONGO_USERNAME}
       - MONGO_PASSWORD=${MONGO_PASSWORD}
       - POSTGRES_DSN=${POSTGRES_DSN}
+      - ENVIRONMENT=prod
+      - OTL_ENDPOINT=tempo:4317
 
   mongodb:
     image: mongo:6.0.9
@@ -65,3 +67,4 @@ volumes:
 
 networks:
   default:
+

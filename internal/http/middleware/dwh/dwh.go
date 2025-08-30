@@ -1,10 +1,10 @@
 package dwh
 
 import (
+	logger2 "github.com/schedule-rsreu/schedule-api/pkg/logger"
 	"strings"
 
 	"github.com/labstack/echo/v4"
-	"github.com/rs/zerolog"
 	"github.com/schedule-rsreu/schedule-api/pkg/auth/jwt"
 )
 
@@ -30,9 +30,10 @@ func getBearerClaims(c echo.Context, bearerSecret string) (*jwt.Claims, bool) {
 	return claims, true
 }
 
-func New(logger *zerolog.Logger, dwhURL, dwhToken, bearerSecret string) echo.MiddlewareFunc {
+func New(dwhURL, dwhToken, bearerSecret string) echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
+			logger := logger2.GetLoggerFromCtx(c)
 			claims, ok := getBearerClaims(c, bearerSecret)
 			logger.Info().Any("claims", claims).Bool("ok", ok).Msg("dwh middleware")
 			return next(c)

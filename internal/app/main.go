@@ -4,6 +4,12 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/codes"
+	"go.opentelemetry.io/otel/propagation"
+	"go.opentelemetry.io/otel/sdk/resource"
+	"go.opentelemetry.io/otel/trace"
 	"net"
 	"net/http"
 	"os"
@@ -33,9 +39,12 @@ import (
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/rs/zerolog"
 	"github.com/schedule-rsreu/schedule-api/config"
+	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
+	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 )
 
 const contextTimeout = 5 * time.Second
+const serviceName = "schedule-api"
 
 const productionUrl = "https://schedule-rsreu.ru"
 const banner = `
@@ -50,6 +59,47 @@ ___________________________________________
 ⇨ server started on: %s
 ⇨ docs: %s
 `
+
+// initTracer возвращает TracerProvider в зависимости от окружения
+func initTracer(ctx context.Context, otlEndpoint, env, version string, logger zerolog.Logger) (*sdktrace.TracerProvider, error) {
+	if env == "local" {
+		logger.Info().Msg("⚙️  Using no-op tracer (local mode)")
+		tp := sdktrace.NewTracerProvider(
+			sdktrace.WithSampler(sdktrace.NeverSample()),
+		)
+		otel.SetTracerProvider(tp)
+		return tp, nil
+	}
+
+	// иначе — подключаем реальный экспортер
+	exporter, err := otlptracegrpc.New(ctx,
+		otlptracegrpc.WithInsecure(),
+		otlptracegrpc.WithEndpoint(otlEndpoint),
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	res, err := resource.New(ctx,
+		resource.WithAttributes(
+			attribute.String("service.name", serviceName),
+			attribute.String("deployment.environment", env),
+			attribute.String("service.version", version),
+		),
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	tp := sdktrace.NewTracerProvider(
+		sdktrace.WithBatcher(exporter),
+		sdktrace.WithResource(res),
+	)
+	otel.SetTracerProvider(tp)
+
+	logger.Info().Msgf("🚀 Tracing enabled for environment=%s", env)
+	return tp, nil
+}
 
 type CustomValidator struct {
 	validator *validator.Validate
@@ -95,6 +145,21 @@ func printBanner(version, url string) {
 func Run(cfg *config.Config) {
 	fmt.Println(cfg.PostgresDSN)
 	logger := zerolog.New(os.Stdout)
+
+	ctx := context.Background()
+
+	tp, err := initTracer(ctx, cfg.OtlEndpoint, cfg.Environment, cfg.Version, logger)
+	if err != nil {
+		logger.Error().Err(err).Msg("app - Run - initTracer")
+		return
+	}
+
+	defer func(tp *sdktrace.TracerProvider, ctx context.Context) {
+		err := tp.Shutdown(ctx)
+		if err != nil {
+			logger.Error().Err(err).Msg("app - Run - tp.Shutdown")
+		}
+	}(tp, ctx)
 
 	e := echo.New()
 	e.HideBanner = true
@@ -158,6 +223,12 @@ func Run(cfg *config.Config) {
 }
 
 func setupEcho(e *echo.Echo, logger *zerolog.Logger) {
+	e.Use(middleware.Recover())
+	e.Use(middleware.CORS())
+	e.Use(middleware.RequestID())
+
+	setupLogger(e, logger)
+
 	e.Use(mwp.NewPatternMiddleware("schedule_api"))
 	e.GET("/metrics", echo.WrapHandler(promhttp.Handler()))
 
@@ -165,12 +236,8 @@ func setupEcho(e *echo.Echo, logger *zerolog.Logger) {
 
 	e.Validator = &CustomValidator{validator: validator.New()}
 
-	e.Use(middleware.Recover())
-	e.Use(middleware.CORS())
-	e.Use(middleware.RequestID())
-	e.Use(dwh.New(logger, "", "", "secret"))
+	e.Use(dwh.New("", "", "secret"))
 
-	setupLogger(e, logger)
 }
 
 func setupLogger(e *echo.Echo, logger *zerolog.Logger) {
@@ -178,6 +245,55 @@ func setupLogger(e *echo.Echo, logger *zerolog.Logger) {
 		return func(c echo.Context) error {
 			c.Set("logger", logger)
 			return next(c)
+		}
+	})
+
+	e.Use(func(next echo.HandlerFunc) echo.HandlerFunc {
+		tracer := otel.Tracer("schedule-api/handlers")
+
+		return func(c echo.Context) error {
+			// request ID уже есть
+			reqID := c.Response().Header().Get(echo.HeaderXRequestID)
+
+			ctx := otel.GetTextMapPropagator().Extract(
+				c.Request().Context(),
+				propagation.HeaderCarrier(c.Request().Header),
+			)
+
+			// создаём span для запроса
+			ctx, span := tracer.Start(ctx, c.Path(), trace.WithSpanKind(trace.SpanKindServer))
+			defer span.End()
+			traceID := span.SpanContext().TraceID().String()
+			c.Set("trace_id", traceID)
+			c.SetRequest(c.Request().WithContext(ctx))
+			c.Response().Header().Set("X-Trace-ID", traceID)
+
+			// контекстный логгер
+			logger := c.Get("logger").(*zerolog.Logger).With().
+				Str("trace_id", traceID).
+				Str("request_id", reqID).
+				Logger()
+			c.Set("logger", &logger)
+
+			err := next(c)
+
+			status := c.Response().Status
+			if err != nil {
+				var he *echo.HTTPError
+				if errors.As(err, &he) {
+					status = he.Code
+				} else {
+					status = http.StatusInternalServerError
+				}
+				span.SetAttributes(attribute.String("error", err.Error()))
+				span.RecordError(err)
+				span.SetStatus(codes.Error, err.Error())
+			} else {
+				span.SetStatus(codes.Ok, "")
+			}
+			span.SetAttributes(attribute.Int("http.status_code", status))
+
+			return err
 		}
 	})
 
@@ -203,6 +319,7 @@ func setupLogger(e *echo.Echo, logger *zerolog.Logger) {
 					status = http.StatusInternalServerError
 				}
 			}
+			logger := c.Get("logger").(*zerolog.Logger)
 
 			logger.Info().
 				Time("time", v.StartTime).
@@ -211,7 +328,6 @@ func setupLogger(e *echo.Echo, logger *zerolog.Logger) {
 				Str("method", v.Method).
 				Str("remote_addr", v.RemoteIP).
 				Str("user_agent", v.UserAgent).
-				Str("request_id", v.RequestID).
 				Int("status", status).
 				Int64("bytes", v.ResponseSize).
 				Str("duration", v.Latency.String()).

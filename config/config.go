@@ -21,6 +21,8 @@ type Config struct {
 	MongoDBName   string `env:"MONGO_DB_NAME"                        env-required:"true"`
 	PostgresDSN   string `env:"POSTGRES_DSN"                         env-required:"true"`
 	Production    bool   `env:"PRODUCTION"     env-default:"true"`
+	Environment   string `env:"ENVIRONMENT"    env-default:"prod"` // prod, dev, local
+	OtlEndpoint   string `env:"OTL_ENDPOINT" env-default:"tempo:4317"`
 }
 
 var (
