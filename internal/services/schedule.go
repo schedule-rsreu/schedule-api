@@ -145,7 +145,7 @@ func (s *ScheduleService) GetDay() (*models.Day, error) {
 		WeekTypeEng: WeekTypeMap[w],
 		Day:         now.Weekday().String(),
 		DayRu:       shortDayNames[now.Weekday()],
-		Time:        now.Format("15.04"),
+		Time:        now.Format("15:04"),
 	}, nil
 }
 
