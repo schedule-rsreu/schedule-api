@@ -29,7 +29,7 @@ func ParseDateOrNow(dateStr string) (time.Time, error) {
 	var err error
 
 	if dateStr == "" {
-		date = time.Now()
+		date = utils.GetNowWithZone()
 	} else {
 		date, err = time.Parse("2006-01-02", dateStr)
 		if err != nil {

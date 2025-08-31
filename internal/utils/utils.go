@@ -7,6 +7,16 @@ import (
 
 const timeZone = "Europe/Moscow"
 
+func GetNowWithZone() time.Time {
+	loc, err := time.LoadLocation(timeZone)
+
+	if err != nil {
+		return time.Now()
+	}
+	now := time.Now().In(loc)
+	return now
+}
+
 func GetWeekType() string {
 	const dayHours = 24
 	const weekDays = 7
