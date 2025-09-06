@@ -13,6 +13,7 @@ func TestGetConfig(t *testing.T) {
 
 	t.Setenv("MONGO_PASSWORD", "mongo")
 	t.Setenv("MONGO_DB_NAME", "mongo")
+	t.Setenv("POSTGRES_DSN", "postgres://postgres:postgres@localhost:5432/postgres?sslmode=disable")
 
 	cfg := config.Get()
 	t.Log(cfg)

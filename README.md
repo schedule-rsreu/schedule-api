@@ -8,7 +8,7 @@
     <a href="https://goreportcard.com/report/github.com/schedule-rsreu/schedule-api"><img src="https://goreportcard.com/badge/github.com/schedule-rsreu/schedule-api"/></a>
     <a href="https://img.shields.io/github/go-mod/go-version/schedule-rsreu/schedule-api"><img src="https://img.shields.io/github/go-mod/go-version/schedule-rsreu/schedule-api" /></a>
     <a href="/LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue" /></a>
-    <a href="https://codecov.io/github/schedule-rsreu/schedule-api"><img src="https://codecov.io/github/schedule-rsreu/schedule-api/graph/badge.svg?token=IFHLWELSNW" /></a>
+    <!-- <a href="https://codecov.io/github/schedule-rsreu/schedule-api"><img src="https://codecov.io/github/schedule-rsreu/schedule-api/graph/badge.svg?token=IFHLWELSNW" /></a> -->
     <a href="https://github.com/schedule-rsreu/schedule-api/actions/workflows/codeql.yml" title="Code quality workflow status"><img src="https://github.com/schedule-rsreu/schedule-api/actions/workflows/codeql.yml/badge.svg" /></a>
     <a href="https://github.com/schedule-rsreu/schedule-api/actions/workflows/dependabot/dependabot-updates"><img src="https://badgen.net/github/dependabot/schedule-rsreu/schedule-api" /></a>
 </p>
@@ -26,7 +26,7 @@
 и `docker` ([инструкции по установке](https://docs.docker.com/engine/install/)).
 
 Запуск локально, с поднятой базой данных отдельно. (Базу данных можно поднять в `docker`
-выполнив `docker compose up mongodb -d`):
+выполнив `docker compose up postgres -d`):
 
 ```shell
 make run
@@ -60,5 +60,5 @@ make lint
 - Исправление замечаний линтеров автоматически, если возможно:
 
 ```shell
-make fix
+make format
 ```
