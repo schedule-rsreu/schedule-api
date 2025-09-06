@@ -1,8 +1,9 @@
 package dwh
 
 import (
-	logger2 "github.com/schedule-rsreu/schedule-api/pkg/logger"
 	"strings"
+
+	logger2 "github.com/schedule-rsreu/schedule-api/pkg/logger"
 
 	"github.com/labstack/echo/v4"
 	"github.com/schedule-rsreu/schedule-api/pkg/auth/jwt"
@@ -33,7 +34,6 @@ func getBearerClaims(c echo.Context, bearerSecret string) (*jwt.Claims, bool) {
 func New(dwhURL, dwhToken, bearerSecret string) echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
-
 			if strings.Contains(c.Request().RequestURI, "/ping") || strings.Contains(c.Request().RequestURI, "/metrics") {
 				return next(c)
 			}

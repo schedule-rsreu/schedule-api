@@ -2,8 +2,8 @@ package models
 
 type StudentLesson struct {
 	Time               string                     `json:"time"                bson:"time"                example:"08.10-09.45"`
-	Lesson             string                     `json:"lesson"      bson:"lesson"      example:"Лек. Высшая математика\nКонюхов А.Н. 333 С"` //nolint:lll // there is no way to fix it
-	Title              string                     `json:"title"       bson:"title"       example:"Высшая математика"`                          //nolint:lll // there is no way to fix it
+	Lesson             string                     `json:"lesson"              bson:"lesson"              example:"Лек. Высшая математика\nКонюхов А.Н. 333 С"` //nolint:lll // there is no way to fix it
+	Title              string                     `json:"title"               bson:"title"               example:"Высшая математика"`                          //nolint:lll // there is no way to fix it
 	Date               string                     `json:"date"                bson:"date"                example:"2025-06-18"`
 	Type               string                     `json:"type"                bson:"type"                example:"lab,practice"`
 	StartTime          string                     `json:"start_time"          bson:"start_time"          example:"2025-06-18T15:20:00"`
@@ -25,12 +25,12 @@ type StudentTeacherInfo struct {
 }
 
 type StudentSchedule struct {
-	Faculty           string                            `json:"faculty"            bson:"faculty"            example:"фвт"`
-	Group             string                            `json:"group"              bson:"group"              example:"344"`
-	Course            int                               `json:"course"             bson:"course"             example:"1"`
-	NumeratorPeriod   string                            `json:"numerator_period"   bson:"numerator_period"   example:"16.06-22.06"`
-	DenominatorPeriod string                            `json:"denominator_period" bson:"denominator_period" example:"09.06-15.06"`
-	InputWeekType     string                            `json:"input_week_type" example:"numerator"`
-	Schedule          NumeratorDenominator[StudentWeek] `json:"schedule"           bson:"schedule"`
-	LessonsTimes      []string                          `json:"lessons_times,omitempty"                  db:"lessons_times"`
+	Faculty           string                            `json:"faculty"                 bson:"faculty"                               example:"фвт"`
+	Group             string                            `json:"group"                   bson:"group"                                 example:"344"`
+	NumeratorPeriod   string                            `json:"numerator_period"        bson:"numerator_period"                      example:"16.06-22.06"`
+	DenominatorPeriod string                            `json:"denominator_period"      bson:"denominator_period"                    example:"09.06-15.06"`
+	InputWeekType     string                            `json:"input_week_type"                                                      example:"numerator"`
+	Schedule          NumeratorDenominator[StudentWeek] `json:"schedule"                bson:"schedule"`
+	LessonsTimes      []string                          `json:"lessons_times,omitempty"                           db:"lessons_times"`
+	Course            int                               `json:"course"                  bson:"course"                                example:"1"`
 }

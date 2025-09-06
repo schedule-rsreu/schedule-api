@@ -18,7 +18,7 @@ type Option func(*Postgres)
 //}
 //
 //// ConnTimeout -.
-//func ConnTimeout(timeout time.Duration) Option {
+// func ConnTimeout(timeout time.Duration) Option {
 //	return func(c *Postgres) {
 //		c.connTimeout = timeout
 //	}

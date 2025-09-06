@@ -33,7 +33,7 @@ func ParseDateOrNow(dateStr string) (time.Time, error) {
 	} else {
 		date, err = time.Parse("2006-01-02", dateStr)
 		if err != nil {
-			return time.Time{}, errors.New("invalid date format, expected YYYY-MM-DD")
+			return time.Time{}, ErrInvalidDateFormat
 		}
 	}
 	return date, nil
@@ -64,7 +64,6 @@ func (s *ScheduleService) GetScheduleByGroup(ctx context.Context, group string, 
 }
 
 func (s *ScheduleService) GetSchedulesByGroups(ctx context.Context, dateStr string, groups []string) ([]*models.StudentSchedule, error) {
-
 	date, err := ParseDateOrNow(dateStr)
 	if err != nil {
 		return nil, err
@@ -257,7 +256,6 @@ func (s *ScheduleService) GetFacultiesWithCourses(ctx context.Context) (*models.
 }
 
 func (s *ScheduleService) AddEmptyLessons(schedule *models.NumeratorDenominator[models.StudentWeek], times []string) {
-
 	schedule.Denominator.Monday = addEmptyLessons(schedule.Denominator.Monday, times)
 	schedule.Denominator.Tuesday = addEmptyLessons(schedule.Denominator.Tuesday, times)
 	schedule.Denominator.Wednesday = addEmptyLessons(schedule.Denominator.Wednesday, times)
@@ -338,5 +336,16 @@ func (s *ScheduleService) GetBuilding(ctx context.Context, buildingID int) (*mod
 }
 
 func (s *ScheduleService) GetLessonTypes() []models.LessonType {
-	return models.LessonTypes
+	return []models.LessonType{
+		{Type: "lecture", Description: "лекция"},
+		{Type: "lab", Description: "лабораторная работа"},
+		{Type: "practice", Description: "практика"},
+		{Type: "coursework", Description: "курсовая работа"},
+		{Type: "course_project", Description: "курсовой проект"},
+		{Type: "exam", Description: "экзамен"},
+		{Type: "zachet", Description: "зачет"},
+		{Type: "consultation", Description: "консультация"},
+		{Type: "elective", Description: "факультатив"},
+		{Type: "unknown", Description: ""},
+	}
 }

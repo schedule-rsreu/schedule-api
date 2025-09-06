@@ -6,68 +6,21 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/jmoiron/sqlx"
 	"time"
+
+	"github.com/jmoiron/sqlx"
 
 	"github.com/schedule-rsreu/schedule-api/pkg/postgres"
 
 	"github.com/schedule-rsreu/schedule-api/internal/models"
-	"go.mongodb.org/mongo-driver/mongo"
 )
 
-const queryTimeout = 10 * time.Second
-const maxFacultyShortLen = 8
-const maxDepartmentShortLen = 6
-
 type ScheduleRepo struct {
-	mdb                        *mongo.Database
-	scheduleCollection         *mongo.Collection
-	teachersScheduleCollection *mongo.Collection
-	pg                         *postgres.Postgres
+	pg *postgres.Postgres
 }
 
-const ScheduleCollectionName = "schedule"
-const TeachersScheduleCollectionName = "teachers_schedule"
-
-func NewScheduleRepo(mdb *mongo.Database, pg *postgres.Postgres) *ScheduleRepo {
-	scheduleCollection := mdb.Collection(ScheduleCollectionName)
-	teachersScheduleCollection := mdb.Collection(TeachersScheduleCollectionName)
-	return &ScheduleRepo{mdb, scheduleCollection, teachersScheduleCollection, pg}
-}
-
-func findOne[T any](filter any, c *mongo.Collection) (*T, error) {
-	var result *T
-	ctx, cancel := context.WithTimeout(context.Background(), queryTimeout)
-	defer cancel()
-
-	err := c.FindOne(ctx, filter).Decode(&result)
-	if errors.Is(err, mongo.ErrNoDocuments) {
-		return nil, ErrNoResults
-	} else if err != nil {
-		return nil, err
-	}
-
-	return result, nil
-}
-
-func findOneJson[T any](pg *sqlx.DB, query string, args ...any) (*T, error) {
-	var resultBytes []byte
-	err := pg.QueryRow(query, args...).Scan(&resultBytes)
-
-	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return nil, ErrNoResults
-		}
-		return nil, fmt.Errorf("findOneJson: %w", err)
-	}
-
-	var result *T
-	err = json.Unmarshal(resultBytes, &result)
-
-	if err != nil {
-		return nil, fmt.Errorf("findOneJson: json.Unmarshal: %w", err)
-	}
-	return result, err
+func NewScheduleRepo(pg *postgres.Postgres) *ScheduleRepo {
+	return &ScheduleRepo{pg}
 }
 
 func findOneJsonContext[T any](ctx context.Context, pg *sqlx.DB, query string, args ...any) (*T, error) {
@@ -90,70 +43,7 @@ func findOneJsonContext[T any](ctx context.Context, pg *sqlx.DB, query string, a
 	return result, err
 }
 
-func findAll[T any](filter any, c *mongo.Collection) ([]*T, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), queryTimeout)
-	defer cancel()
-
-	var results []*T
-
-	cursor, err := c.Find(ctx, filter)
-	if err != nil {
-		return nil, err
-	}
-
-	if err := cursor.All(ctx, &results); err != nil {
-		return nil, err
-	}
-
-	return results, nil
-}
-
-func aggregateOne[T any](pipeline any, c *mongo.Collection) (*T, error) {
-	var results []*T
-
-	ctx, cancel := context.WithTimeout(context.Background(), queryTimeout)
-	defer cancel()
-
-	cursor, err := c.Aggregate(ctx, pipeline)
-	if err != nil {
-		return nil, err
-	}
-
-	cursor.Next(context.TODO())
-	if err := cursor.All(context.TODO(), &results); err != nil {
-		return nil, err
-	}
-
-	for _, result := range results {
-		return result, nil
-	}
-
-	return nil, ErrNoResults
-}
-
-func aggregateAll[T any](pipeline any, c *mongo.Collection) ([]*T, error) {
-	var results []*T
-
-	ctx, cancel := context.WithTimeout(context.Background(), queryTimeout)
-	defer cancel()
-
-	cursor, err := c.Aggregate(ctx, pipeline)
-	if err != nil {
-		return nil, err
-	}
-
-	if err := cursor.All(ctx, &results); err != nil {
-		return nil, err
-	}
-
-	if len(results) == 0 {
-		return nil, ErrNoResults
-	}
-
-	return results, nil
-}
-
-func (sr *ScheduleRepo) groupExists(group string) (bool, error) {
+func (sr *ScheduleRepo) groupExists(group string) (bool, error) { //nolint:unused // use in future
 	var exists bool
 	err := sr.pg.DB.QueryRow(`SELECT EXISTS (SELECT 1 FROM "group" WHERE number = $1)`, group).Scan(&exists)
 	if err != nil {
@@ -499,7 +389,6 @@ CROSS JOIN period_strings ps;
 	return findOneJsonContext[models.StudentSchedule](ctx, sr.pg.DB, query, startDate, endDate, group)
 }
 
-// TODO: refactor to postgres
 func (sr *ScheduleRepo) GetSchedulesByGroups(ctx context.Context, startDate, endDate time.Time, groups []string) ([]*models.StudentSchedule, error) {
 	const query = `
 -- Запрос для получения расписания групп из списка []*models.StudentSchedule
@@ -875,7 +764,7 @@ SELECT json_agg(
 ) AS schedules_json
 FROM period_strings ps
 LEFT JOIN lessons_times lt ON ps.group_id = lt.group_id;`
-	fmt.Println(startDate, endDate, groups)
+
 	res, err := findOneJsonContext[[]*models.StudentSchedule](ctx, sr.pg.DB, query, startDate, endDate, groups)
 	if err != nil {
 		return nil, err
@@ -937,7 +826,6 @@ func (sr *ScheduleRepo) GetFacultyCourses(ctx context.Context, facultyName strin
 	err := sr.pg.DB.QueryRowContext(ctx, query, facultyName).Scan(&FacultyCoursesJSON)
 
 	if err != nil {
-		fmt.Println("error:", err)
 		return nil, err
 	}
 
@@ -945,7 +833,6 @@ func (sr *ScheduleRepo) GetFacultyCourses(ctx context.Context, facultyName strin
 	err = json.Unmarshal(FacultyCoursesJSON, &schedule)
 
 	if err != nil {
-		fmt.Println("error:", err)
 		return nil, err
 	}
 	return schedule, err
@@ -977,7 +864,6 @@ func (sr *ScheduleRepo) GetFacultiesWithCourses(ctx context.Context) (*models.Fa
 }
 
 func (sr *ScheduleRepo) GetCourseFaculties(ctx context.Context, course int) (*models.CourseFaculties, error) {
-	fmt.Println("sdgfg")
 	const query = `
 	SELECT jsonb_build_object(
 	  'course', $1::int,
@@ -1000,9 +886,6 @@ func (sr *ScheduleRepo) GetCourseFaculties(ctx context.Context, course int) (*mo
 }
 
 func (sr *ScheduleRepo) GetTeacherSchedule(ctx context.Context, teacherID int, startDate, endDate time.Time) (*models.TeacherSchedule, error) {
-
-	fmt.Println("startDate:", startDate, "endDate:", endDate)
-
 	const query = `
 WITH teacher_info AS (
   SELECT
@@ -1887,7 +1770,7 @@ CROSS JOIN period_strings ps;
 	return findOneJsonContext[models.AuditoriumSchedule](ctx, sr.pg.DB, query, startDate, endDate, auditoriumID)
 }
 
-func (r *ScheduleRepo) GetAuditorium(ctx context.Context, auditoriumID int) (*models.Auditorium, error) {
+func (sr *ScheduleRepo) GetAuditorium(ctx context.Context, auditoriumID int) (*models.Auditorium, error) {
 	const query = `
         SELECT json_build_object(
             'id', a.id,
@@ -1903,10 +1786,10 @@ func (r *ScheduleRepo) GetAuditorium(ctx context.Context, auditoriumID int) (*mo
         JOIN building b ON a.building_id = b.id
         WHERE a.id = $1
     `
-	return findOneJsonContext[models.Auditorium](ctx, r.pg.DB, query, auditoriumID)
+	return findOneJsonContext[models.Auditorium](ctx, sr.pg.DB, query, auditoriumID)
 }
 
-func (r *ScheduleRepo) GetAuditoriumsList(ctx context.Context, buildingId int) ([]*models.Auditorium, error) {
+func (sr *ScheduleRepo) GetAuditoriumsList(ctx context.Context, buildingId int) ([]*models.Auditorium, error) {
 	const query = `
         SELECT json_agg(
             json_build_object(
@@ -1924,11 +1807,11 @@ func (r *ScheduleRepo) GetAuditoriumsList(ctx context.Context, buildingId int) (
         JOIN building b ON a.building_id = b.id
         WHERE ($1 = 0 OR b.id = $1)
     `
-	res, err := findOneJsonContext[[]*models.Auditorium](ctx, r.pg.DB, query, buildingId)
+	res, err := findOneJsonContext[[]*models.Auditorium](ctx, sr.pg.DB, query, buildingId)
 	return *res, err
 }
 
-func (r *ScheduleRepo) GetBuildingsList(ctx context.Context) ([]*models.Building, error) {
+func (sr *ScheduleRepo) GetBuildingsList(ctx context.Context) ([]*models.Building, error) {
 	const query = `
         SELECT json_agg(
             json_build_object(
@@ -1939,11 +1822,11 @@ func (r *ScheduleRepo) GetBuildingsList(ctx context.Context) ([]*models.Building
         ) AS buildings_json
         FROM building b
     `
-	res, err := findOneJsonContext[[]*models.Building](ctx, r.pg.DB, query)
+	res, err := findOneJsonContext[[]*models.Building](ctx, sr.pg.DB, query)
 	return *res, err
 }
 
-func (r *ScheduleRepo) GetBuilding(ctx context.Context, buildingId int) (*models.Building, error) {
+func (sr *ScheduleRepo) GetBuilding(ctx context.Context, buildingId int) (*models.Building, error) {
 	const query = `
         SELECT json_build_object(
             'id', b.id,
@@ -1953,5 +1836,5 @@ func (r *ScheduleRepo) GetBuilding(ctx context.Context, buildingId int) (*models
         FROM building b
         WHERE b.id = $1
     `
-	return findOneJsonContext[models.Building](ctx, r.pg.DB, query, buildingId)
+	return findOneJsonContext[models.Building](ctx, sr.pg.DB, query, buildingId)
 }

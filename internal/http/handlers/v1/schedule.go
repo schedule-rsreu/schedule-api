@@ -54,7 +54,6 @@ func NewRouter(g *echo.Group,
 	scheduleGroup.GET("/buildings/:id", sh.getBuilding)
 
 	scheduleGroup.GET("/lesson/types", sh.getLessonTypes) // /auditoriums
-
 }
 
 // getScheduleByGroup
@@ -199,7 +198,6 @@ func (sh *ScheduleHandler) getFaculties(c echo.Context) error {
 // @Failure     500  {object}  echo.HTTPError
 // @Failure     404  {object}  echo.HTTPError.
 func (sh *ScheduleHandler) getFacultyCourses(c echo.Context) error {
-
 	faculty := c.QueryParam("faculty")
 	if faculty == "" {
 		return echo.NewHTTPError(http.StatusBadRequest, "faculty query param not found")
@@ -485,16 +483,7 @@ func (sh *ScheduleHandler) getAuditoriumSchedule(c echo.Context) error {
 	return c.JSON(http.StatusOK, resp)
 }
 
-// getAuditoriumList
-// @Summary     Get auditoriums list
-// @Description Get auditoriums list by building_id (if building_id is 0 or not provided, returns all auditoriums)
-// @Tags        Auditoriums
-// @Router      /api/v1/schedule/auditoriums/list [get]
-// @Param       building_id  query  int  false  "building_id" example(1)
-// @Success     200  {array}   models.Auditorium
-// @Response    200  {array}   models.Auditorium
-// @Failure     500  {object}  echo.HTTPError
-// @Failure     404  {object}  echo.HTTPError
+// @Failure     404  {object}  echo.HTTPError.
 func (sh *ScheduleHandler) getAuditoriumList(c echo.Context) error {
 	buildingIdStr := c.QueryParam("building_id")
 
@@ -520,16 +509,7 @@ func (sh *ScheduleHandler) getAuditoriumList(c echo.Context) error {
 	return c.JSON(http.StatusOK, resp)
 }
 
-// getAuditorium
-// @Summary     Get auditorium
-// @Description Get auditorium by auditorium_id
-// @Tags        Auditoriums
-// @Router      /api/v1/schedule/auditoriums/{auditorium_id} [get]
-// @Param       auditorium_id  path  int  true  "auditorium_id" example(12)
-// @Success     200  {object}  models.Auditorium
-// @Response    200  {object}  models.Auditorium
-// @Failure     500  {object}  echo.HTTPError
-// @Failure     404  {object}  echo.HTTPError
+// @Failure     404  {object}  echo.HTTPError.
 func (sh *ScheduleHandler) getAuditorium(c echo.Context) error {
 	auditoriumIdStr := c.Param("auditorium_id")
 
@@ -555,15 +535,7 @@ func (sh *ScheduleHandler) getAuditorium(c echo.Context) error {
 	return c.JSON(http.StatusOK, resp)
 }
 
-// getBuildings
-// @Summary     Get buildings list
-// @Description Get all buildings list
-// @Tags        Buildings
-// @Router      /api/v1/schedule/buildings [get]
-// @Success     200  {array}   models.Building
-// @Response    200  {array}   models.Building
-// @Failure     500  {object}  echo.HTTPError
-// @Failure     404  {object}  echo.HTTPError
+// @Failure     404  {object}  echo.HTTPError.
 func (sh *ScheduleHandler) getBuildings(c echo.Context) error {
 	ctx := c.Request().Context()
 
@@ -578,16 +550,7 @@ func (sh *ScheduleHandler) getBuildings(c echo.Context) error {
 	return c.JSON(http.StatusOK, resp)
 }
 
-// getBuilding
-// @Summary     Get building
-// @Description Get building by id
-// @Tags        Buildings
-// @Router      /api/v1/schedule/buildings/{id} [get]
-// @Param       id  path  int  true  "building id" example(1)
-// @Success     200  {object}  models.Building
-// @Response    200  {object}  models.Building
-// @Failure     500  {object}  echo.HTTPError
-// @Failure     404  {object}  echo.HTTPError
+// @Failure     404  {object}  echo.HTTPError.
 func (sh *ScheduleHandler) getBuilding(c echo.Context) error {
 	buildingIdStr := c.Param("id")
 

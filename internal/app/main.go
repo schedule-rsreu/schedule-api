@@ -3,13 +3,6 @@ package app
 import (
 	"context"
 	"errors"
-	"fmt"
-	"go.opentelemetry.io/otel"
-	"go.opentelemetry.io/otel/attribute"
-	"go.opentelemetry.io/otel/codes"
-	"go.opentelemetry.io/otel/propagation"
-	"go.opentelemetry.io/otel/sdk/resource"
-	"go.opentelemetry.io/otel/trace"
 	"net"
 	"net/http"
 	"os"
@@ -18,11 +11,16 @@ import (
 	"syscall"
 	"time"
 
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/codes"
+	"go.opentelemetry.io/otel/propagation"
+	"go.opentelemetry.io/otel/sdk/resource"
+	"go.opentelemetry.io/otel/trace"
+
 	"github.com/schedule-rsreu/schedule-api/pkg/postgres"
 
 	"github.com/schedule-rsreu/schedule-api/internal/http/middleware/dwh"
-
-	"github.com/schedule-rsreu/schedule-api/pkg/mongodb"
 
 	"github.com/labstack/gommon/color"
 
@@ -60,8 +58,8 @@ ___________________________________________
 ⇨ docs: %s
 `
 
-// initTracer возвращает TracerProvider в зависимости от окружения
-func initTracer(ctx context.Context, otlEndpoint, env, version string, logger zerolog.Logger) (*sdktrace.TracerProvider, error) {
+// initTracer возвращает TracerProvider в зависимости от окружения.
+func initTracer(ctx context.Context, otlEndpoint, env, version string, logger *zerolog.Logger) (*sdktrace.TracerProvider, error) {
 	if env == "local" {
 		logger.Info().Msg("⚙️  Using no-op tracer (local mode)")
 		tp := sdktrace.NewTracerProvider(
@@ -143,19 +141,18 @@ func printBanner(version, url string) {
 }
 
 func Run(cfg *config.Config) {
-	fmt.Println(cfg.PostgresDSN)
 	logger := zerolog.New(os.Stdout)
 
 	ctx := context.Background()
 
-	tp, err := initTracer(ctx, cfg.OtlEndpoint, cfg.Environment, cfg.Version, logger)
+	tp, err := initTracer(ctx, cfg.OtlEndpoint, cfg.Environment, cfg.Version, &logger)
 	if err != nil {
 		logger.Error().Err(err).Msg("app - Run - initTracer")
 		return
 	}
 
 	defer func(tp *sdktrace.TracerProvider, ctx context.Context) {
-		err := tp.Shutdown(ctx)
+		err = tp.Shutdown(ctx)
 		if err != nil {
 			logger.Error().Err(err).Msg("app - Run - tp.Shutdown")
 		}
@@ -165,22 +162,13 @@ func Run(cfg *config.Config) {
 	e.HideBanner = true
 	e.HidePort = true
 
-	mongoClient, err := mongodb.NewMongoClient(cfg.GetMongoURI())
-
-	if err != nil {
-		logger.Error().Err(err).Msg("MongoDB ping failed")
-		return
-	}
-
-	mongoDB := mongodb.NewMongoDatabase(mongoClient, cfg.MongoDBName)
-
 	postgresDB, err := postgres.New(cfg.PostgresDSN)
 	if err != nil {
 		logger.Error().Err(err).Msg("Postgres connection failed")
-		os.Exit(1)
+		return
 	}
 
-	handlers.NewRouter(e, services.NewScheduleService(repo.NewScheduleRepo(mongoDB, postgresDB)))
+	handlers.NewRouter(e, services.NewScheduleService(repo.NewScheduleRepo(postgresDB)))
 
 	go func() {
 		if cfg.Production {
@@ -213,11 +201,6 @@ func Run(cfg *config.Config) {
 
 	postgresDB.Close()
 	logger.Info().Msg("app - Run - postgresDB.Close - exit")
-	if err := mongoClient.Disconnect(ctx); err != nil {
-		logger.Error().Err(err).Msg("app - Run - mongoClient.Disconnect")
-		return
-	}
-	logger.Info().Msg("app - Run - mongoClient.Disconnect - exit")
 
 	logger.Info().Msg("app - Run - exit")
 }
@@ -237,22 +220,13 @@ func setupEcho(e *echo.Echo, logger *zerolog.Logger) {
 	e.Validator = &CustomValidator{validator: validator.New()}
 
 	e.Use(dwh.New("", "", "secret"))
-
 }
 
-func setupLogger(e *echo.Echo, logger *zerolog.Logger) {
-	e.Use(func(next echo.HandlerFunc) echo.HandlerFunc {
-		return func(c echo.Context) error {
-			c.Set("logger", logger)
-			return next(c)
-		}
-	})
-
-	e.Use(func(next echo.HandlerFunc) echo.HandlerFunc {
+func addTraceToLogMiddleware(defaultLogger *zerolog.Logger) echo.MiddlewareFunc {
+	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		tracer := otel.Tracer("schedule-api/handlers")
 
 		return func(c echo.Context) error {
-			// request ID уже есть
 			reqID := c.Response().Header().Get(echo.HeaderXRequestID)
 
 			ctx := otel.GetTextMapPropagator().Extract(
@@ -268,8 +242,11 @@ func setupLogger(e *echo.Echo, logger *zerolog.Logger) {
 			c.SetRequest(c.Request().WithContext(ctx))
 			c.Response().Header().Set("X-Trace-ID", traceID)
 
-			// контекстный логгер
-			logger := c.Get("logger").(*zerolog.Logger).With().
+			loggerFromCtx, ok := c.Get("logger").(*zerolog.Logger)
+			if !ok {
+				loggerFromCtx = defaultLogger
+			}
+			logger := loggerFromCtx.With().
 				Str("trace_id", traceID).
 				Str("request_id", reqID).
 				Logger()
@@ -295,9 +272,11 @@ func setupLogger(e *echo.Echo, logger *zerolog.Logger) {
 
 			return err
 		}
-	})
+	}
+}
 
-	e.Use(middleware.RequestLoggerWithConfig(middleware.RequestLoggerConfig{
+func logRequestMiddleware(logger *zerolog.Logger) echo.MiddlewareFunc {
+	return middleware.RequestLoggerWithConfig(middleware.RequestLoggerConfig{
 		LogURI:          true,
 		LogStatus:       true,
 		LogLatency:      true,
@@ -319,9 +298,13 @@ func setupLogger(e *echo.Echo, logger *zerolog.Logger) {
 					status = http.StatusInternalServerError
 				}
 			}
-			logger := c.Get("logger").(*zerolog.Logger)
+			loggerFromCtx, ok := c.Get("logger").(*zerolog.Logger)
 
-			logger.Info().
+			if !ok {
+				loggerFromCtx = logger
+			}
+
+			loggerFromCtx.Info().
 				Time("time", v.StartTime).
 				Str("component", "middleware").
 				Str("path", v.URI).
@@ -336,5 +319,18 @@ func setupLogger(e *echo.Echo, logger *zerolog.Logger) {
 
 			return nil
 		},
-	}))
+	})
+}
+
+func setupLogger(e *echo.Echo, logger *zerolog.Logger) {
+	e.Use(func(next echo.HandlerFunc) echo.HandlerFunc {
+		return func(c echo.Context) error {
+			c.Set("logger", logger)
+			return next(c)
+		}
+	})
+
+	e.Use(addTraceToLogMiddleware(logger))
+
+	e.Use(logRequestMiddleware(logger))
 }

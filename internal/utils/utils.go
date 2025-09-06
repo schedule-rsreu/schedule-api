@@ -44,14 +44,16 @@ func GetWeekType() string {
 	return res
 }
 
-func GetWeekBounds(date time.Time) (time.Time, time.Time) {
+func GetWeekBounds(date time.Time) (monday, nextSunday time.Time) {
+	const daysUntilNextSunday = 13
+
 	weekday := int(date.Weekday())
 	if weekday == 0 {
 		weekday = 7 // Sunday as 7
 	}
 	// понедельник этой недели
-	monday := date.AddDate(0, 0, -weekday+1)
+	monday = date.AddDate(0, 0, -weekday+1)
 	// воскресенье следующей недели (через 13 дней от monday)
-	nextSunday := monday.AddDate(0, 0, 13)
+	nextSunday = monday.AddDate(0, 0, daysUntilNextSunday)
 	return monday, nextSunday
 }

@@ -1,9 +1,9 @@
 package models
 
 type Faculty struct {
-	Id         int    `json:"id" bson:"id" example:"1"`
-	Title      string `json:"title" bson:"title" example:"Факультет автоматики и информационных технологий в управлении"`
+	Title      string `json:"title"       bson:"title" example:"Факультет автоматики и информационных технологий в управлении"`
 	TitleShort string `json:"title_short" bson:"short" example:"фаиту"`
+	Id         int    `json:"id"          bson:"id"    example:"1"`
 }
 
 type CourseFacultyGroups struct {

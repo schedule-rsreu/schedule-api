@@ -15,19 +15,6 @@ type NumeratorDenominator[TWeek StudentWeek | TeacherWeek | AuditoriumWeek] stru
 }
 
 type LessonType struct {
-	Type        string `json:"type" example:"lab"`
+	Type        string `json:"type"        example:"lab"`
 	Description string `json:"description" example:"лабораторная"`
-}
-
-var LessonTypes = []LessonType{
-	{Type: "lecture", Description: "лекция"},
-	{Type: "lab", Description: "лабораторная работа"},
-	{Type: "practice", Description: "практика"},
-	{Type: "coursework", Description: "курсовая работа"},
-	{Type: "course_project", Description: "курсовой проект"},
-	{Type: "exam", Description: "экзамен"},
-	{Type: "zachet", Description: "зачет"},
-	{Type: "consultation", Description: "консультация"},
-	{Type: "elective", Description: "факультатив"},
-	{Type: "unknown", Description: ""},
 }

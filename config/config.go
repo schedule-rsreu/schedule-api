@@ -16,13 +16,13 @@ type Config struct {
 	Version       string `env:"VERSION"        env-default:"1"`
 	MongoHost     string `env:"MONGO_HOST"     env-default:"mongodb"`
 	MongoPort     string `env:"MONGO_PORT"     env-default:"27017"`
-	MongoUsername string `env:"MONGO_USERNAME"                       env-required:"true"`
-	MongoPassword string `env:"MONGO_PASSWORD"                       env-required:"true"`
-	MongoDBName   string `env:"MONGO_DB_NAME"                        env-required:"true"`
-	PostgresDSN   string `env:"POSTGRES_DSN"                         env-required:"true"`
+	MongoUsername string `env:"MONGO_USERNAME"                          env-required:"true"`
+	MongoPassword string `env:"MONGO_PASSWORD"                          env-required:"true"`
+	MongoDBName   string `env:"MONGO_DB_NAME"                           env-required:"true"`
+	PostgresDSN   string `env:"POSTGRES_DSN"                            env-required:"true"`
+	Environment   string `env:"ENVIRONMENT"    env-default:"prod"`
+	OtlEndpoint   string `env:"OTL_ENDPOINT"   env-default:"tempo:4317"`
 	Production    bool   `env:"PRODUCTION"     env-default:"true"`
-	Environment   string `env:"ENVIRONMENT"    env-default:"prod"` // prod, dev, local
-	OtlEndpoint   string `env:"OTL_ENDPOINT" env-default:"tempo:4317"`
 }
 
 var (

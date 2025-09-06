@@ -21,8 +21,8 @@ install: $(BIN)/golangci-lint  $(BIN)/goimports  $(BIN)/gotestsum
 lint:
 	$(BIN)/golangci-lint run --config=.golangci.yml ./...
 
-.PHONY: fix
-fix:
+.PHONY: format
+format:
 	gofmt -s -w .
 
 	$(BIN)/goimports -l -w .
