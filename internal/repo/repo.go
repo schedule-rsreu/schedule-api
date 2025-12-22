@@ -94,7 +94,7 @@ lesson_rows AS (
     t.full_name,
     lat.auditorium_id,
     a.number AS auditorium_number,
-	b.id AS building_id,
+    b.id AS building_id,
     b.letter AS building_letter,
     b.title AS building_title,
     l.date AS raw_date
@@ -141,7 +141,7 @@ teacher_aud_data AS (
           'number', auditorium_number,
           'display_name', auditorium_number || ' ' || building_letter,
           'building', jsonb_build_object(
-			'id', building_id,
+            'id', building_id,
             'letter', building_letter,
             'title', building_title
           )
@@ -169,7 +169,7 @@ input_weeks AS (
   FROM params p
 ),
 
--- Референсные занятия до/после для классификации
+-- Референсные занятия до/после для классификации (только с известными типами)
 reference_lesson AS (
   SELECT
     iw.*,
@@ -182,7 +182,8 @@ reference_lesson AS (
     SELECT l.date AS lesson_date, l.week_type
     FROM lesson l
     JOIN params p ON l.group_id = p.group_id
-    WHERE l.date < iw.first_week_monday
+    WHERE l.date < iw.first_week_monday 
+      AND l.week_type IN ('numerator', 'denominator')
     ORDER BY l.date DESC
     LIMIT 1
   ) rl_before ON true
@@ -191,6 +192,7 @@ reference_lesson AS (
     FROM lesson l
     JOIN params p ON l.group_id = p.group_id
     WHERE l.date > iw.second_week_monday + INTERVAL '6 days'
+      AND l.week_type IN ('numerator', 'denominator')
     ORDER BY l.date ASC
     LIMIT 1
   ) rl_after ON true
@@ -203,12 +205,14 @@ week_classification AS (
       SELECT l.week_type FROM lesson_with_teachers l 
       WHERE l.raw_date BETWEEN rl.first_week_monday 
         AND rl.first_week_monday + INTERVAL '6 days'
+        AND l.week_type IN ('numerator', 'denominator')
       LIMIT 1
     ) AS first_week_actual_type,
     (
       SELECT l.week_type FROM lesson_with_teachers l 
       WHERE l.raw_date BETWEEN rl.second_week_monday 
         AND rl.second_week_monday + INTERVAL '6 days'
+        AND l.week_type IN ('numerator', 'denominator')
       LIMIT 1
     ) AS second_week_actual_type,
     CASE 
@@ -247,6 +251,27 @@ final_week_types AS (
   FROM week_classification wc
 ),
 
+-- Классификация занятий с unknown типами на основе их даты
+lessons_with_resolved_types AS (
+  SELECT
+    lwt.*,
+    fwt.final_first_week_type,
+    fwt.final_second_week_type,
+    CASE
+      WHEN lwt.week_type = 'unknown' THEN
+        CASE
+          WHEN lwt.raw_date BETWEEN fwt.first_week_monday AND fwt.first_week_monday + INTERVAL '6 days' THEN
+            fwt.final_first_week_type
+          WHEN lwt.raw_date BETWEEN fwt.second_week_monday AND fwt.second_week_monday + INTERVAL '6 days' THEN
+            fwt.final_second_week_type
+          ELSE lwt.week_type
+        END
+      ELSE lwt.week_type
+    END AS resolved_week_type
+  FROM lesson_with_teachers lwt
+  CROSS JOIN final_week_types fwt
+),
+
 period_strings AS (
   SELECT
     CASE WHEN fwt.final_first_week_type = 'numerator' 
@@ -264,8 +289,8 @@ period_strings AS (
 -- Функция для форматирования типа занятия
 type_formatter AS (
   SELECT 
-    lwt.*,
-    CASE lwt.type
+    lwrt.*,
+    CASE lwrt.type
       WHEN 'lecture' THEN 'Лек.'
       WHEN 'lab' THEN 'Лаб.'
       WHEN 'practice' THEN 'Упр.'
@@ -276,7 +301,7 @@ type_formatter AS (
       WHEN 'consultation' THEN 'Конс.'
       WHEN 'elective' THEN 'Факультатив'
       WHEN 'unknown' THEN ''
-      ELSE COALESCE(lwt.type, '')
+      ELSE COALESCE(lwrt.type, '')
     END AS formatted_type,
     -- Формирование строки с преподавателями и аудиториями
     (
@@ -293,14 +318,14 @@ type_formatter AS (
         E'\n'
         ORDER BY ta
       )
-      FROM jsonb_array_elements(COALESCE(lwt.teacher_auditoriums, '[]'::jsonb)) AS ta
+      FROM jsonb_array_elements(COALESCE(lwrt.teacher_auditoriums, '[]'::jsonb)) AS ta
     ) AS teacher_auditorium_string
-  FROM lesson_with_teachers lwt
+  FROM lessons_with_resolved_types lwrt
 ),
 
 grouped_lessons AS (
   SELECT
-    tf.week_type,
+    tf.resolved_week_type AS week_type,
     tf.weekday,
     json_agg(
       jsonb_build_object(
@@ -324,17 +349,15 @@ grouped_lessons AS (
       ) ORDER BY tf.start_time
     ) AS lessons
   FROM type_formatter tf
-  GROUP BY tf.week_type, tf.weekday
+  WHERE tf.resolved_week_type IN ('numerator', 'denominator')
+  GROUP BY tf.resolved_week_type, tf.weekday
 ),
 
 -- объединённые времена занятий по обеим неделям (для поля lessons_times)
 lessons_times AS (
   SELECT array_agg(DISTINCT time ORDER BY time) AS lessons_times
-  FROM lesson_with_teachers
-  WHERE week_type IN (
-    (SELECT input_week_type FROM period_strings),
-    CASE WHEN (SELECT input_week_type FROM period_strings) = 'numerator' THEN 'denominator' ELSE 'numerator' END
-  )
+  FROM lessons_with_resolved_types
+  WHERE resolved_week_type IN ('numerator', 'denominator')
 ),
 
 numerator_raw AS (
