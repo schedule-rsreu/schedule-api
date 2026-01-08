@@ -109,7 +109,7 @@ func (s *ScheduleService) GetFaculties(ctx context.Context) (*models.Faculties, 
 	}
 	return resp, err
 }
-func (s *ScheduleService) GetFacultyCourses(ctx context.Context, facultyName string, dateStr string) (*models.FacultyCourses, error) {
+func (s *ScheduleService) GetFacultyCourses(ctx context.Context, facultyName, dateStr string) (*models.FacultyCourses, error) {
 	date, err := ParseDateOrNow(dateStr)
 	if err != nil {
 		return nil, err
