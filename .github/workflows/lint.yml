@@ -20,7 +20,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: bin
-          key: ${{ runner.os }}-lint-dependencies-${{ hashFiles('Makefile') }}
+          key: ${{ runner.os }}-lint-dependencies-${{ hashFiles('Makefile') }}-${{ hashFiles('.golangci.yml') }}-${{ hashFiles('go.mod') }}
 
       - name: Install lint dependencies
         if: steps.cache-lint-dependencies.outputs.cache-hit != 'true'
