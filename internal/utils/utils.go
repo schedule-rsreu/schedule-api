@@ -57,3 +57,10 @@ func GetWeekBounds(date time.Time) (monday, nextSunday time.Time) {
 	nextSunday = monday.AddDate(0, 0, daysUntilNextSunday)
 	return monday, nextSunday
 }
+
+// GetDateRangeBounds возвращает диапазон дат ±monthsOffset от указанной даты.
+func GetDateRangeBounds(date time.Time, monthsOffset int) (start, end time.Time) {
+	start = date.AddDate(0, -monthsOffset, 0)
+	end = date.AddDate(0, monthsOffset, 0)
+	return start, end
+}

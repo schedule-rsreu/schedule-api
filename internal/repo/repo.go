@@ -551,7 +551,7 @@ input_weeks AS (
   CROSS JOIN params p
 ),
 
--- Референсные занятия до/после для классификации для каждой группы
+-- Референсные занятия до/после для классификации для каждой группы (только с известными типами)
 reference_lesson AS (
   SELECT
     iw.*,
@@ -565,6 +565,7 @@ reference_lesson AS (
     FROM lesson l
     WHERE l.group_id = iw.group_id
       AND l.date < iw.first_week_monday
+      AND l.week_type IN ('numerator', 'denominator')
     ORDER BY l.date DESC
     LIMIT 1
   ) rl_before ON true
@@ -573,6 +574,7 @@ reference_lesson AS (
     FROM lesson l
     WHERE l.group_id = iw.group_id
       AND l.date > iw.second_week_monday + INTERVAL '6 days'
+      AND l.week_type IN ('numerator', 'denominator')
     ORDER BY l.date ASC
     LIMIT 1
   ) rl_after ON true
@@ -586,6 +588,7 @@ week_classification AS (
       WHERE l.group_id = rl.group_id
         AND l.raw_date BETWEEN rl.first_week_monday 
         AND rl.first_week_monday + INTERVAL '6 days'
+        AND l.week_type IN ('numerator', 'denominator')
       LIMIT 1
     ) AS first_week_actual_type,
     (
@@ -593,6 +596,7 @@ week_classification AS (
       WHERE l.group_id = rl.group_id
         AND l.raw_date BETWEEN rl.second_week_monday 
         AND rl.second_week_monday + INTERVAL '6 days'
+        AND l.week_type IN ('numerator', 'denominator')
       LIMIT 1
     ) AS second_week_actual_type,
     CASE 
@@ -631,6 +635,29 @@ final_week_types AS (
   FROM week_classification wc
 ),
 
+-- Классификация занятий с unknown типами на основе их даты
+lessons_with_resolved_types AS (
+  SELECT
+    lwt.*,
+    fwt.final_first_week_type,
+    fwt.final_second_week_type,
+    fwt.first_week_monday,
+    fwt.second_week_monday,
+    CASE
+      WHEN lwt.week_type = 'unknown' THEN
+        CASE
+          WHEN lwt.raw_date BETWEEN fwt.first_week_monday AND fwt.first_week_monday + INTERVAL '6 days' THEN
+            fwt.final_first_week_type
+          WHEN lwt.raw_date BETWEEN fwt.second_week_monday AND fwt.second_week_monday + INTERVAL '6 days' THEN
+            fwt.final_second_week_type
+          ELSE lwt.week_type
+        END
+      ELSE lwt.week_type
+    END AS resolved_week_type
+  FROM lesson_with_teachers lwt
+  JOIN final_week_types fwt ON lwt.group_id = fwt.group_id
+),
+
 period_strings AS (
   SELECT
     fwt.group_id,
@@ -652,8 +679,8 @@ period_strings AS (
 -- Функция для форматирования типа занятия
 type_formatter AS (
   SELECT 
-    lwt.*,
-    CASE lwt.type
+    lwrt.*,
+    CASE lwrt.type
       WHEN 'lecture' THEN 'Лек.'
       WHEN 'lab' THEN 'Лаб.'
       WHEN 'practice' THEN 'Упр.'
@@ -664,7 +691,7 @@ type_formatter AS (
       WHEN 'consultation' THEN 'Конс.'
       WHEN 'elective' THEN 'Факультатив'
       WHEN 'unknown' THEN ''
-      ELSE COALESCE(lwt.type, '')
+      ELSE COALESCE(lwrt.type, '')
     END AS formatted_type,
     -- Формирование строки с преподавателями и аудиториями
     (
@@ -681,15 +708,15 @@ type_formatter AS (
         E'\n'
         ORDER BY ta
       )
-      FROM jsonb_array_elements(COALESCE(lwt.teacher_auditoriums, '[]'::jsonb)) AS ta
+      FROM jsonb_array_elements(COALESCE(lwrt.teacher_auditoriums, '[]'::jsonb)) AS ta
     ) AS teacher_auditorium_string
-  FROM lesson_with_teachers lwt
+  FROM lessons_with_resolved_types lwrt
 ),
 
 grouped_lessons AS (
   SELECT
     tf.group_id,
-    tf.week_type,
+    tf.resolved_week_type AS week_type,
     tf.weekday,
     json_agg(
       jsonb_build_object(
@@ -713,21 +740,18 @@ grouped_lessons AS (
       ) ORDER BY tf.start_time
     ) AS lessons
   FROM type_formatter tf
-  GROUP BY tf.group_id, tf.week_type, tf.weekday
+  WHERE tf.resolved_week_type IN ('numerator', 'denominator')
+  GROUP BY tf.group_id, tf.resolved_week_type, tf.weekday
 ),
 
 -- объединённые времена занятий по обеим неделям для каждой группы
 lessons_times AS (
   SELECT 
-    lwt.group_id,
-    array_agg(DISTINCT lwt.time ORDER BY lwt.time) AS lessons_times
-  FROM lesson_with_teachers lwt
-  JOIN period_strings ps ON lwt.group_id = ps.group_id
-  WHERE lwt.week_type IN (
-    ps.input_week_type,
-    CASE WHEN ps.input_week_type = 'numerator' THEN 'denominator' ELSE 'numerator' END
-  )
-  GROUP BY lwt.group_id
+    lwrt.group_id,
+    array_agg(DISTINCT lwrt.time ORDER BY lwrt.time) AS lessons_times
+  FROM lessons_with_resolved_types lwrt
+  WHERE lwrt.resolved_week_type IN ('numerator', 'denominator')
+  GROUP BY lwrt.group_id
 ),
 
 numerator_raw AS (
@@ -795,11 +819,11 @@ LEFT JOIN lessons_times lt ON ps.group_id = lt.group_id;`
 	return *res, err
 }
 
-func (sr *ScheduleRepo) GetGroups(ctx context.Context, facultyName string, course int) (*models.CourseFacultyGroups, error) { //nolint:funlen,lll // too long queries
+func (sr *ScheduleRepo) GetGroups(ctx context.Context, facultyName string, course int, startDate, endDate time.Time) (*models.CourseFacultyGroups, error) { //nolint:funlen,lll // too long queries
 	const query = `
 SELECT jsonb_build_object(
   'faculty', f.title_short,
-  'course', g.course,
+  'course', $2::int,
   'groups', COALESCE(
     jsonb_agg(g.number ORDER BY
         (CASE WHEN g.number ~ 'М$' THEN 1 ELSE 0 END), -- сначала без М, потом с М
@@ -811,10 +835,15 @@ SELECT jsonb_build_object(
 FROM faculty f
 LEFT JOIN "group" g ON g.faculty_id = f.id AND g.course = $2
 WHERE f.title_short = $1
-GROUP BY f.title_short, g.course;
+  AND EXISTS (
+    SELECT 1 FROM lesson l
+    WHERE l.group_id = g.id
+      AND l.date BETWEEN $3 AND $4
+  )
+GROUP BY f.title_short;
 `
 
-	return findOneJsonContext[models.CourseFacultyGroups](ctx, sr.pg.DB, query, facultyName, course)
+	return findOneJsonContext[models.CourseFacultyGroups](ctx, sr.pg.DB, query, facultyName, course, startDate, endDate)
 }
 
 func (sr *ScheduleRepo) GetFaculties(ctx context.Context) (*models.Faculties, error) {
@@ -831,7 +860,7 @@ func (sr *ScheduleRepo) GetFaculties(ctx context.Context) (*models.Faculties, er
 	return findOneJsonContext[models.Faculties](ctx, sr.pg.DB, query)
 }
 
-func (sr *ScheduleRepo) GetFacultyCourses(ctx context.Context, facultyName string) (*models.FacultyCourses, error) {
+func (sr *ScheduleRepo) GetFacultyCourses(ctx context.Context, facultyName string, startDate, endDate time.Time) (*models.FacultyCourses, error) {
 	const query = `
 	SELECT jsonb_build_object(
 	  'faculty', f.title_short,
@@ -843,10 +872,15 @@ func (sr *ScheduleRepo) GetFacultyCourses(ctx context.Context, facultyName strin
 	FROM faculty f
 	LEFT JOIN "group" g ON g.faculty_id = f.id
 	WHERE f.title_short = $1
+	  AND EXISTS (
+	    SELECT 1 FROM lesson l
+	    WHERE l.group_id = g.id
+	      AND l.date BETWEEN $2 AND $3
+	  )
 	GROUP BY f.title_short;
 `
 	var FacultyCoursesJSON []byte
-	err := sr.pg.DB.QueryRowContext(ctx, query, facultyName).Scan(&FacultyCoursesJSON)
+	err := sr.pg.DB.QueryRowContext(ctx, query, facultyName, startDate, endDate).Scan(&FacultyCoursesJSON)
 
 	if err != nil {
 		return nil, err
@@ -861,7 +895,7 @@ func (sr *ScheduleRepo) GetFacultyCourses(ctx context.Context, facultyName strin
 	return schedule, err
 }
 
-func (sr *ScheduleRepo) GetFacultiesWithCourses(ctx context.Context) (*models.FacultiesCourses, error) {
+func (sr *ScheduleRepo) GetFacultiesWithCourses(ctx context.Context, startDate, endDate time.Time) (*models.FacultiesCourses, error) {
 	const query = `
 	SELECT jsonb_agg(fc ORDER BY fc->>'faculty') AS result
 	FROM (
@@ -875,6 +909,11 @@ func (sr *ScheduleRepo) GetFacultiesWithCourses(ctx context.Context) (*models.Fa
 				SELECT DISTINCT g.course AS course_num
 				FROM "group" g
 				WHERE g.faculty_id = f.id
+				  AND EXISTS (
+				    SELECT 1 FROM lesson l
+				    WHERE l.group_id = g.id
+				      AND l.date BETWEEN $1 AND $2
+				  )
 			  ) courses_sub
 			),
 			'[]'::jsonb
@@ -883,10 +922,10 @@ func (sr *ScheduleRepo) GetFacultiesWithCourses(ctx context.Context) (*models.Fa
 	  FROM faculty f
 	) t;
 `
-	return findOneJsonContext[models.FacultiesCourses](ctx, sr.pg.DB, query)
+	return findOneJsonContext[models.FacultiesCourses](ctx, sr.pg.DB, query, startDate, endDate)
 }
 
-func (sr *ScheduleRepo) GetCourseFaculties(ctx context.Context, course int) (*models.CourseFaculties, error) {
+func (sr *ScheduleRepo) GetCourseFaculties(ctx context.Context, course int, startDate, endDate time.Time) (*models.CourseFaculties, error) {
 	const query = `
 	SELECT jsonb_build_object(
 	  'course', $1::int,
@@ -899,13 +938,18 @@ func (sr *ScheduleRepo) GetCourseFaculties(ctx context.Context, course int) (*mo
 			FROM faculty f
 			JOIN "group" g ON g.faculty_id = f.id
 			WHERE g.course = $1::int
+			  AND EXISTS (
+			    SELECT 1 FROM lesson l
+			    WHERE l.group_id = g.id
+			      AND l.date BETWEEN $2 AND $3
+			  )
 		  ) sub
 		),
 		'[]'::jsonb
 	  )
 	) AS result;
 `
-	return findOneJsonContext[models.CourseFaculties](ctx, sr.pg.DB, query, course)
+	return findOneJsonContext[models.CourseFaculties](ctx, sr.pg.DB, query, course, startDate, endDate)
 }
 
 func (sr *ScheduleRepo) GetTeacherSchedule(ctx context.Context, teacherID int, startDate, endDate time.Time) (*models.TeacherSchedule, error) {
@@ -1053,6 +1097,7 @@ reference_lesson AS (
     FROM lesson l
     JOIN lesson_auditorium_teacher lat ON lat.lesson_id = l.id
     WHERE l.date < p.first_week_monday
+      AND l.week_type IN ('numerator', 'denominator')
       AND EXISTS (
         SELECT 1 FROM lesson_auditorium_teacher lat2
         JOIN teacher t2 ON t2.id = lat2.teacher_id
@@ -1066,6 +1111,7 @@ reference_lesson AS (
     FROM lesson l
     JOIN lesson_auditorium_teacher lat ON lat.lesson_id = l.id
     WHERE l.date > p.second_week_monday + INTERVAL '6 days'
+      AND l.week_type IN ('numerator', 'denominator')
       AND EXISTS (
         SELECT 1 FROM lesson_auditorium_teacher lat2
         JOIN teacher t2 ON t2.id = lat2.teacher_id
@@ -1082,11 +1128,13 @@ week_classification AS (
     (
       SELECT l.week_type FROM lesson_with_auds l
       WHERE l.raw_date BETWEEN rl.first_week_monday AND rl.first_week_monday + INTERVAL '6 days'
+        AND l.week_type IN ('numerator', 'denominator')
       LIMIT 1
     ) AS first_week_actual_type,
     (
       SELECT l.week_type FROM lesson_with_auds l
       WHERE l.raw_date BETWEEN rl.second_week_monday AND rl.second_week_monday + INTERVAL '6 days'
+        AND l.week_type IN ('numerator', 'denominator')
       LIMIT 1
     ) AS second_week_actual_type,
     CASE
@@ -1147,11 +1195,34 @@ period_strings AS (
   FROM final_week_types fwt
 ),
 
+-- Классификация занятий с unknown типами на основе их даты
+lessons_with_resolved_types AS (
+  SELECT
+    lwa.*,
+    ps.final_first_week_type,
+    ps.final_second_week_type,
+    ps.first_week_monday,
+    ps.second_week_monday,
+    CASE
+      WHEN lwa.week_type = 'unknown' THEN
+        CASE
+          WHEN lwa.raw_date BETWEEN ps.first_week_monday AND ps.first_week_monday + INTERVAL '6 days' THEN
+            ps.final_first_week_type
+          WHEN lwa.raw_date BETWEEN ps.second_week_monday AND ps.second_week_monday + INTERVAL '6 days' THEN
+            ps.final_second_week_type
+          ELSE lwa.week_type
+        END
+      ELSE lwa.week_type
+    END AS resolved_week_type
+  FROM lesson_with_auds lwa
+  CROSS JOIN period_strings ps
+),
+
 -- Функция для форматирования типа занятия
 type_formatter AS (
   SELECT 
-    lwa.*,
-    CASE lwa.type
+    lwrt.*,
+    CASE lwrt.type
       WHEN 'lecture' THEN 'Лек.'
       WHEN 'lab' THEN 'Лаб.'
       WHEN 'practice' THEN 'Упр.'
@@ -1162,7 +1233,7 @@ type_formatter AS (
       WHEN 'consultation' THEN 'Конс.'
       WHEN 'elective' THEN 'Факультатив'
       WHEN 'unknown' THEN ''
-      ELSE COALESCE(lwa.type, '')
+      ELSE COALESCE(lwrt.type, '')
     END AS formatted_type,
     -- Формирование строки с группами
     (
@@ -1172,24 +1243,24 @@ type_formatter AS (
         ELSE NULL
       END
       FROM lesson_groups lg
-      WHERE lg.time = lwa.time
-        AND to_char(lg.date, 'YYYY-MM-DD') = lwa.date
-        AND lg.week_type = lwa.week_type
+      WHERE lg.time = lwrt.time
+        AND to_char(lg.date, 'YYYY-MM-DD') = lwrt.date
+        AND lg.week_type = lwrt.week_type
         AND lg.group_number IS NOT NULL
     ) AS groups_string,
     -- Формирование строки с аудиторией
     (
       CASE
-        WHEN lwa.auditoriums IS NULL OR jsonb_array_length(lwa.auditoriums) = 0 THEN NULL
-        ELSE (lwa.auditoriums->0->>'display_name')
+        WHEN lwrt.auditoriums IS NULL OR jsonb_array_length(lwrt.auditoriums) = 0 THEN NULL
+        ELSE (lwrt.auditoriums->0->>'display_name')
       END
     ) AS auditorium_string
-  FROM lesson_with_auds lwa
+  FROM lessons_with_resolved_types lwrt
 ),
 
 grouped_lessons AS (
   SELECT
-    tf.week_type,
+    tf.resolved_week_type AS week_type,
     tf.weekday,
     json_agg(
       jsonb_build_object(
@@ -1248,7 +1319,8 @@ grouped_lessons AS (
       ) ORDER BY tf.time
     ) AS lessons
   FROM type_formatter tf
-  GROUP BY tf.week_type, tf.weekday
+  WHERE tf.resolved_week_type IN ('numerator', 'denominator')
+  GROUP BY tf.resolved_week_type, tf.weekday
 ),
 
 numerator_raw AS (
@@ -1271,8 +1343,8 @@ denominator_filled AS (
 
 lessons_times AS (
   SELECT array_agg(DISTINCT time ORDER BY time) AS lessons_times
-  FROM lesson_with_auds
-  WHERE week_type IN ('numerator', 'denominator')
+  FROM lessons_with_resolved_types
+  WHERE resolved_week_type IN ('numerator', 'denominator')
 )
 
 SELECT json_build_object(
@@ -1623,7 +1695,7 @@ input_weeks AS (
   FROM params p
 ),
 
--- Референсные занятия до/после для классификации
+-- Референсные занятия до/после для классификации (только с известными типами)
 reference_lesson AS (
   SELECT
     iw.*,
@@ -1637,6 +1709,7 @@ reference_lesson AS (
     FROM lesson l
     JOIN lesson_auditorium_teacher lat ON lat.lesson_id = l.id AND lat.auditorium_id = iw.auditorium_id
     WHERE l.date < iw.first_week_monday
+      AND l.week_type IN ('numerator', 'denominator')
     ORDER BY l.date DESC
     LIMIT 1
   ) rl_before ON true
@@ -1645,6 +1718,7 @@ reference_lesson AS (
     FROM lesson l
     JOIN lesson_auditorium_teacher lat ON lat.lesson_id = l.id AND lat.auditorium_id = iw.auditorium_id
     WHERE l.date > iw.second_week_monday + INTERVAL '6 days'
+      AND l.week_type IN ('numerator', 'denominator')
     ORDER BY l.date ASC
     LIMIT 1
   ) rl_after ON true
@@ -1657,12 +1731,14 @@ week_classification AS (
       SELECT l.week_type FROM lesson_with_details l 
       WHERE l.raw_date BETWEEN rl.first_week_monday 
         AND rl.first_week_monday + INTERVAL '6 days'
+        AND l.week_type IN ('numerator', 'denominator')
       LIMIT 1
     ) AS first_week_actual_type,
     (
       SELECT l.week_type FROM lesson_with_details l 
       WHERE l.raw_date BETWEEN rl.second_week_monday 
         AND rl.second_week_monday + INTERVAL '6 days'
+        AND l.week_type IN ('numerator', 'denominator')
       LIMIT 1
     ) AS second_week_actual_type,
     CASE 
@@ -1703,6 +1779,7 @@ final_week_types AS (
 
 period_strings AS (
   SELECT
+    fwt.*,
     CASE WHEN fwt.final_first_week_type = 'numerator' 
       THEN to_char(fwt.first_week_monday, 'DD.MM') || '-' || to_char(fwt.first_week_monday + INTERVAL '6 days', 'DD.MM')
       ELSE to_char(fwt.second_week_monday, 'DD.MM') || '-' || to_char(fwt.second_week_monday + INTERVAL '6 days', 'DD.MM')
@@ -1715,9 +1792,32 @@ period_strings AS (
   FROM final_week_types fwt
 ),
 
+-- Классификация занятий с unknown типами на основе их даты
+lessons_with_resolved_types AS (
+  SELECT
+    lwd.*,
+    ps.final_first_week_type,
+    ps.final_second_week_type,
+    ps.first_week_monday,
+    ps.second_week_monday,
+    CASE
+      WHEN lwd.week_type = 'unknown' THEN
+        CASE
+          WHEN lwd.raw_date BETWEEN ps.first_week_monday AND ps.first_week_monday + INTERVAL '6 days' THEN
+            ps.final_first_week_type
+          WHEN lwd.raw_date BETWEEN ps.second_week_monday AND ps.second_week_monday + INTERVAL '6 days' THEN
+            ps.final_second_week_type
+          ELSE lwd.week_type
+        END
+      ELSE lwd.week_type
+    END AS resolved_week_type
+  FROM lesson_with_details lwd
+  CROSS JOIN period_strings ps
+),
+
 grouped_lessons AS (
   SELECT
-    week_type,
+    resolved_week_type AS week_type,
     weekday,
     json_agg(
       jsonb_build_object(
@@ -1732,8 +1832,9 @@ grouped_lessons AS (
         'teachers', teachers
       ) ORDER BY start_time
     ) AS lessons
-  FROM lesson_with_details
-  GROUP BY week_type, weekday
+  FROM lessons_with_resolved_types
+  WHERE resolved_week_type IN ('numerator', 'denominator')
+  GROUP BY resolved_week_type, weekday
 ),
 
 numerator_raw AS (

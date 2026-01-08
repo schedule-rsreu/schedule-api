@@ -189,10 +189,11 @@ func (sh *ScheduleHandler) getFaculties(c echo.Context) error {
 
 // getFacultyCourses
 // @Summary     Get faculty courses
-// @Description Курсы факультета
+// @Description Курсы факультета. Фильтрует по наличию занятий в диапазоне ±6 месяцев от date. По умолчанию date = текущий день
 // @Tags        Courses
 // @Router      /api/v1/schedule/courses [get]
 // @Param       faculty  query  string  true  "faculty" Enums(иэф, фаиту, фвт, фрт, фэ)
+// @Param       date  query  string  false  "date" example(2025-01-08)
 // @Success     200  {object}  models.FacultyCourses
 // @Response    200  {object}  models.FacultyCourses
 // @Failure     500  {object}  echo.HTTPError
@@ -203,9 +204,10 @@ func (sh *ScheduleHandler) getFacultyCourses(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, "faculty query param not found")
 	}
 
+	date := c.QueryParam("date")
 	ctx := c.Request().Context()
 
-	resp, err := sh.s.GetFacultyCourses(ctx, faculty)
+	resp, err := sh.s.GetFacultyCourses(ctx, faculty, date)
 	if err != nil {
 		if errors.As(err, &services.NotFoundError{}) {
 			return echo.NewHTTPError(http.StatusNotFound, err)
@@ -217,10 +219,11 @@ func (sh *ScheduleHandler) getFacultyCourses(c echo.Context) error {
 
 // getCourseFaculties
 // @Summary     Get course faculties
-// @Description Факультеты курса
+// @Description Факультеты курса. Фильтрует по наличию занятий в диапазоне ±6 месяцев от date. По умолчанию date = текущий день
 // @Tags        Faculties
 // @Router      /api/v1/schedule/faculties/course [get]
 // @Param       course  query  int  true  "course" Enums(1, 2, 3, 4, 5, 6)
+// @Param       date  query  string  false  "date" example(2025-01-08)
 // @Success     200  {object}  models.CourseFaculties
 // @Response    200  {object}  models.CourseFaculties
 // @Failure     500  {object}  echo.HTTPError
@@ -232,9 +235,10 @@ func (sh *ScheduleHandler) getCourseFaculties(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, "course query param must be integer")
 	}
 
+	date := c.QueryParam("date")
 	ctx := c.Request().Context()
 
-	resp, err := sh.s.GetCourseFaculties(ctx, course)
+	resp, err := sh.s.GetCourseFaculties(ctx, course, date)
 	if err != nil {
 		if errors.As(err, &services.NotFoundError{}) {
 			return echo.NewHTTPError(http.StatusNotFound, err)
@@ -250,17 +254,19 @@ type schedulesByGroupsRequest struct {
 
 // getFacultiesCourses
 // @Summary     Get faculties with courses
-// @Description Факультеты с курсами
+// @Description Факультеты с курсами. Фильтрует по наличию занятий в диапазоне ±6 месяцев от date. По умолчанию date = текущий день
 // @Tags        Faculties
 // @Router      /api/v1/schedule/faculties/courses [get]
+// @Param       date  query  string  false  "date" example(2025-01-08)
 // @Success     200  {object}  models.FacultiesCourses
 // @Response    200  {object}  models.FacultiesCourses
 // @Failure     500  {object}  echo.HTTPError
 // @Failure     404  {object}  echo.HTTPError.
 func (sh *ScheduleHandler) getFacultiesCourses(c echo.Context) error {
+	date := c.QueryParam("date")
 	ctx := c.Request().Context()
 
-	resp, err := sh.s.GetFacultiesWithCourses(ctx)
+	resp, err := sh.s.GetFacultiesWithCourses(ctx, date)
 	if err != nil {
 		if errors.As(err, &services.NotFoundError{}) {
 			return echo.NewHTTPError(http.StatusNotFound, err)
@@ -313,31 +319,39 @@ func (sh *ScheduleHandler) schedulesByGroups(c echo.Context) error {
 
 // GetCourseFacultyGroups
 // @Summary     Get course faculty groups
-// @Description Группы факультета курса
+// @Description Группы факультета курса. Фильтрует по наличию занятий в диапазоне ±6 месяцев от date. По умолчанию date = текущий день
 // @Tags        Groups
 // @Router      /api/v1/schedule/groups [get]
-// @Param       course  query  int  false  "course" Enums(1, 2, 3, 4, 5, 6)
-// @Param       faculty  query  string  false  "faculty" Enums(иэф, фаиту, фвт, фрт, фэ)
+// @Param       course  query  int  true  "course" Enums(1, 2, 3, 4, 5, 6)
+// @Param       faculty  query  string  true  "faculty" Enums(иэф, фаиту, фвт, фрт, фэ)
+// @Param       date  query  string  false  "date" example(2025-01-08)
 // @Success     200  {array}   models.CourseFacultyGroups
 // @Response    200  {array}   models.CourseFacultyGroups
+// @Failure     400  {object}  echo.HTTPError
 // @Failure     500  {object}  echo.HTTPError
 // @Failure     404  {object}  echo.HTTPError.
 func (sh *ScheduleHandler) getCourseFacultyGroups(c echo.Context) error {
 	faculty := c.QueryParam("faculty")
+	if faculty == "" {
+		return echo.NewHTTPError(http.StatusBadRequest, "faculty query param is required")
+	}
 	faculty = strings.ToLower(faculty)
 
 	courseS := c.QueryParam("course")
-	var course int
-	var err error
-	if courseS != "" {
-		course, err = strconv.Atoi(courseS)
-		if err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, "course query param must be integer, got: "+courseS)
-		}
+	if courseS == "" {
+		return echo.NewHTTPError(http.StatusBadRequest, "course query param is required")
 	}
+
+	course, err := strconv.Atoi(courseS)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, "course query param must be integer, got: "+courseS)
+	}
+
+	date := c.QueryParam("date")
+
 	ctx := c.Request().Context()
 
-	resp, err := sh.s.GetGroups(ctx, faculty, course)
+	resp, err := sh.s.GetGroups(ctx, faculty, course, date)
 	if err != nil {
 		if errors.As(err, &services.NotFoundError{}) {
 			return echo.NewHTTPError(http.StatusNotFound, err)

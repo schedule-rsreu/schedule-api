@@ -80,8 +80,16 @@ func (s *ScheduleService) GetSchedulesByGroups(ctx context.Context, dateStr stri
 	return resp, err
 }
 
-func (s *ScheduleService) GetGroups(ctx context.Context, facultyName string, course int) (*models.CourseFacultyGroups, error) {
-	resp, err := s.Repo.GetGroups(ctx, facultyName, course)
+func (s *ScheduleService) GetGroups(ctx context.Context, facultyName string, course int, dateStr string) (*models.CourseFacultyGroups, error) {
+	date, err := ParseDateOrNow(dateStr)
+	if err != nil {
+		return nil, err
+	}
+
+	const monthsOffset = 6
+	startDate, endDate := utils.GetDateRangeBounds(date, monthsOffset)
+
+	resp, err := s.Repo.GetGroups(ctx, facultyName, course, startDate, endDate)
 	if err != nil {
 		if errors.Is(err, repo.ErrNoResults) {
 			return nil, NotFoundError{fmt.Sprintf("groups for faculty %v and course %v not found", facultyName, course)}
@@ -101,8 +109,16 @@ func (s *ScheduleService) GetFaculties(ctx context.Context) (*models.Faculties, 
 	}
 	return resp, err
 }
-func (s *ScheduleService) GetFacultyCourses(ctx context.Context, facultyName string) (*models.FacultyCourses, error) {
-	resp, err := s.Repo.GetFacultyCourses(ctx, facultyName)
+func (s *ScheduleService) GetFacultyCourses(ctx context.Context, facultyName string, dateStr string) (*models.FacultyCourses, error) {
+	date, err := ParseDateOrNow(dateStr)
+	if err != nil {
+		return nil, err
+	}
+
+	const monthsOffset = 6
+	startDate, endDate := utils.GetDateRangeBounds(date, monthsOffset)
+
+	resp, err := s.Repo.GetFacultyCourses(ctx, facultyName, startDate, endDate)
 	if err != nil {
 		if errors.Is(err, repo.ErrNoResults) {
 			return nil, NotFoundError{fmt.Sprintf("courses for faculty %v not found", facultyName)}
@@ -112,8 +128,16 @@ func (s *ScheduleService) GetFacultyCourses(ctx context.Context, facultyName str
 	return resp, err
 }
 
-func (s *ScheduleService) GetCourseFaculties(ctx context.Context, course int) (*models.CourseFaculties, error) {
-	resp, err := s.Repo.GetCourseFaculties(ctx, course)
+func (s *ScheduleService) GetCourseFaculties(ctx context.Context, course int, dateStr string) (*models.CourseFaculties, error) {
+	date, err := ParseDateOrNow(dateStr)
+	if err != nil {
+		return nil, err
+	}
+
+	const monthsOffset = 6
+	startDate, endDate := utils.GetDateRangeBounds(date, monthsOffset)
+
+	resp, err := s.Repo.GetCourseFaculties(ctx, course, startDate, endDate)
 	if err != nil {
 		if errors.Is(err, repo.ErrNoResults) {
 			return nil, NotFoundError{fmt.Sprintf("faculties for course %v not found", course)}
@@ -243,9 +267,16 @@ func addEmptyLessons(lessons []models.StudentLesson, times []string) []models.St
 	return lessons
 }
 
-func (s *ScheduleService) GetFacultiesWithCourses(ctx context.Context) (*models.FacultiesCourses, error) {
-	resp, err := s.Repo.GetFacultiesWithCourses(ctx)
+func (s *ScheduleService) GetFacultiesWithCourses(ctx context.Context, dateStr string) (*models.FacultiesCourses, error) {
+	date, err := ParseDateOrNow(dateStr)
+	if err != nil {
+		return nil, err
+	}
 
+	const monthsOffset = 6
+	startDate, endDate := utils.GetDateRangeBounds(date, monthsOffset)
+
+	resp, err := s.Repo.GetFacultiesWithCourses(ctx, startDate, endDate)
 	if err != nil {
 		if errors.Is(err, repo.ErrNoResults) {
 			return nil, NotFoundError{"no results"}

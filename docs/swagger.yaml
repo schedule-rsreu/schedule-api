@@ -550,7 +550,8 @@ paths:
       - Auditoriums
   /api/v1/schedule/courses:
     get:
-      description: Курсы факультета
+      description: Курсы факультета. Фильтрует по наличию занятий в диапазоне ±6 месяцев
+        от date. По умолчанию date = текущий день
       parameters:
       - description: faculty
         enum:
@@ -562,6 +563,11 @@ paths:
         in: query
         name: faculty
         required: true
+        type: string
+      - description: date
+        example: "2025-01-08"
+        in: query
+        name: date
         type: string
       responses:
         "200":
@@ -615,7 +621,8 @@ paths:
       - Faculties
   /api/v1/schedule/faculties/course:
     get:
-      description: Факультеты курса
+      description: Факультеты курса. Фильтрует по наличию занятий в диапазоне ±6 месяцев
+        от date. По умолчанию date = текущий день
       parameters:
       - description: course
         enum:
@@ -629,6 +636,11 @@ paths:
         name: course
         required: true
         type: integer
+      - description: date
+        example: "2025-01-08"
+        in: query
+        name: date
+        type: string
       responses:
         "200":
           description: OK
@@ -647,7 +659,14 @@ paths:
       - Faculties
   /api/v1/schedule/faculties/courses:
     get:
-      description: Факультеты с курсами
+      description: Факультеты с курсами. Фильтрует по наличию занятий в диапазоне
+        ±6 месяцев от date. По умолчанию date = текущий день
+      parameters:
+      - description: date
+        example: "2025-01-08"
+        in: query
+        name: date
+        type: string
       responses:
         "200":
           description: OK
@@ -668,7 +687,8 @@ paths:
       - Faculties
   /api/v1/schedule/groups:
     get:
-      description: Группы факультета курса
+      description: Группы факультета курса. Фильтрует по наличию занятий в диапазоне
+        ±6 месяцев от date. По умолчанию date = текущий день
       parameters:
       - description: course
         enum:
@@ -680,6 +700,7 @@ paths:
         - 6
         in: query
         name: course
+        required: true
         type: integer
       - description: faculty
         enum:
@@ -690,6 +711,12 @@ paths:
         - фэ
         in: query
         name: faculty
+        required: true
+        type: string
+      - description: date
+        example: "2025-01-08"
+        in: query
+        name: date
         type: string
       responses:
         "200":
@@ -698,6 +725,10 @@ paths:
             items:
               $ref: '#/definitions/github_com_schedule-rsreu_schedule-api_internal_models.CourseFacultyGroups'
             type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/echo.HTTPError'
         "404":
           description: Not Found
           schema:

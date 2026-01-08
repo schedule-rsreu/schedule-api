@@ -63,7 +63,7 @@ const docTemplate = `{
         },
         "/api/v1/schedule/courses": {
             "get": {
-                "description": "Курсы факультета",
+                "description": "Курсы факультета. Фильтрует по наличию занятий в диапазоне ±6 месяцев от date. По умолчанию date = текущий день",
                 "tags": [
                     "Courses"
                 ],
@@ -82,6 +82,13 @@ const docTemplate = `{
                         "name": "faculty",
                         "in": "query",
                         "required": true
+                    },
+                    {
+                        "type": "string",
+                        "example": "2025-01-08",
+                        "description": "date",
+                        "name": "date",
+                        "in": "query"
                     }
                 ],
                 "responses": {
@@ -160,7 +167,7 @@ const docTemplate = `{
         },
         "/api/v1/schedule/faculties/course": {
             "get": {
-                "description": "Факультеты курса",
+                "description": "Факультеты курса. Фильтрует по наличию занятий в диапазоне ±6 месяцев от date. По умолчанию date = текущий день",
                 "tags": [
                     "Faculties"
                 ],
@@ -180,6 +187,13 @@ const docTemplate = `{
                         "name": "course",
                         "in": "query",
                         "required": true
+                    },
+                    {
+                        "type": "string",
+                        "example": "2025-01-08",
+                        "description": "date",
+                        "name": "date",
+                        "in": "query"
                     }
                 ],
                 "responses": {
@@ -206,11 +220,20 @@ const docTemplate = `{
         },
         "/api/v1/schedule/faculties/courses": {
             "get": {
-                "description": "Факультеты с курсами",
+                "description": "Факультеты с курсами. Фильтрует по наличию занятий в диапазоне ±6 месяцев от date. По умолчанию date = текущий день",
                 "tags": [
                     "Faculties"
                 ],
                 "summary": "Get faculties with courses",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "example": "2025-01-08",
+                        "description": "date",
+                        "name": "date",
+                        "in": "query"
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -238,7 +261,7 @@ const docTemplate = `{
         },
         "/api/v1/schedule/groups": {
             "get": {
-                "description": "Группы факультета курса",
+                "description": "Группы факультета курса. Фильтрует по наличию занятий в диапазоне ±6 месяцев от date. По умолчанию date = текущий день",
                 "tags": [
                     "Groups"
                 ],
@@ -256,7 +279,8 @@ const docTemplate = `{
                         "type": "integer",
                         "description": "course",
                         "name": "course",
-                        "in": "query"
+                        "in": "query",
+                        "required": true
                     },
                     {
                         "enum": [
@@ -269,6 +293,14 @@ const docTemplate = `{
                         "type": "string",
                         "description": "faculty",
                         "name": "faculty",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "example": "2025-01-08",
+                        "description": "date",
+                        "name": "date",
                         "in": "query"
                     }
                 ],
@@ -280,6 +312,12 @@ const docTemplate = `{
                             "items": {
                                 "$ref": "#/definitions/github_com_schedule-rsreu_schedule-api_internal_models.CourseFacultyGroups"
                             }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/echo.HTTPError"
                         }
                     },
                     "404": {
