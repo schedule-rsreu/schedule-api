@@ -53,6 +53,11 @@ func (sr *ScheduleRepo) groupExists(group string) (bool, error) { //nolint:unuse
 }
 
 func (sr *ScheduleRepo) GetScheduleByGroup(ctx context.Context, group string, startDate, endDate time.Time) (*models.StudentSchedule, error) {
+	// TODO: remove
+	if startDate.Year() == 2026 && startDate.Month() == 2 && startDate.Day() == 2 {
+		endDate = time.Date(2026, 2, 8, 0, 0, 0, 0, time.UTC)
+	}
+
 	const query = `
 WITH params AS (
   SELECT
@@ -413,6 +418,10 @@ CROSS JOIN period_strings ps;
 }
 
 func (sr *ScheduleRepo) GetSchedulesByGroups(ctx context.Context, startDate, endDate time.Time, groups []string) ([]*models.StudentSchedule, error) {
+	// TODO: remove
+	if startDate.Year() == 2026 && startDate.Month() == 2 && startDate.Day() == 2 {
+		endDate = time.Date(2026, 2, 8, 0, 0, 0, 0, time.UTC)
+	}
 	const query = `
 -- Запрос для получения расписания групп из списка []*models.StudentSchedule
 WITH params AS (
