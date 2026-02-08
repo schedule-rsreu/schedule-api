@@ -27,7 +27,7 @@ func GetWeekType() string {
 		return ""
 	}
 
-	var startDate = time.Date(2025, 8, 18, 0, 0, 0, 0, loc)
+	var startDate = time.Date(2026, 2, 8, 0, 0, 0, 0, loc)
 
 	now := time.Now().In(loc)
 
