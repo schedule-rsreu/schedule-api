@@ -63,3 +63,43 @@ func TestGenerateCalendar(t *testing.T) {
 		}
 	}
 }
+
+func TestGenerateCalendarLessonTypes(t *testing.T) {
+	tests := []struct {
+		lessonType string
+		expected   string
+	}{
+		{"lecture", "📘 Предмет\\r\\nDESCRIPTION:Лекция"},
+		{"lab", "🧪 Предмет\\r\\nDESCRIPTION:Лабораторная работа"},
+		{"practice", "✏️ Предмет\\r\\nDESCRIPTION:Практика"},
+		{"coursework", "📝 Предмет\\r\\nDESCRIPTION:Курсовая работа"},
+		{"course_project", "📝 Предмет\\r\\nDESCRIPTION:Курсовой проект"},
+		{"exam", "🎓 Предмет\\r\\nDESCRIPTION:Экзамен"},
+		{"zachet", "✅ Предмет\\r\\nDESCRIPTION:Зачёт"},
+		{"consultation", "💬 Предмет\\r\\nDESCRIPTION:Консультация"},
+		{"elective", "⭐ Предмет\\r\\nDESCRIPTION:Факультатив"},
+		{"unknown - другое", "🎓 Предмет\\r\\nDESCRIPTION:Занятие"},
+	}
+
+	for _, test := range tests {
+		t.Run(test.lessonType, func(t *testing.T) {
+			calendar := &models.GroupCalendar{
+				Group:     "344",
+				UpdatedAt: time.Date(2026, 8, 19, 12, 0, 0, 0, time.UTC),
+				Events: []models.CalendarEvent{{
+					UID:        test.lessonType + "@rsreu-schedule.ru",
+					StartTime:  time.Date(2026, 8, 19, 13, 35, 0, 0, time.UTC),
+					EndTime:    time.Date(2026, 8, 19, 15, 10, 0, 0, time.UTC),
+					Title:      "Предмет",
+					LessonType: test.lessonType,
+				}},
+			}
+
+			result := strings.ReplaceAll(string(services.GenerateCalendar(calendar)), "\r\n ", "")
+			expected := strings.ReplaceAll(test.expected, "\\r\\n", "\r\n")
+			if !strings.Contains(result, "SUMMARY:"+expected) {
+				t.Fatalf("unexpected lesson presentation:\n%s", result)
+			}
+		})
+	}
+}

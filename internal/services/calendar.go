@@ -44,13 +44,14 @@ func GenerateCalendar(calendar *models.GroupCalendar) []byte {
 	dtstamp := calendar.UpdatedAt.UTC().Format("20060102T150405Z")
 	for index := range calendar.Events {
 		event := &calendar.Events[index]
+		emoji, lessonTypeName := lessonPresentation(event.LessonType)
 		writeCalendarLine(&result, "BEGIN:VEVENT")
 		writeProperty(&result, "UID", event.UID)
 		writeCalendarLine(&result, "DTSTAMP:"+dtstamp)
 		writeCalendarLine(&result, "DTSTART:"+moscowWallTimeUTC(event.StartTime))
 		writeCalendarLine(&result, "DTEND:"+moscowWallTimeUTC(event.EndTime))
-		writeProperty(&result, "SUMMARY", lessonEmoji(event.LessonType)+" "+event.Title)
-		writeProperty(&result, "DESCRIPTION", eventDescription(event))
+		writeProperty(&result, "SUMMARY", emoji+" "+event.Title)
+		writeProperty(&result, "DESCRIPTION", eventDescription(event, lessonTypeName))
 		writeProperty(&result, "LOCATION", eventLocation(event.Auditoriums))
 		writeCalendarLine(&result, "GEO:"+calendarGeo)
 		writeCalendarLine(&result, "URL:"+calendarURL)
@@ -77,8 +78,7 @@ func moscowWallTimeUTC(value time.Time) string {
 	).Add(-moscowOffset).Format("20060102T150405Z")
 }
 
-func eventDescription(event *models.CalendarEvent) string {
-	description := lessonTypeName(event.LessonType)
+func eventDescription(event *models.CalendarEvent, description string) string {
 	teachers := uniqueSorted(event.Teachers)
 	if len(teachers) == 1 {
 		return description + "\nПреподаватель: " + teachers[0]
@@ -113,30 +113,28 @@ func uniqueSorted(values []string) []string {
 	return result
 }
 
-func lessonEmoji(lessonType string) string {
-	switch lessonType {
-	case "lecture":
-		return "📘"
-	case "practice":
-		return "✏️"
-	case "lab":
-		return "🧪"
-	default:
-		return "🎓"
+func lessonPresentation(lessonType string) (emoji, name string) {
+	presentations := [...]struct {
+		lessonType string
+		emoji      string
+		name       string
+	}{
+		{"lecture", "📘", "Лекция"},
+		{"practice", "✏️", "Практика"},
+		{"lab", "🧪", "Лабораторная работа"},
+		{"coursework", "📝", "Курсовая работа"},
+		{"course_project", "📝", "Курсовой проект"},
+		{"exam", "🎓", "Экзамен"},
+		{"zachet", "✅", "Зачёт"},
+		{"consultation", "💬", "Консультация"},
+		{"elective", "⭐", "Факультатив"},
 	}
-}
-
-func lessonTypeName(lessonType string) string {
-	switch lessonType {
-	case "lecture":
-		return "Лекция"
-	case "practice":
-		return "Практика"
-	case "lab":
-		return "Лабораторная работа"
-	default:
-		return "Занятие"
+	for _, presentation := range presentations {
+		if presentation.lessonType == lessonType {
+			return presentation.emoji, presentation.name
+		}
 	}
+	return "🎓", "Занятие"
 }
 
 func writeProperty(result *strings.Builder, name, value string) {
