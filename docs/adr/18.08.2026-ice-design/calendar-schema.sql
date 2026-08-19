@@ -6,11 +6,11 @@ CREATE FUNCTION calendar_event_uid(
     lesson_type text
 ) RETURNS text
 LANGUAGE sql
-IMMUTABLE
+STABLE
 RETURN 'schedule-rsreu-' || md5(concat_ws('|',
     upper(group_number),
-    lesson_date::text,
-    lesson_start::time::text,
+    to_char(lesson_date, 'YYYY-MM-DD'),
+    to_char(lesson_start, 'HH24:MI:SS'),
     lesson_title,
     coalesce(lesson_type, '')
 )) || '@rsreu-schedule.ru';

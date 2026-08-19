@@ -44,7 +44,7 @@ Migration `Up` creates a stable UID function, singleton revision row, and raw to
 -- +goose Up
 CREATE FUNCTION calendar_event_uid(text, date, timestamp, text, text)
 RETURNS text LANGUAGE sql STABLE AS $$
-SELECT 'schedule-rsreu-' || md5(concat_ws('|', upper($1), $2::text, $3::time::text, $4, coalesce($5, ''))) || '@rsreu-schedule.ru'
+SELECT 'schedule-rsreu-' || md5(concat_ws('|', upper($1), to_char($2, 'YYYY-MM-DD'), to_char($3, 'HH24:MI:SS'), $4, coalesce($5, ''))) || '@rsreu-schedule.ru'
 $$;
 
 CREATE TABLE calendar_revision (
