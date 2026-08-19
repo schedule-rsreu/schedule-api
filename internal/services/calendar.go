@@ -43,7 +43,7 @@ func GenerateCalendar(calendar *models.GroupCalendar) []byte {
 	writeProperty(&result, "X-WR-CALNAME", "Расписание группы "+calendar.Group)
 	writeCalendarLine(&result, "X-WR-TIMEZONE:Europe/Moscow")
 
-	dtstamp := time.Now().UTC().Format("20060102T150405Z")
+	dtstamp := calendar.UpdatedAt.UTC().Format("20060102T150405Z")
 	for _, event := range calendar.Events {
 		writeCalendarLine(&result, "BEGIN:VEVENT")
 		writeProperty(&result, "UID", event.UID)

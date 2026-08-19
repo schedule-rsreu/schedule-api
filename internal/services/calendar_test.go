@@ -11,7 +11,8 @@ import (
 
 func TestGenerateCalendar(t *testing.T) {
 	calendar := &models.GroupCalendar{
-		Group: "344",
+		Group:     "344",
+		UpdatedAt: time.Date(2026, 8, 19, 12, 0, 0, 0, time.UTC),
 		Events: []models.CalendarEvent{
 			{
 				UID:         "active@rsreu-schedule.ru",
@@ -39,6 +40,7 @@ func TestGenerateCalendar(t *testing.T) {
 	unfolded := strings.ReplaceAll(result, "\r\n ", "")
 
 	for _, expected := range []string{
+		"DTSTAMP:20260819T120000Z\r\n",
 		"DTSTART:20260819T103500Z\r\n",
 		"SUMMARY:🧪 Проектирование информационных систем",
 		"LOCATION:106а C\\, 110 C · РГРТУ\r\n",

@@ -1980,7 +1980,7 @@ WITH selected_group AS (
   WHERE number = $1
 ),
 current_revision AS (
-  SELECT revision
+  SELECT revision, updated_at
   FROM calendar_revision
   WHERE id = 1
 ),
@@ -2049,12 +2049,17 @@ events AS (
 )
 SELECT json_build_object(
   'group', selected_group.number,
+  'updated_at', to_char(
+    current_revision.updated_at AT TIME ZONE 'UTC',
+    'YYYY-MM-DD"T"HH24:MI:SS"Z"'
+  ),
   'events', coalesce(
     (SELECT json_agg(event ORDER BY sort_time, uid) FROM events),
     '[]'::json
   )
 )
 FROM selected_group
+CROSS JOIN current_revision
 `
 	return findOneJsonContext[models.GroupCalendar](ctx, sr.pg.DB, query, group)
 }

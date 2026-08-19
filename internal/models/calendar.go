@@ -15,6 +15,7 @@ type CalendarEvent struct {
 }
 
 type GroupCalendar struct {
-	Group  string          `json:"group"`
-	Events []CalendarEvent `json:"events"`
+	Group     string          `json:"group"`
+	UpdatedAt time.Time       `json:"updated_at"`
+	Events    []CalendarEvent `json:"events"`
 }
