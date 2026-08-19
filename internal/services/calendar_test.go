@@ -52,7 +52,7 @@ func TestGenerateCalendar(t *testing.T) {
 		"CATEGORIES:EDUCATION,LAB\r\n",
 		"LOCATION:106а C\\, 110 C · РГРТУ\r\n",
 		"DESCRIPTION:🧪 Лабораторная работа Проектирование информационных систем",
-		"👥 Бурмистров Александр Сергеевич\\, Соловьев Александр Вадимович",
+		"🧑‍🏫 Бурмистров Александр Сергеевич\\, Соловьев Александр Вадимович",
 		"TRIGGER:-PT30M\r\n",
 		"ACTION:DISPLAY\r\n",
 		"STATUS:CANCELLED\r\n",

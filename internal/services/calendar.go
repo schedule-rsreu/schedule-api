@@ -102,11 +102,8 @@ func moscowWallTimeUTC(value time.Time) string {
 func eventDescription(event *models.CalendarEvent, emoji, lessonTypeName string) string {
 	description := emoji + " " + lessonTypeName + " " + event.Title
 	teachers := uniqueSorted(event.Teachers)
-	if len(teachers) == 1 {
-		return description + "\n👤 " + teachers[0]
-	}
-	if len(teachers) > 1 {
-		return description + "\n👥 " + strings.Join(teachers, ", ")
+	if len(teachers) > 0 {
+		return description + "\n🧑‍🏫 " + strings.Join(teachers, ", ")
 	}
 	return description
 }
