@@ -800,7 +800,7 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/echo.HTTPError'
-      summary: Subscribe to a group calendar
+      summary: Subscribe to a group calendar.
       tags:
       - Groups
   /api/v1/schedule/groups/sample:

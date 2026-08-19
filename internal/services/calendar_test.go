@@ -1,4 +1,4 @@
-package services
+package services_test
 
 import (
 	"strings"
@@ -7,6 +7,7 @@ import (
 	"unicode/utf8"
 
 	"github.com/schedule-rsreu/schedule-api/internal/models"
+	"github.com/schedule-rsreu/schedule-api/internal/services"
 )
 
 func TestGenerateCalendar(t *testing.T) {
@@ -36,7 +37,7 @@ func TestGenerateCalendar(t *testing.T) {
 		},
 	}
 
-	result := string(GenerateCalendar(calendar))
+	result := string(services.GenerateCalendar(calendar))
 	unfolded := strings.ReplaceAll(result, "\r\n ", "")
 
 	for _, expected := range []string{

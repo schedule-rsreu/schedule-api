@@ -446,7 +446,7 @@ const docTemplate = `{
                 "tags": [
                     "Groups"
                 ],
-                "summary": "Subscribe to a group calendar",
+                "summary": "Subscribe to a group calendar.",
                 "parameters": [
                     {
                         "type": "string",

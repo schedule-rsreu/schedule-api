@@ -59,8 +59,7 @@ func NewRouter(g *echo.Group,
 	scheduleGroup.GET("/lesson/types", sh.getLessonTypes) // /auditoriums
 }
 
-// getGroupCalendar
-// @Summary     Subscribe to a group calendar
+// @Summary     Subscribe to a group calendar.
 // @Description Returns an iCalendar feed with schedule updates and cancellations
 // @Tags        Groups
 // @Router      /api/v1/schedule/groups/{group}/calendar.ics [get]
@@ -68,7 +67,7 @@ func NewRouter(g *echo.Group,
 // @Produce     text/calendar
 // @Success     200  {string}  string
 // @Failure     404  {object}  echo.HTTPError
-// @Failure     500  {object}  echo.HTTPError
+// @Failure     500  {object}  echo.HTTPError.
 func (sh *ScheduleHandler) getGroupCalendar(c echo.Context) error {
 	group := c.Param("group")
 	if group == "" {

@@ -19,8 +19,6 @@ const (
 	calendarURL = "https://www.google.com/maps?q=54.6132708,39.7236472"
 )
 
-var moscowLocation = time.FixedZone("Europe/Moscow", 3*60*60)
-
 func (s *ScheduleService) GetGroupCalendar(ctx context.Context, group string) ([]byte, error) {
 	group = strings.ToUpper(strings.TrimSpace(group))
 	calendar, err := s.Repo.GetGroupCalendar(ctx, group)
@@ -44,7 +42,8 @@ func GenerateCalendar(calendar *models.GroupCalendar) []byte {
 	writeCalendarLine(&result, "X-WR-TIMEZONE:Europe/Moscow")
 
 	dtstamp := calendar.UpdatedAt.UTC().Format("20060102T150405Z")
-	for _, event := range calendar.Events {
+	for index := range calendar.Events {
+		event := &calendar.Events[index]
 		writeCalendarLine(&result, "BEGIN:VEVENT")
 		writeProperty(&result, "UID", event.UID)
 		writeCalendarLine(&result, "DTSTAMP:"+dtstamp)
@@ -70,14 +69,15 @@ func GenerateCalendar(calendar *models.GroupCalendar) []byte {
 }
 
 func moscowWallTimeUTC(value time.Time) string {
+	const moscowOffset = 3 * time.Hour
 	return time.Date(
 		value.Year(), value.Month(), value.Day(),
 		value.Hour(), value.Minute(), value.Second(), 0,
-		moscowLocation,
-	).UTC().Format("20060102T150405Z")
+		time.UTC,
+	).Add(-moscowOffset).Format("20060102T150405Z")
 }
 
-func eventDescription(event models.CalendarEvent) string {
+func eventDescription(event *models.CalendarEvent) string {
 	description := lessonTypeName(event.LessonType)
 	teachers := uniqueSorted(event.Teachers)
 	if len(teachers) == 1 {
