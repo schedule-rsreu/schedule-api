@@ -437,6 +437,48 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/v1/schedule/groups/{group}/calendar.ics": {
+            "get": {
+                "description": "Returns an iCalendar feed with schedule updates and cancellations",
+                "produces": [
+                    "text/calendar"
+                ],
+                "tags": [
+                    "Groups"
+                ],
+                "summary": "Subscribe to a group calendar",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "example": "344",
+                        "description": "group",
+                        "name": "group",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/echo.HTTPError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/echo.HTTPError"
+                        }
+                    }
+                }
+            }
+        },
         "/api/v1/schedule/lesson/types": {
             "get": {
                 "description": "Get lesson types",

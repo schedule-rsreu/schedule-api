@@ -1,6 +1,8 @@
 package services
 
 import (
+	"context"
+	"errors"
 	"fmt"
 	"sort"
 	"strconv"
@@ -9,6 +11,7 @@ import (
 	"unicode/utf8"
 
 	"github.com/schedule-rsreu/schedule-api/internal/models"
+	"github.com/schedule-rsreu/schedule-api/internal/repo"
 )
 
 const (
@@ -17,6 +20,18 @@ const (
 )
 
 var moscowLocation = time.FixedZone("Europe/Moscow", 3*60*60)
+
+func (s *ScheduleService) GetGroupCalendar(ctx context.Context, group string) ([]byte, error) {
+	group = strings.ToUpper(strings.TrimSpace(group))
+	calendar, err := s.Repo.GetGroupCalendar(ctx, group)
+	if err != nil {
+		if errors.Is(err, repo.ErrNoResults) {
+			return nil, NotFoundError{fmt.Sprintf("calendar for group %v not found", group)}
+		}
+		return nil, err
+	}
+	return GenerateCalendar(calendar), nil
+}
 
 func GenerateCalendar(calendar *models.GroupCalendar) []byte {
 	var result strings.Builder
