@@ -74,7 +74,8 @@ func (sh *ScheduleHandler) getGroupCalendar(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, "group path param not found")
 	}
 
-	calendar, err := sh.s.GetGroupCalendar(c.Request().Context(), group)
+	source := fmt.Sprintf("%s://%s%s", c.Scheme(), c.Request().Host, c.Request().URL.Path)
+	calendar, err := sh.s.GetGroupCalendar(c.Request().Context(), group, source)
 	if err != nil {
 		if errors.As(err, &services.NotFoundError{}) {
 			return echo.NewHTTPError(http.StatusNotFound, err)

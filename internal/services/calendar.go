@@ -19,7 +19,7 @@ const (
 	calendarURL = "https://www.google.com/maps?q=54.6132708,39.7236472"
 )
 
-func (s *ScheduleService) GetGroupCalendar(ctx context.Context, group string) ([]byte, error) {
+func (s *ScheduleService) GetGroupCalendar(ctx context.Context, group, source string) ([]byte, error) {
 	group = strings.ToUpper(strings.TrimSpace(group))
 	calendar, err := s.Repo.GetGroupCalendar(ctx, group)
 	if err != nil {
@@ -28,6 +28,7 @@ func (s *ScheduleService) GetGroupCalendar(ctx context.Context, group string) ([
 		}
 		return nil, err
 	}
+	calendar.Source = source
 	return GenerateCalendar(calendar), nil
 }
 
@@ -38,8 +39,15 @@ func GenerateCalendar(calendar *models.GroupCalendar) []byte {
 	writeCalendarLine(&result, "PRODID:-//schedule-rsreu//Schedule API//RU")
 	writeCalendarLine(&result, "CALSCALE:GREGORIAN")
 	writeCalendarLine(&result, "METHOD:PUBLISH")
-	writeProperty(&result, "X-WR-CALNAME", "Расписание группы "+calendar.Group)
+	calendarName := "Расписание группы " + calendar.Group
+	writeProperty(&result, "NAME", calendarName)
+	writeProperty(&result, "X-WR-CALNAME", calendarName)
 	writeCalendarLine(&result, "X-WR-TIMEZONE:Europe/Moscow")
+	if calendar.Source != "" {
+		writeCalendarLine(&result, "SOURCE;VALUE=URI:"+calendar.Source)
+	}
+	writeCalendarLine(&result, "REFRESH-INTERVAL;VALUE=DURATION:PT1H")
+	writeCalendarLine(&result, "COLOR:royalblue")
 
 	dtstamp := calendar.UpdatedAt.UTC().Format("20060102T150405Z")
 	for index := range calendar.Events {
@@ -51,7 +59,8 @@ func GenerateCalendar(calendar *models.GroupCalendar) []byte {
 		writeCalendarLine(&result, "DTSTART:"+moscowWallTimeUTC(event.StartTime))
 		writeCalendarLine(&result, "DTEND:"+moscowWallTimeUTC(event.EndTime))
 		writeProperty(&result, "SUMMARY", emoji+" "+event.Title)
-		writeProperty(&result, "DESCRIPTION", eventDescription(event, lessonTypeName))
+		writeCalendarLine(&result, "CATEGORIES:EDUCATION,"+lessonCategory(event.LessonType))
+		writeProperty(&result, "DESCRIPTION", eventDescription(event, emoji, lessonTypeName))
 		writeProperty(&result, "LOCATION", eventLocation(event.Auditoriums))
 		writeCalendarLine(&result, "GEO:"+calendarGeo)
 		writeCalendarLine(&result, "URL:"+calendarURL)
@@ -62,11 +71,23 @@ func GenerateCalendar(calendar *models.GroupCalendar) []byte {
 			writeCalendarLine(&result, "STATUS:CONFIRMED")
 		}
 		writeCalendarLine(&result, "TRANSP:OPAQUE")
+		if !event.Cancelled {
+			writeCalendarLine(&result, "BEGIN:VALARM")
+			writeCalendarLine(&result, "TRIGGER:-PT30M")
+			writeCalendarLine(&result, "ACTION:DISPLAY")
+			writeProperty(&result, "DESCRIPTION", "Пара через 30 минут: "+event.Title)
+			writeCalendarLine(&result, "END:VALARM")
+		}
 		writeCalendarLine(&result, "END:VEVENT")
 	}
 
 	writeCalendarLine(&result, "END:VCALENDAR")
 	return []byte(result.String())
+}
+
+func lessonCategory(lessonType string) string {
+	category, _, _ := strings.Cut(lessonType, " ")
+	return strings.ToUpper(category)
 }
 
 func moscowWallTimeUTC(value time.Time) string {
@@ -78,13 +99,14 @@ func moscowWallTimeUTC(value time.Time) string {
 	).Add(-moscowOffset).Format("20060102T150405Z")
 }
 
-func eventDescription(event *models.CalendarEvent, description string) string {
+func eventDescription(event *models.CalendarEvent, emoji, lessonTypeName string) string {
+	description := emoji + " " + lessonTypeName + " " + event.Title
 	teachers := uniqueSorted(event.Teachers)
 	if len(teachers) == 1 {
-		return description + "\nПреподаватель: " + teachers[0]
+		return description + "\n👤 " + teachers[0]
 	}
 	if len(teachers) > 1 {
-		return description + "\nПреподаватели: " + strings.Join(teachers, ", ")
+		return description + "\n👥 " + strings.Join(teachers, ", ")
 	}
 	return description
 }

@@ -1,0 +1,84 @@
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//schedule-rsreu//Schedule API//RU
+CALSCALE:GREGORIAN
+METHOD:PUBLISH
+NAME:Расписание группы 344
+X-WR-CALNAME:Расписание группы 344
+X-WR-TIMEZONE:Europe/Moscow
+SOURCE;VALUE=URI:https://schedule.example.com/api/v1/schedule/groups/344/ca
+ lendar.ics
+REFRESH-INTERVAL;VALUE=DURATION:PT1H
+COLOR:royalblue
+BEGIN:VEVENT
+UID:demo-344-20260820-1520@schedule.rsreu.ru
+DTSTAMP:20260819T130000Z
+DTSTART:20260820T122000Z
+DTEND:20260820T135500Z
+SUMMARY:📘 Компьютерное моделирование
+CATEGORIES:EDUCATION,LECTURE
+DESCRIPTION:📘 Лекция Компьютерное моделирова
+ ние\n👤 Овечкин Геннадий Владимирович
+LOCATION:206-1 C · РГРТУ
+GEO:54.6132708;39.7236472
+URL:https://www.google.com/maps?q=54.6132708,39.7236472
+SEQUENCE:1
+STATUS:CONFIRMED
+TRANSP:OPAQUE
+BEGIN:VALARM
+TRIGGER:-PT30M
+ACTION:DISPLAY
+DESCRIPTION:Пара через 30 минут: Компьютерное м
+ оделирование
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+UID:demo-344-20260820-1705@schedule.rsreu.ru
+DTSTAMP:20260819T130000Z
+DTSTART:20260820T140500Z
+DTEND:20260820T154000Z
+SUMMARY:📘 Проектирование информационных си
+ стем
+CATEGORIES:EDUCATION,LECTURE
+DESCRIPTION:📘 Лекция Проектирование информац
+ ионных систем\n👤 Белов Владимир Викторо
+ вич
+LOCATION:206-1 C · РГРТУ
+GEO:54.6132708;39.7236472
+URL:https://www.google.com/maps?q=54.6132708,39.7236472
+SEQUENCE:1
+STATUS:CONFIRMED
+TRANSP:OPAQUE
+BEGIN:VALARM
+TRIGGER:-PT30M
+ACTION:DISPLAY
+DESCRIPTION:Пара через 30 минут: Проектирование
+  информационных систем
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+UID:demo-344-20260821-1140@schedule.rsreu.ru
+DTSTAMP:20260819T130000Z
+DTSTART:20260821T084000Z
+DTEND:20260821T101500Z
+SUMMARY:📘 Основы конфигурирования экономич
+ еских информационных систем
+CATEGORIES:EDUCATION,LECTURE
+DESCRIPTION:📘 Лекция Основы конфигурирования
+  экономических информационных систем\n
+ 👤 Дмитриева Татьяна Александровна
+LOCATION:106а C · РГРТУ
+GEO:54.6132708;39.7236472
+URL:https://www.google.com/maps?q=54.6132708,39.7236472
+SEQUENCE:1
+STATUS:CONFIRMED
+TRANSP:OPAQUE
+BEGIN:VALARM
+TRIGGER:-PT30M
+ACTION:DISPLAY
+DESCRIPTION:Пара через 30 минут: Основы конфигу
+ рирования экономических информационных
+  систем
+END:VALARM
+END:VEVENT
+END:VCALENDAR
