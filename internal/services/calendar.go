@@ -122,12 +122,12 @@ func lessonPresentation(lessonType string) (emoji, name string) {
 		{"lecture", "📘", "Лекция"},
 		{"practice", "✏️", "Практика"},
 		{"lab", "🧪", "Лабораторная работа"},
-		{"coursework", "📝", "Курсовая работа"},
-		{"course_project", "📝", "Курсовой проект"},
+		{"coursework", "📄", "Курсовая работа"},
+		{"course_project", "🛠️", "Курсовой проект"},
 		{"exam", "🎓", "Экзамен"},
-		{"zachet", "✅", "Зачёт"},
-		{"consultation", "💬", "Консультация"},
-		{"elective", "⭐", "Факультатив"},
+		{"zachet", "🎓", "Зачёт"},
+		{"consultation", "❓", "Консультация"},
+		{"elective", "🧭", "Факультатив"},
 	}
 	for _, presentation := range presentations {
 		if presentation.lessonType == lessonType {

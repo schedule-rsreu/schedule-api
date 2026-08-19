@@ -72,12 +72,12 @@ func TestGenerateCalendarLessonTypes(t *testing.T) {
 		{"lecture", "📘 Предмет\\r\\nDESCRIPTION:Лекция"},
 		{"lab", "🧪 Предмет\\r\\nDESCRIPTION:Лабораторная работа"},
 		{"practice", "✏️ Предмет\\r\\nDESCRIPTION:Практика"},
-		{"coursework", "📝 Предмет\\r\\nDESCRIPTION:Курсовая работа"},
-		{"course_project", "📝 Предмет\\r\\nDESCRIPTION:Курсовой проект"},
+		{"coursework", "📄 Предмет\\r\\nDESCRIPTION:Курсовая работа"},
+		{"course_project", "🛠️ Предмет\\r\\nDESCRIPTION:Курсовой проект"},
 		{"exam", "🎓 Предмет\\r\\nDESCRIPTION:Экзамен"},
-		{"zachet", "✅ Предмет\\r\\nDESCRIPTION:Зачёт"},
-		{"consultation", "💬 Предмет\\r\\nDESCRIPTION:Консультация"},
-		{"elective", "⭐ Предмет\\r\\nDESCRIPTION:Факультатив"},
+		{"zachet", "🎓 Предмет\\r\\nDESCRIPTION:Зачёт"},
+		{"consultation", "❓ Предмет\\r\\nDESCRIPTION:Консультация"},
+		{"elective", "🧭 Предмет\\r\\nDESCRIPTION:Факультатив"},
 		{"unknown - другое", "🎓 Предмет\\r\\nDESCRIPTION:Занятие"},
 	}
 
