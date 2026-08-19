@@ -6,7 +6,7 @@
 
 **Architecture:** PostgreSQL вычисляет стабильный UID и хранит общую ревизию плюс tombstone отменённых занятий. `schedule-parser2` обновляет tombstones в той же транзакции, где заменяет расписание. `schedule-api` объединяет активные и отменённые события и формирует `.ics` без новой runtime-зависимости.
 
-**Tech Stack:** Go 1.26.5, Echo, sqlx, PostgreSQL 17, Python 3, psycopg2, goose v3.27.3 SQL migrations.
+**Tech Stack:** Go 1.26.6, Echo, sqlx, PostgreSQL 17, Python 3, psycopg2.
 
 **Spec:** `docs/adr/18.08.2026-ice-design/18.08.2026-ice-design.md`
 
@@ -17,13 +17,15 @@
 - Время событий хранится в БД как Moscow wall time и выдаётся в UTC с `Z`.
 - Аудитории дедуплицируются и перечисляются через запятую; подгруппы не моделируются.
 - Emoji включены глобально; пользовательской настройки пока нет.
-- CI/CD и production-запуск goose не входят в эту реализацию.
+- Baseline-миграция, Goose и production-запуск миграций не входят в эту реализацию.
 - Все тесты запускаются нативно; Docker не используется.
 - Не изменять незакоммиченные `tables.sql` и `gp.txt`.
 
 ---
 
-### Task 1: Goose и календарная схема
+### Отложено: Goose и календарная схема
+
+Сначала требуется отдельная baseline-миграция текущей базы. До неё SQL ниже служит проектом схемы и не применяется как первая миграция.
 
 **Files:**
 - Create: `migrations/00001_calendar_subscriptions.sql`
