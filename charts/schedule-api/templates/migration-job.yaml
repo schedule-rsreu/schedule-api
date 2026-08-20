@@ -1,0 +1,41 @@
+{{- if or (and .Release.IsInstall .Values.migration.bootstrap) .Release.IsUpgrade }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ if .Release.IsUpgrade }}schedule-api-migrate{{ else }}schedule-api-bootstrap{{ end }}
+  labels:
+    app.kubernetes.io/name: schedule-api-migration
+  {{- if .Release.IsUpgrade }}
+  annotations:
+    helm.sh/hook: pre-upgrade
+    helm.sh/hook-weight: "-10"
+    helm.sh/hook-delete-policy: before-hook-creation,hook-succeeded
+  {{- end }}
+spec:
+  backoffLimit: 1
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: schedule-api-migration
+        logs.vingp.dev/enabled: "true"
+    spec:
+      restartPolicy: Never
+      imagePullSecrets:
+        - name: ghcr-pull
+      containers:
+        - name: goose
+          image: "{{ .Values.image.repository }}:{{ required "image.tag is required" .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          envFrom:
+            - secretRef:
+                name: schedule-api-secrets
+          command:
+            - /bin/sh
+            - -ec
+          args:
+            - |
+              until nc -z schedule-api-postgres 5432; do sleep 2; done
+              exec goose -dir /app/migrations/postgres postgres "$POSTGRES_DSN" up
+          resources:
+            {{- toYaml .Values.api.resources | nindent 12 }}
+{{- end }}

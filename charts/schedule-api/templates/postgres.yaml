@@ -1,0 +1,62 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: schedule-api-postgres
+  labels:
+    app.kubernetes.io/name: schedule-api-postgres
+spec:
+  clusterIP: None
+  selector:
+    app.kubernetes.io/name: schedule-api-postgres
+  ports:
+    - name: postgres
+      port: 5432
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: schedule-api-postgres
+  labels:
+    app.kubernetes.io/name: schedule-api-postgres
+spec:
+  serviceName: schedule-api-postgres
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: schedule-api-postgres
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: schedule-api-postgres
+        logs.vingp.dev/enabled: "true"
+    spec:
+      containers:
+        - name: postgres
+          image: {{ .Values.postgres.image | quote }}
+          envFrom:
+            - secretRef:
+                name: schedule-api-secrets
+          ports:
+            - name: postgres
+              containerPort: 5432
+          readinessProbe:
+            exec:
+              command:
+                - sh
+                - -ec
+                - pg_isready -U "$POSTGRES_USER" -d "$POSTGRES_DB"
+          resources:
+            {{- toYaml .Values.postgres.resources | nindent 12 }}
+          volumeMounts:
+            - name: data
+              mountPath: /var/lib/postgresql
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+      spec:
+        storageClassName: local-path
+        accessModes:
+          - ReadWriteOnce
+        resources:
+          requests:
+            storage: {{ .Values.postgres.storage }}
