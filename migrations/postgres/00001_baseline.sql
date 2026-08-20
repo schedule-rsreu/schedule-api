@@ -711,5 +711,3 @@ ALTER TABLE ONLY public.teacher_department
 --
 -- PostgreSQL database dump complete
 --
-
-
