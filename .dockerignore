@@ -1,0 +1,10 @@
+.git
+.github
+.idea
+.env
+ivan4-k3s.yaml
+tables.sql
+docs/superpowers
+*.dump
+*.archive
+*.tar.gz
