@@ -1,0 +1,114 @@
+name: Deploy
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+
+concurrency:
+  group: schedule-api-production
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Login to GHCR
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: echo "$GH_TOKEN" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
+
+      - name: Build and push immutable image
+        run: |
+          image="ghcr.io/schedule-rsreu/schedule-api:${GITHUB_SHA}"
+          docker build -t "$image" .
+          docker push "$image"
+
+      - uses: azure/setup-helm@v4
+        with:
+          version: v3.21.3
+
+      - name: Configure SSH
+        env:
+          DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+          DEPLOY_KNOWN_HOSTS: ${{ secrets.DEPLOY_KNOWN_HOSTS }}
+        run: |
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "$DEPLOY_SSH_KEY" > ~/.ssh/id_ed25519
+          printf '%s\n' "$DEPLOY_KNOWN_HOSTS" > ~/.ssh/known_hosts
+          chmod 600 ~/.ssh/id_ed25519 ~/.ssh/known_hosts
+
+      - name: Provision Kubernetes secrets
+        env:
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+          GHCR_USERNAME: ${{ secrets.GHCR_USERNAME }}
+          GHCR_PULL_TOKEN: ${{ secrets.GHCR_PULL_TOKEN }}
+          POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
+          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+          POSTGRES_DB: ${{ secrets.POSTGRES_DB }}
+          POSTGRES_DSN: ${{ secrets.POSTGRES_DSN }}
+          MONGO_USERNAME: ${{ secrets.MONGO_USERNAME }}
+          MONGO_PASSWORD: ${{ secrets.MONGO_PASSWORD }}
+        run: |
+          for name in DEPLOY_HOST DEPLOY_USER GHCR_USERNAME GHCR_PULL_TOKEN \
+            POSTGRES_USER POSTGRES_PASSWORD POSTGRES_DB POSTGRES_DSN \
+            MONGO_USERNAME MONGO_PASSWORD; do
+            [ -n "$(printenv "$name")" ] || {
+              echo "::error::$name is empty"
+              exit 1
+            }
+          done
+
+          b64() {
+            printf '%s' "$1" | base64 -w0
+          }
+          registry_auth="$(b64 "$GHCR_USERNAME:$GHCR_PULL_TOKEN")"
+          docker_config="$(printf '{"auths":{"ghcr.io":{"auth":"%s"}}}' \
+            "$registry_auth" | base64 -w0)"
+
+          {
+            printf 'apiVersion: v1\nkind: Namespace\nmetadata:\n  name: schedule-api\n---\n'
+            printf 'apiVersion: v1\nkind: Secret\nmetadata:\n'
+            printf '  name: schedule-api-secrets\n  namespace: schedule-api\ntype: Opaque\ndata:\n'
+            printf '  POSTGRES_USER: %s\n' "$(b64 "$POSTGRES_USER")"
+            printf '  POSTGRES_PASSWORD: %s\n' "$(b64 "$POSTGRES_PASSWORD")"
+            printf '  POSTGRES_DB: %s\n' "$(b64 "$POSTGRES_DB")"
+            printf '  POSTGRES_DSN: %s\n' "$(b64 "$POSTGRES_DSN")"
+            printf '  MONGO_USERNAME: %s\n' "$(b64 "$MONGO_USERNAME")"
+            printf '  MONGO_PASSWORD: %s\n' "$(b64 "$MONGO_PASSWORD")"
+            printf '%s\n' '---'
+            printf 'apiVersion: v1\nkind: Secret\nmetadata:\n'
+            printf '  name: ghcr-pull\n  namespace: schedule-api\n'
+            printf 'type: kubernetes.io/dockerconfigjson\ndata:\n'
+            printf '  .dockerconfigjson: %s\n' "$docker_config"
+          } | ssh -i ~/.ssh/id_ed25519 "$DEPLOY_USER@$DEPLOY_HOST" \
+            "k3s kubectl apply -f -"
+
+      - name: Deploy atomically
+        if: vars.K3S_DEPLOY_ENABLED == 'true'
+        env:
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+        run: |
+          mkdir -p dist
+          helm package charts/schedule-api --destination dist
+          archive="$(find dist -name 'schedule-api-*.tgz' -print -quit)"
+          remote_archive="/tmp/schedule-api-${GITHUB_SHA}.tgz"
+          scp -i ~/.ssh/id_ed25519 "$archive" \
+            "$DEPLOY_USER@$DEPLOY_HOST:$remote_archive"
+          ssh -i ~/.ssh/id_ed25519 "$DEPLOY_USER@$DEPLOY_HOST" \
+            "set -eu
+             helm upgrade --install schedule-api '$remote_archive' \
+               --kubeconfig /etc/rancher/k3s/k3s.yaml \
+               --namespace schedule-api \
+               --set-string image.tag='${GITHUB_SHA}' \
+               --atomic --wait --wait-for-jobs --timeout 10m
+             rm -f '$remote_archive'"

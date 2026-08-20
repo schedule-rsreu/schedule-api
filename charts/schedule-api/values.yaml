@@ -1,0 +1,45 @@
+image:
+  repository: ghcr.io/schedule-rsreu/schedule-api
+  tag: ""
+  pullPolicy: IfNotPresent
+
+api:
+  replicas: 1
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      cpu: 500m
+      memory: 256Mi
+
+ingress:
+  enabled: true
+  hosts:
+    - api.schedule.vingp.dev
+    - api.rsreu-schedule.ru
+
+migration:
+  bootstrap: false
+
+postgres:
+  image: postgres:18.4
+  storage: 4Gi
+  resources:
+    requests:
+      cpu: 50m
+      memory: 128Mi
+    limits:
+      cpu: "1"
+      memory: 768Mi
+
+mongodb:
+  image: mongo:6.0.9
+  storage: 4Gi
+  resources:
+    requests:
+      cpu: 50m
+      memory: 128Mi
+    limits:
+      cpu: "1"
+      memory: 768Mi
