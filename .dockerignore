@@ -2,6 +2,8 @@
 .github
 .idea
 .env
+bin
+main
 ivan4-k3s.yaml
 tables.sql
 docs/superpowers
