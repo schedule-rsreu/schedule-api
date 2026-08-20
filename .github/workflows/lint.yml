@@ -8,12 +8,16 @@ jobs:
   lint:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v6
 
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
           go-version: '1.26'
+
+      - uses: azure/setup-helm@v4
+        with:
+          version: v3.21.3
 
       - name: Cache lint dependencies
         id: cache-lint-dependencies
@@ -38,6 +42,13 @@ jobs:
       - name: Run coverage
         run: go test -race -coverprofile=coverage.txt -covermode=atomic ./...
 
+      - name: Validate Helm chart
+        run: |
+          helm lint charts/schedule-api --set-string image.tag=test
+          helm template schedule-api charts/schedule-api \
+            --namespace schedule-api \
+            --set-string image.tag=test >/dev/null
+
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v5
         with:
@@ -46,7 +57,7 @@ jobs:
   build-image:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v6
 
       - name: Build Docker image
         run: docker build .

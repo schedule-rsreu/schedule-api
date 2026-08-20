@@ -62,3 +62,47 @@ make lint
 ```shell
 make format
 ```
+
+## Деплой в k3s
+
+Workflow `.github/workflows/deploy.yml` публикует приватный image
+`ghcr.io/schedule-rsreu/schedule-api:<git-sha>`, создаёт Kubernetes Secrets
+через SSH и после первичной миграции обновляет Helm release в namespace
+`schedule-api`.
+
+Repository secrets:
+
+- `DEPLOY_HOST`, `DEPLOY_USER`, `DEPLOY_SSH_KEY`, `DEPLOY_KNOWN_HOSTS`;
+- `GHCR_USERNAME` и PAT `GHCR_PULL_TOKEN` с правом `read:packages`;
+- `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_DB`;
+- `POSTGRES_DSN` вида
+  `postgres://USER:PASSWORD@schedule-api-postgres:5432/DB?sslmode=disable`;
+- `MONGO_USERNAME`, `MONGO_PASSWORD`.
+
+PostgreSQL 18 хранит данные под `/var/lib/postgresql/18/docker`, поэтому PVC
+монтируется в `/var/lib/postgresql`, а не в старый
+`/var/lib/postgresql/data`.
+
+Для первой миграции не создавайте repository variable
+`K3S_DEPLOY_ENABLED`. После первого успешного workflow упакуйте chart и
+установите только базы с baseline:
+
+```bash
+helm package charts/schedule-api --destination dist
+scp dist/schedule-api-0.1.0.tgz \
+  root@109.172.115.63:/tmp/schedule-api-bootstrap.tgz
+
+helm upgrade --install schedule-api /tmp/schedule-api-bootstrap.tgz \
+  --kubeconfig /etc/rancher/k3s/k3s.yaml \
+  --namespace schedule-api \
+  --create-namespace \
+  --set-string image.tag='<git-sha>' \
+  --set api.replicas=0 \
+  --set ingress.enabled=false \
+  --set migration.bootstrap=true \
+  --wait --wait-for-jobs --timeout 10m
+```
+
+Восстановите и сравните PostgreSQL/MongoDB backups до включения API. Только
+после проверки установите repository variable `K3S_DEPLOY_ENABLED=true`.
+`parser2` должен оставаться остановленным до отдельной миграции в k3s.
