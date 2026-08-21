@@ -47,7 +47,7 @@ func GenerateCalendar(calendar *models.GroupCalendar) []byte {
 		writeCalendarLine(&result, "SOURCE;VALUE=URI:"+calendar.Source)
 	}
 	writeCalendarLine(&result, "REFRESH-INTERVAL;VALUE=DURATION:PT1H")
-	writeCalendarLine(&result, "COLOR:cobalt")
+	writeCalendarLine(&result, "COLOR:#5288c1")
 
 	dtstamp := calendar.UpdatedAt.UTC().Format("20060102T150405Z")
 	for index := range calendar.Events {
