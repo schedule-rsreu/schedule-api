@@ -31,8 +31,7 @@ CREATE TABLE public.calendar_deleted_event (
     end_time timestamp without time zone NOT NULL,
     title text NOT NULL,
     lesson_type text,
-    teachers text[] NOT NULL DEFAULT '{}',
-    auditoriums text[] NOT NULL DEFAULT '{}',
+    teacher_auditoriums jsonb NOT NULL DEFAULT '[]'::jsonb,
     sequence bigint NOT NULL,
     cancelled_at timestamp with time zone NOT NULL DEFAULT now()
 );
