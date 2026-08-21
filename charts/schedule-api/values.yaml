@@ -32,14 +32,3 @@ postgres:
     limits:
       cpu: "1"
       memory: 768Mi
-
-mongodb:
-  image: mongo:6.0.9
-  storage: 4Gi
-  resources:
-    requests:
-      cpu: 50m
-      memory: 128Mi
-    limits:
-      cpu: "1"
-      memory: 768Mi
