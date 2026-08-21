@@ -22,8 +22,10 @@ func TestGenerateCalendar(t *testing.T) {
 				EndTime:     time.Date(2026, 8, 19, 15, 10, 0, 0, time.UTC),
 				Title:       "Проектирование информационных систем с очень длинным названием для проверки переноса строки",
 				LessonType:  "lab",
-				Teachers:    []string{"Соловьев Александр Вадимович", "Бурмистров Александр Сергеевич"},
-				Auditoriums: []string{"110 C", "106а C", "110 C"},
+				TeacherAuditoriums: []models.CalendarTeacherAuditorium{
+					{Teacher: "Бурмистров Александр Сергеевич", Auditorium: "106а C"},
+					{Teacher: "Соловьев Александр Вадимович", Auditorium: "110 C"},
+				},
 				Sequence:    3,
 			},
 			{
@@ -48,11 +50,10 @@ func TestGenerateCalendar(t *testing.T) {
 		"COLOR:royalblue\r\n",
 		"DTSTAMP:20260819T120000Z\r\n",
 		"DTSTART:20260819T103500Z\r\n",
-		"SUMMARY:🧪 Проектирование информационных систем",
+		"SUMMARY:🧪 Лаб. Проектирование информационных систем с очень длинным названием для проверки переноса строки 106а C\\, 110 C\r\n",
 		"CATEGORIES:EDUCATION,LAB\r\n",
 		"LOCATION:106а C\\, 110 C · РГРТУ\r\n",
-		"DESCRIPTION:🧪 Лабораторная работа Проектирование информационных систем",
-		"🧑‍🏫 Бурмистров Александр Сергеевич\\, Соловьев Александр Вадимович",
+		"DESCRIPTION:Лабораторная работа\\nПроектирование информационных систем с очень длинным названием для проверки переноса строки\\nБурмистров Александр Сергеевич — 106а C\\nСоловьев Александр Вадимович — 110 C\\n\\nПерерыв: 14:20–14:25\r\n",
 		"TRIGGER:-PT30M\r\n",
 		"ACTION:DISPLAY\r\n",
 		"STATUS:CANCELLED\r\n",
@@ -81,17 +82,18 @@ func TestGenerateCalendarLessonTypes(t *testing.T) {
 		lessonType string
 		emoji      string
 		name       string
+		shortName  string
 	}{
-		{"lecture", "📘", "Лекция"},
-		{"lab", "🧪", "Лабораторная работа"},
-		{"practice", "✏️", "Практика"},
-		{"coursework", "📄", "Курсовая работа"},
-		{"course_project", "🛠️", "Курсовой проект"},
-		{"exam", "🎓", "Экзамен"},
-		{"zachet", "🎓", "Зачёт"},
-		{"consultation", "❓", "Консультация"},
-		{"elective", "🧭", "Факультатив"},
-		{"unknown - другое", "🎓", "Занятие"},
+		{"lecture", "📘", "Лекция", "Лек."},
+		{"lab", "🧪", "Лабораторная работа", "Лаб."},
+		{"practice", "✏️", "Практика", "Упр."},
+		{"coursework", "📄", "Курсовая работа", "Курс. раб."},
+		{"course_project", "🛠️", "Курсовой проект", "Курс. пр."},
+		{"exam", "🎓", "Экзамен", "Экз."},
+		{"zachet", "🎓", "Зачёт", "Зач."},
+		{"consultation", "❓", "Консультация", "Конс."},
+		{"elective", "🧭", "Факультатив", "Фак."},
+		{"unknown - другое", "🎓", "Занятие", "Зан."},
 	}
 
 	for _, test := range tests {
@@ -109,8 +111,8 @@ func TestGenerateCalendarLessonTypes(t *testing.T) {
 			}
 
 			result := strings.ReplaceAll(string(services.GenerateCalendar(calendar)), "\r\n ", "")
-			if !strings.Contains(result, "SUMMARY:"+test.emoji+" Предмет\r\n") ||
-				!strings.Contains(result, "DESCRIPTION:"+test.emoji+" "+test.name+" Предмет\r\n") {
+			if !strings.Contains(result, "SUMMARY:"+test.emoji+" "+test.shortName+" Предмет\r\n") ||
+				!strings.Contains(result, "DESCRIPTION:"+test.name+"\\nПредмет\\n\\nПерерыв: 14:20–14:25\r\n") {
 				t.Fatalf("unexpected lesson presentation:\n%s", result)
 			}
 		})

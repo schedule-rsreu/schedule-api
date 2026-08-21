@@ -52,16 +52,21 @@ func GenerateCalendar(calendar *models.GroupCalendar) []byte {
 	dtstamp := calendar.UpdatedAt.UTC().Format("20060102T150405Z")
 	for index := range calendar.Events {
 		event := &calendar.Events[index]
-		emoji, lessonTypeName := lessonPresentation(event.LessonType)
+		emoji, lessonTypeName, lessonTypeShortName := lessonPresentation(event.LessonType)
+		auditoriums := eventAuditoriums(event)
+		summary := emoji + " " + lessonTypeShortName + " " + event.Title
+		if len(auditoriums) > 0 {
+			summary += " " + strings.Join(auditoriums, ", ")
+		}
 		writeCalendarLine(&result, "BEGIN:VEVENT")
 		writeProperty(&result, "UID", event.UID)
 		writeCalendarLine(&result, "DTSTAMP:"+dtstamp)
 		writeCalendarLine(&result, "DTSTART:"+moscowWallTimeUTC(event.StartTime))
 		writeCalendarLine(&result, "DTEND:"+moscowWallTimeUTC(event.EndTime))
-		writeProperty(&result, "SUMMARY", emoji+" "+event.Title)
+		writeProperty(&result, "SUMMARY", summary)
 		writeCalendarLine(&result, "CATEGORIES:EDUCATION,"+lessonCategory(event.LessonType))
-		writeProperty(&result, "DESCRIPTION", eventDescription(event, emoji, lessonTypeName))
-		writeProperty(&result, "LOCATION", eventLocation(event.Auditoriums))
+		writeProperty(&result, "DESCRIPTION", eventDescription(event, lessonTypeName))
+		writeProperty(&result, "LOCATION", eventLocation(auditoriums))
 		writeCalendarLine(&result, "GEO:"+calendarGeo)
 		writeCalendarLine(&result, "URL:"+calendarURL)
 		writeCalendarLine(&result, "SEQUENCE:"+strconv.FormatInt(event.Sequence, 10))
@@ -99,13 +104,35 @@ func moscowWallTimeUTC(value time.Time) string {
 	).Add(-moscowOffset).Format("20060102T150405Z")
 }
 
-func eventDescription(event *models.CalendarEvent, emoji, lessonTypeName string) string {
-	description := emoji + " " + lessonTypeName + " " + event.Title
-	teachers := uniqueSorted(event.Teachers)
-	if len(teachers) > 0 {
-		return description + "\n🧑‍🏫 " + strings.Join(teachers, ", ")
+func eventDescription(event *models.CalendarEvent, lessonTypeName string) string {
+	lines := []string{lessonTypeName, event.Title}
+	pairs := append([]models.CalendarTeacherAuditorium(nil), event.TeacherAuditoriums...)
+	sort.Slice(pairs, func(i, j int) bool {
+		return pairs[i].Teacher+"\x00"+pairs[i].Auditorium < pairs[j].Teacher+"\x00"+pairs[j].Auditorium
+	})
+	for _, pair := range pairs {
+		teacher, auditorium := strings.TrimSpace(pair.Teacher), strings.TrimSpace(pair.Auditorium)
+		switch {
+		case teacher != "" && auditorium != "":
+			lines = append(lines, teacher+" — "+auditorium)
+		case teacher != "":
+			lines = append(lines, teacher)
+		case auditorium != "":
+			lines = append(lines, auditorium)
+		}
 	}
-	return description
+	if breakPeriod := getBreakPeriod(event.StartTime, event.EndTime); breakPeriod != "" {
+		lines = append(lines, "", "Перерыв: "+breakPeriod)
+	}
+	return strings.Join(lines, "\n")
+}
+
+func eventAuditoriums(event *models.CalendarEvent) []string {
+	auditoriums := make([]string, 0, len(event.TeacherAuditoriums))
+	for _, pair := range event.TeacherAuditoriums {
+		auditoriums = append(auditoriums, pair.Auditorium)
+	}
+	return uniqueSorted(auditoriums)
 }
 
 func eventLocation(auditoriums []string) string {
@@ -132,28 +159,38 @@ func uniqueSorted(values []string) []string {
 	return result
 }
 
-func lessonPresentation(lessonType string) (emoji, name string) {
+func lessonPresentation(lessonType string) (emoji, name, shortName string) {
 	presentations := [...]struct {
 		lessonType string
 		emoji      string
 		name       string
+		shortName  string
 	}{
-		{"lecture", "📘", "Лекция"},
-		{"practice", "✏️", "Практика"},
-		{"lab", "🧪", "Лабораторная работа"},
-		{"coursework", "📄", "Курсовая работа"},
-		{"course_project", "🛠️", "Курсовой проект"},
-		{"exam", "🎓", "Экзамен"},
-		{"zachet", "🎓", "Зачёт"},
-		{"consultation", "❓", "Консультация"},
-		{"elective", "🧭", "Факультатив"},
+		{"lecture", "📘", "Лекция", "Лек."},
+		{"practice", "✏️", "Практика", "Упр."},
+		{"lab", "🧪", "Лабораторная работа", "Лаб."},
+		{"coursework", "📄", "Курсовая работа", "Курс. раб."},
+		{"course_project", "🛠️", "Курсовой проект", "Курс. пр."},
+		{"exam", "🎓", "Экзамен", "Экз."},
+		{"zachet", "🎓", "Зачёт", "Зач."},
+		{"consultation", "❓", "Консультация", "Конс."},
+		{"elective", "🧭", "Факультатив", "Фак."},
 	}
 	for _, presentation := range presentations {
 		if presentation.lessonType == lessonType {
-			return presentation.emoji, presentation.name
+			return presentation.emoji, presentation.name, presentation.shortName
 		}
 	}
-	return "🎓", "Занятие"
+	return "🎓", "Занятие", "Зан."
+}
+
+func getBreakPeriod(start, end time.Time) string {
+	return map[string]string{
+		"08:10-09:45": "08:55–09:00", "09:55-11:30": "10:40–10:45",
+		"11:40-13:15": "12:25–12:30", "13:35-15:10": "14:20–14:25",
+		"15:20-16:55": "16:05–16:10", "17:05-18:40": "17:50–17:55",
+		"18:50-20:15": "19:35–19:40", "20:25-21:50": "21:10–21:15",
+	}[start.Format("15:04")+"-"+end.Format("15:04")]
 }
 
 func writeProperty(result *strings.Builder, name, value string) {

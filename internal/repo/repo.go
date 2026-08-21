@@ -1994,8 +1994,7 @@ active_events AS (
       'end_time', to_char(l.end_time, 'YYYY-MM-DD"T"HH24:MI:SS"Z"'),
       'title', l.title,
       'lesson_type', l.type,
-      'teachers', coalesce(teachers.items, '[]'::json),
-      'auditoriums', coalesce(auditoriums.items, '[]'::json),
+      'teacher_auditoriums', coalesce(teacher_auditoriums.items, '[]'::json),
       'sequence', revision.revision,
       'cancelled', false
     ) AS event
@@ -2003,24 +2002,24 @@ active_events AS (
   JOIN lesson l ON l.group_id = g.id
   CROSS JOIN current_revision revision
   LEFT JOIN LATERAL (
-    SELECT json_agg(name ORDER BY name) AS items
+    SELECT json_agg(
+      json_build_object('teacher', teacher_name, 'auditorium', auditorium_name)
+      ORDER BY teacher_name, auditorium_name
+    ) AS items
     FROM (
-      SELECT DISTINCT teacher.full_name AS name
+      SELECT DISTINCT
+        coalesce(teacher.full_name, '') AS teacher_name,
+        CASE WHEN auditorium.id IS NULL THEN ''
+          ELSE concat_ws(' ', auditorium.number, building.letter)
+        END AS auditorium_name
       FROM lesson_auditorium_teacher link
-      JOIN teacher ON teacher.id = link.teacher_id
+      LEFT JOIN teacher ON teacher.id = link.teacher_id
+      LEFT JOIN auditorium ON auditorium.id = link.auditorium_id
+      LEFT JOIN building ON building.id = auditorium.building_id
       WHERE link.lesson_id = l.id
-    ) distinct_teachers
-  ) teachers ON true
-  LEFT JOIN LATERAL (
-    SELECT json_agg(display_name ORDER BY display_name) AS items
-    FROM (
-      SELECT DISTINCT concat_ws(' ', auditorium.number, building.letter) AS display_name
-      FROM lesson_auditorium_teacher link
-      JOIN auditorium ON auditorium.id = link.auditorium_id
-      JOIN building ON building.id = auditorium.building_id
-      WHERE link.lesson_id = l.id
-    ) distinct_auditoriums
-  ) auditoriums ON true
+        AND (teacher.id IS NOT NULL OR auditorium.id IS NOT NULL)
+    ) distinct_pairs
+  ) teacher_auditoriums ON true
   WHERE l.date >= current_date - 180
 ),
 cancelled_events AS (
@@ -2033,8 +2032,7 @@ cancelled_events AS (
       'end_time', to_char(deleted.end_time, 'YYYY-MM-DD"T"HH24:MI:SS"Z"'),
       'title', deleted.title,
       'lesson_type', deleted.lesson_type,
-      'teachers', deleted.teachers,
-      'auditoriums', deleted.auditoriums,
+      'teacher_auditoriums', deleted.teacher_auditoriums,
       'sequence', deleted.sequence,
       'cancelled', true
     ) AS event
