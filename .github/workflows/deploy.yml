@@ -55,12 +55,9 @@ jobs:
           POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
           POSTGRES_DB: ${{ secrets.POSTGRES_DB }}
           POSTGRES_DSN: ${{ secrets.POSTGRES_DSN }}
-          MONGO_USERNAME: ${{ secrets.MONGO_USERNAME }}
-          MONGO_PASSWORD: ${{ secrets.MONGO_PASSWORD }}
         run: |
           for name in DEPLOY_HOST DEPLOY_USER GHCR_USERNAME GHCR_PULL_TOKEN \
-            POSTGRES_USER POSTGRES_PASSWORD POSTGRES_DB POSTGRES_DSN \
-            MONGO_USERNAME MONGO_PASSWORD; do
+            POSTGRES_USER POSTGRES_PASSWORD POSTGRES_DB POSTGRES_DSN; do
             [ -n "$(printenv "$name")" ] || {
               echo "::error::$name is empty"
               exit 1
@@ -82,8 +79,6 @@ jobs:
             printf '  POSTGRES_PASSWORD: %s\n' "$(b64 "$POSTGRES_PASSWORD")"
             printf '  POSTGRES_DB: %s\n' "$(b64 "$POSTGRES_DB")"
             printf '  POSTGRES_DSN: %s\n' "$(b64 "$POSTGRES_DSN")"
-            printf '  MONGO_USERNAME: %s\n' "$(b64 "$MONGO_USERNAME")"
-            printf '  MONGO_PASSWORD: %s\n' "$(b64 "$MONGO_PASSWORD")"
             printf '%s\n' '---'
             printf 'apiVersion: v1\nkind: Secret\nmetadata:\n'
             printf '  name: ghcr-pull\n  namespace: schedule-api\n'

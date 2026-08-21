@@ -1,6 +1,6 @@
 apiVersion: v2
 name: schedule-api
-description: schedule-api with PostgreSQL and MongoDB
+description: schedule-api with PostgreSQL
 type: application
 version: 0.1.0
 appVersion: "1"

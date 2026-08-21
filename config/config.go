@@ -3,7 +3,6 @@ package config
 import (
 	"fmt"
 	"log"
-	"net"
 	"sync"
 
 	"github.com/ilyakaznacheev/cleanenv"
@@ -11,18 +10,13 @@ import (
 )
 
 type Config struct {
-	Port          string `env:"PORT"           env-default:"80"`
-	Host          string `env:"HOST"           env-default:"0.0.0.0"`
-	Version       string `env:"VERSION"        env-default:"1"`
-	MongoHost     string `env:"MONGO_HOST"     env-default:"mongodb"`
-	MongoPort     string `env:"MONGO_PORT"     env-default:"27017"`
-	MongoUsername string `env:"MONGO_USERNAME"                          env-required:"true"`
-	MongoPassword string `env:"MONGO_PASSWORD"                          env-required:"true"`
-	MongoDBName   string `env:"MONGO_DB_NAME"                           env-required:"true"`
-	PostgresDSN   string `env:"POSTGRES_DSN"                            env-required:"true"`
-	Environment   string `env:"ENVIRONMENT"    env-default:"prod"`
-	OtlEndpoint   string `env:"OTL_ENDPOINT"   env-default:"tempo:4317"`
-	Production    bool   `env:"PRODUCTION"     env-default:"true"`
+	Port        string `env:"PORT"           env-default:"80"`
+	Host        string `env:"HOST"           env-default:"0.0.0.0"`
+	Version     string `env:"VERSION"        env-default:"1"`
+	PostgresDSN string `env:"POSTGRES_DSN"                            env-required:"true"`
+	Environment string `env:"ENVIRONMENT"    env-default:"prod"`
+	OtlEndpoint string `env:"OTL_ENDPOINT"   env-default:"tempo:4317"`
+	Production  bool   `env:"PRODUCTION"     env-default:"true"`
 }
 
 var (
@@ -44,9 +38,4 @@ func Get() *Config {
 	})
 
 	return &config
-}
-
-func (c *Config) GetMongoURI() string {
-	hostPort := net.JoinHostPort(c.MongoHost, c.MongoPort)
-	return fmt.Sprintf("mongodb://%s:%s@%s", c.MongoUsername, c.MongoPassword, hostPort)
 }

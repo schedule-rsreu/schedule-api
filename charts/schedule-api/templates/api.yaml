@@ -25,12 +25,6 @@ spec:
             - secretRef:
                 name: schedule-api-secrets
           env:
-            - name: MONGO_HOST
-              value: schedule-api-mongodb
-            - name: MONGO_PORT
-              value: "27017"
-            - name: MONGO_DB_NAME
-              value: schedule_database
             - name: ENVIRONMENT
               value: prod
             - name: OTL_ENDPOINT

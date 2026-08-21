@@ -76,8 +76,7 @@ Repository secrets:
 - `GHCR_USERNAME` и PAT `GHCR_PULL_TOKEN` с правом `read:packages`;
 - `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_DB`;
 - `POSTGRES_DSN` вида
-  `postgres://USER:PASSWORD@schedule-api-postgres:5432/DB?sslmode=disable`;
-- `MONGO_USERNAME`, `MONGO_PASSWORD`.
+  `postgres://USER:PASSWORD@schedule-api-postgres:5432/DB?sslmode=disable`.
 
 PostgreSQL 18 хранит данные под `/var/lib/postgresql/18/docker`, поэтому PVC
 монтируется в `/var/lib/postgresql`, а не в старый
@@ -103,6 +102,6 @@ helm upgrade --install schedule-api /tmp/schedule-api-bootstrap.tgz \
   --wait --wait-for-jobs --timeout 10m
 ```
 
-Восстановите и сравните PostgreSQL/MongoDB backups до включения API. Только
+Восстановите и сравните PostgreSQL backup до включения API. Только
 после проверки установите repository variable `K3S_DEPLOY_ENABLED=true`.
 `parser2` должен оставаться остановленным до отдельной миграции в k3s.
