@@ -2020,7 +2020,7 @@ active_events AS (
         AND (teacher.id IS NOT NULL OR auditorium.id IS NOT NULL)
     ) distinct_pairs
   ) teacher_auditoriums ON true
-  WHERE l.date >= current_date - 14
+  WHERE l.date >= current_date - 180
 ),
 cancelled_events AS (
   SELECT
@@ -2038,7 +2038,7 @@ cancelled_events AS (
     ) AS event
   FROM selected_group g
   JOIN calendar_deleted_event deleted ON deleted.group_number = g.number
-  WHERE deleted.start_time::date >= current_date - 14
+  WHERE deleted.start_time::date >= current_date - 180
 ),
 events AS (
   SELECT * FROM active_events
