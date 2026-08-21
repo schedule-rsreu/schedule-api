@@ -775,6 +775,34 @@ paths:
       summary: Get schedule by group
       tags:
       - Groups
+  /api/v1/schedule/groups/{group}/calendar.ics:
+    get:
+      description: Returns an iCalendar feed with schedule updates and cancellations
+      parameters:
+      - description: group
+        example: "344"
+        in: path
+        name: group
+        required: true
+        type: string
+      produces:
+      - text/calendar
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/echo.HTTPError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/echo.HTTPError'
+      summary: Subscribe to a group calendar.
+      tags:
+      - Groups
   /api/v1/schedule/groups/sample:
     post:
       description: Рассписание для нескольких групп

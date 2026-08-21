@@ -2,9 +2,11 @@ package v1
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 	"strconv"
 	"strings"
+	"unicode"
 
 	"github.com/schedule-rsreu/schedule-api/pkg/logger"
 
@@ -33,6 +35,7 @@ func NewRouter(g *echo.Group,
 	scheduleGroup.GET("/courses", sh.getFacultyCourses) // /courses?faculty=фвт
 
 	scheduleGroup.GET("/groups/:group", sh.getScheduleByGroup) // /groups/344
+	scheduleGroup.GET("/groups/:group/calendar.ics", sh.getGroupCalendar)
 	scheduleGroup.POST("/groups/sample", sh.schedulesByGroups) // groups/sample
 	scheduleGroup.GET("/groups", sh.getCourseFacultyGroups)    // /groups?faculty=фвт&course=3
 
@@ -54,6 +57,45 @@ func NewRouter(g *echo.Group,
 	scheduleGroup.GET("/buildings/:id", sh.getBuilding)
 
 	scheduleGroup.GET("/lesson/types", sh.getLessonTypes) // /auditoriums
+}
+
+// @Summary     Subscribe to a group calendar.
+// @Description Returns an iCalendar feed with schedule updates and cancellations
+// @Tags        Groups
+// @Router      /api/v1/schedule/groups/{group}/calendar.ics [get]
+// @Param       group  path  string  true  "group" example(344)
+// @Produce     text/calendar
+// @Success     200  {string}  string
+// @Failure     404  {object}  echo.HTTPError
+// @Failure     500  {object}  echo.HTTPError.
+func (sh *ScheduleHandler) getGroupCalendar(c echo.Context) error {
+	group := c.Param("group")
+	if group == "" {
+		return echo.NewHTTPError(http.StatusBadRequest, "group path param not found")
+	}
+
+	source := fmt.Sprintf("%s://%s%s", c.Scheme(), c.Request().Host, c.Request().URL.Path)
+	calendar, err := sh.s.GetGroupCalendar(c.Request().Context(), group, source)
+	if err != nil {
+		if errors.As(err, &services.NotFoundError{}) {
+			return echo.NewHTTPError(http.StatusNotFound, err)
+		}
+		return err
+	}
+
+	c.Response().Header().Set(echo.HeaderContentDisposition,
+		fmt.Sprintf(`inline; filename="schedule-%s.ics"`, safeFilename(group)))
+	c.Response().Header().Set(echo.HeaderCacheControl, "public, max-age=300")
+	return c.Blob(http.StatusOK, "text/calendar; charset=utf-8", calendar)
+}
+
+func safeFilename(value string) string {
+	return strings.Map(func(character rune) rune {
+		if unicode.IsLetter(character) || unicode.IsDigit(character) || character == '-' || character == '_' {
+			return character
+		}
+		return '-'
+	}, value)
 }
 
 // getScheduleByGroup

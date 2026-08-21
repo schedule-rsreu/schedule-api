@@ -1971,3 +1971,95 @@ func (sr *ScheduleRepo) GetBuilding(ctx context.Context, buildingId int) (*model
     `
 	return findOneJsonContext[models.Building](ctx, sr.pg.DB, query, buildingId)
 }
+
+func (sr *ScheduleRepo) GetGroupCalendar(ctx context.Context, group string) (*models.GroupCalendar, error) {
+	const query = `
+WITH selected_group AS (
+  SELECT id, number
+  FROM "group"
+  WHERE number = $1
+),
+current_revision AS (
+  SELECT revision, updated_at
+  FROM calendar_revision
+  WHERE id = 1
+),
+active_events AS (
+  SELECT
+    l.start_time AS sort_time,
+    calendar_event_uid(g.number, l.date, l.start_time, l.title, l.type) AS uid,
+    json_build_object(
+      'uid', calendar_event_uid(g.number, l.date, l.start_time, l.title, l.type),
+      'start_time', to_char(l.start_time, 'YYYY-MM-DD"T"HH24:MI:SS"Z"'),
+      'end_time', to_char(l.end_time, 'YYYY-MM-DD"T"HH24:MI:SS"Z"'),
+      'title', l.title,
+      'lesson_type', l.type,
+      'teachers', coalesce(teachers.items, '[]'::json),
+      'auditoriums', coalesce(auditoriums.items, '[]'::json),
+      'sequence', revision.revision,
+      'cancelled', false
+    ) AS event
+  FROM selected_group g
+  JOIN lesson l ON l.group_id = g.id
+  CROSS JOIN current_revision revision
+  LEFT JOIN LATERAL (
+    SELECT json_agg(name ORDER BY name) AS items
+    FROM (
+      SELECT DISTINCT teacher.full_name AS name
+      FROM lesson_auditorium_teacher link
+      JOIN teacher ON teacher.id = link.teacher_id
+      WHERE link.lesson_id = l.id
+    ) distinct_teachers
+  ) teachers ON true
+  LEFT JOIN LATERAL (
+    SELECT json_agg(display_name ORDER BY display_name) AS items
+    FROM (
+      SELECT DISTINCT concat_ws(' ', auditorium.number, building.letter) AS display_name
+      FROM lesson_auditorium_teacher link
+      JOIN auditorium ON auditorium.id = link.auditorium_id
+      JOIN building ON building.id = auditorium.building_id
+      WHERE link.lesson_id = l.id
+    ) distinct_auditoriums
+  ) auditoriums ON true
+  WHERE l.date >= current_date - 14
+),
+cancelled_events AS (
+  SELECT
+    deleted.start_time AS sort_time,
+    deleted.uid,
+    json_build_object(
+      'uid', deleted.uid,
+      'start_time', to_char(deleted.start_time, 'YYYY-MM-DD"T"HH24:MI:SS"Z"'),
+      'end_time', to_char(deleted.end_time, 'YYYY-MM-DD"T"HH24:MI:SS"Z"'),
+      'title', deleted.title,
+      'lesson_type', deleted.lesson_type,
+      'teachers', deleted.teachers,
+      'auditoriums', deleted.auditoriums,
+      'sequence', deleted.sequence,
+      'cancelled', true
+    ) AS event
+  FROM selected_group g
+  JOIN calendar_deleted_event deleted ON deleted.group_number = g.number
+  WHERE deleted.start_time::date >= current_date - 14
+),
+events AS (
+  SELECT * FROM active_events
+  UNION ALL
+  SELECT * FROM cancelled_events
+)
+SELECT json_build_object(
+  'group', selected_group.number,
+  'updated_at', to_char(
+    current_revision.updated_at AT TIME ZONE 'UTC',
+    'YYYY-MM-DD"T"HH24:MI:SS"Z"'
+  ),
+  'events', coalesce(
+    (SELECT json_agg(event ORDER BY sort_time, uid) FROM events),
+    '[]'::json
+  )
+)
+FROM selected_group
+CROSS JOIN current_revision
+`
+	return findOneJsonContext[models.GroupCalendar](ctx, sr.pg.DB, query, group)
+}
