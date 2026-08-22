@@ -6,7 +6,7 @@ export GOBIN=$(CURDIR)/$(BIN)# for windows
 
 
 $(BIN)/golangci-lint:
-	go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
+	go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.13.1
 
 $(BIN)/gotestsum:
 	go install gotest.tools/gotestsum@latest
