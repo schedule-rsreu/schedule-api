@@ -17,16 +17,16 @@ func TestGenerateCalendar(t *testing.T) {
 		UpdatedAt: time.Date(2026, 8, 19, 12, 0, 0, 0, time.UTC),
 		Events: []models.CalendarEvent{
 			{
-				UID:         "active@rsreu-schedule.ru",
-				StartTime:   time.Date(2026, 8, 19, 13, 35, 0, 0, time.UTC),
-				EndTime:     time.Date(2026, 8, 19, 15, 10, 0, 0, time.UTC),
-				Title:       "Проектирование информационных систем с очень длинным названием для проверки переноса строки",
-				LessonType:  "lab",
+				UID:        "active@rsreu-schedule.ru",
+				StartTime:  time.Date(2026, 8, 19, 13, 35, 0, 0, time.UTC),
+				EndTime:    time.Date(2026, 8, 19, 15, 10, 0, 0, time.UTC),
+				Title:      "Проектирование информационных систем с очень длинным названием для проверки переноса строки",
+				LessonType: "lab",
 				TeacherAuditoriums: []models.CalendarTeacherAuditorium{
 					{Teacher: "Бурмистров Александр Сергеевич", Auditorium: "106а C"},
 					{Teacher: "Соловьев Александр Вадимович", Auditorium: "110 C"},
 				},
-				Sequence:    3,
+				Sequence: 3,
 			},
 			{
 				UID:        "cancelled@rsreu-schedule.ru",

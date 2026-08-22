@@ -176,7 +176,8 @@ func lessonPresentation(lessonType string) (emoji, name, shortName string) {
 		{"consultation", "❓", "Консультация", "Конс."},
 		{"elective", "🧭", "Факультатив", "Фак."},
 	}
-	for _, presentation := range presentations {
+	for index := range presentations {
+		presentation := &presentations[index]
 		if presentation.lessonType == lessonType {
 			return presentation.emoji, presentation.name, presentation.shortName
 		}

@@ -16,8 +16,8 @@ type Config struct {
 	PostgresDSN string `env:"POSTGRES_DSN"                          env-required:"true"`
 	Environment string `env:"ENVIRONMENT"  env-default:"prod"`
 	OtlEndpoint string `env:"OTL_ENDPOINT" env-default:"tempo:4317"`
+	DWHUrl      string `env:"DWH_URL"                               env-required:"true"`
 	Production  bool   `env:"PRODUCTION"   env-default:"true"`
-	DWHUrl      string `env:"DWH_URL"      env-required:"true"`
 }
 
 var (
