@@ -176,7 +176,7 @@ func Run(cfg *config.Config) {
 		} else {
 			printBanner(cfg.Version, "http://localhost:"+cfg.Port)
 		}
-		setupEcho(e, &logger)
+		setupEcho(e, &logger, cfg.DWHUrl)
 
 		err := e.Start(net.JoinHostPort(cfg.Host, cfg.Port))
 		if err != nil {
@@ -205,7 +205,7 @@ func Run(cfg *config.Config) {
 	logger.Info().Msg("app - Run - exit")
 }
 
-func setupEcho(e *echo.Echo, logger *zerolog.Logger) {
+func setupEcho(e *echo.Echo, logger *zerolog.Logger, dwhURL string) {
 	e.Use(middleware.Recover())
 	e.Use(middleware.CORS())
 	e.Use(middleware.RequestID())
@@ -219,7 +219,7 @@ func setupEcho(e *echo.Echo, logger *zerolog.Logger) {
 
 	e.Validator = &CustomValidator{validator: validator.New()}
 
-	e.Use(dwh.New("", "", "secret"))
+	e.Use(dwh.New(dwhURL, "", "secret"))
 }
 
 func addTraceToLogMiddleware(defaultLogger *zerolog.Logger) echo.MiddlewareFunc {

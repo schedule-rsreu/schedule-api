@@ -10,7 +10,9 @@ import (
 
 func TestGetConfig(t *testing.T) {
 	const postgresDSN = "postgres://postgres:postgres@localhost:5432/postgres?sslmode=disable"
+	const dwhURL = "http://schedule-dwh.schedule-api.svc.cluster.local"
 	t.Setenv("POSTGRES_DSN", postgresDSN)
+	t.Setenv("DWH_URL", dwhURL)
 
 	cfg := config.Get()
 	t.Log(cfg)
@@ -20,4 +22,5 @@ func TestGetConfig(t *testing.T) {
 	assert.Equal(t, "1", cfg.Version)
 	assert.True(t, cfg.Production)
 	assert.Equal(t, postgresDSN, cfg.PostgresDSN)
+	assert.Equal(t, dwhURL, cfg.DWHUrl)
 }

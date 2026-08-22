@@ -17,6 +17,7 @@ type Config struct {
 	Environment string `env:"ENVIRONMENT"  env-default:"prod"`
 	OtlEndpoint string `env:"OTL_ENDPOINT" env-default:"tempo:4317"`
 	Production  bool   `env:"PRODUCTION"   env-default:"true"`
+	DWHUrl      string `env:"DWH_URL"      env-required:"true"`
 }
 
 var (

@@ -47,7 +47,7 @@ func TestGenerateCalendar(t *testing.T) {
 		"NAME:Расписание группы 344\r\n",
 		"SOURCE;VALUE=URI:https://api.example.com/api/v1/schedule/groups/344/calendar.ics\r\n",
 		"REFRESH-INTERVAL;VALUE=DURATION:PT1H\r\n",
-		"COLOR:royalblue\r\n",
+		"COLOR:#5288c1\r\n",
 		"DTSTAMP:20260819T120000Z\r\n",
 		"DTSTART:20260819T103500Z\r\n",
 		"SUMMARY:🧪 Лаб. Проектирование информационных систем с очень длинным названием для проверки переноса строки 106а C\\, 110 C\r\n",

@@ -29,6 +29,8 @@ spec:
               value: prod
             - name: OTL_ENDPOINT
               value: monitoring-tempo.monitoring.svc.cluster.local:4317
+            - name: DWH_URL
+              value: {{ .Values.api.dwhUrl | quote }}
           ports:
             - name: http
               containerPort: 80

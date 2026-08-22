@@ -5,6 +5,7 @@ image:
 
 api:
   replicas: 2
+  dwhUrl: http://schedule-dwh.schedule-api.svc.cluster.local
   resources:
     requests:
       cpu: 50m
