@@ -43,9 +43,9 @@ func findOneJsonContext[T any](ctx context.Context, pg *sqlx.DB, query string, a
 	return result, err
 }
 
-func (sr *ScheduleRepo) groupExists(group string) (bool, error) { //nolint:unused // use in future
+func (sr *ScheduleRepo) groupExists(ctx context.Context, group string) (bool, error) { //nolint:unused // use in future
 	var exists bool
-	err := sr.pg.DB.QueryRow(`SELECT EXISTS (SELECT 1 FROM "group" WHERE number = $1)`, group).Scan(&exists)
+	err := sr.pg.DB.QueryRowContext(ctx, `SELECT EXISTS (SELECT 1 FROM "group" WHERE number = $1)`, group).Scan(&exists)
 	if err != nil {
 		return false, err
 	}

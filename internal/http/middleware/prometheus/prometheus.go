@@ -15,6 +15,7 @@ const (
 	reqsName         = "http_requests_total"
 	latencyHighrName = "http_request_duration_highr_seconds"
 	latencyLowrName  = "http_request_duration_seconds"
+	serviceLabel     = "service"
 )
 
 // Middleware is a handler that exposes prometheus metrics for the number of requests,
@@ -37,7 +38,7 @@ func NewPatternMiddleware(name string) echo.MiddlewareFunc {
 		prometheus.CounterOpts{
 			Name:        reqsName,
 			Help:        "How many HTTP requests processed, partitioned by status code, method and HTTP path (with patterns).",
-			ConstLabels: prometheus.Labels{"service": name},
+			ConstLabels: prometheus.Labels{serviceLabel: name},
 		},
 		[]string{"handler", "method", "status"},
 	)
@@ -46,7 +47,7 @@ func NewPatternMiddleware(name string) echo.MiddlewareFunc {
 	m.latencyHighr = prometheus.NewHistogramVec(prometheus.HistogramOpts{
 		Name:        latencyHighrName,
 		Help:        "Latency with many buckets but no API-specific labels. For more accurate percentile calculations.",
-		ConstLabels: prometheus.Labels{"service": name},
+		ConstLabels: prometheus.Labels{serviceLabel: name},
 		Buckets:     latencyHighrBuckets,
 	},
 		[]string{},
@@ -56,7 +57,7 @@ func NewPatternMiddleware(name string) echo.MiddlewareFunc {
 	m.latencyLowr = prometheus.NewHistogramVec(prometheus.HistogramOpts{
 		Name:        latencyLowrName,
 		Help:        "Latency with only few buckets by handler. For aggregation by handler.",
-		ConstLabels: prometheus.Labels{"service": name},
+		ConstLabels: prometheus.Labels{serviceLabel: name},
 		Buckets:     latencyLowrBuckets,
 	},
 		[]string{"handler", "method", "status"},
