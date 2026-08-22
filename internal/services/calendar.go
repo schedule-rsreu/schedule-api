@@ -69,7 +69,7 @@ func GenerateCalendar(calendar *models.GroupCalendar) []byte {
 		writeProperty(&result, "LOCATION", eventLocation(auditoriums))
 		writeCalendarLine(&result, "GEO:"+calendarGeo)
 		writeCalendarLine(&result, "URL:"+calendarURL)
-		writeCalendarLine(&result, "SEQUENCE:"+strconv.FormatInt(event.Sequence, 10))
+		writeCalendarLine(&result, "SEQUENCE:"+strconv.FormatInt(event.Sequence+1, 10))
 		if event.Cancelled {
 			writeCalendarLine(&result, "STATUS:CANCELLED")
 		} else {
