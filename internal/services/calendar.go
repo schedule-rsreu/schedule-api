@@ -34,12 +34,17 @@ func (s *ScheduleService) GetGroupCalendar(ctx context.Context, group string, in
 			if normalizeLessonValue(event.Title) != "военная подготовка" {
 				return false
 			}
+			hasAuditorium := false
 			for _, pair := range event.TeacherAuditoriums {
+				if strings.TrimSpace(pair.Auditorium) == "" {
+					continue
+				}
+				hasAuditorium = true
 				if isMilitaryAuditorium(pair.Auditorium) {
 					return true
 				}
 			}
-			return false
+			return !hasAuditorium
 		})
 	}
 	return GenerateCalendar(calendar), nil

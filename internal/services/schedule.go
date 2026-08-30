@@ -106,12 +106,17 @@ func isMilitaryStudentLesson(lesson models.StudentLesson) bool {
 	if normalizeLessonValue(lesson.Title) != "военная подготовка" {
 		return false
 	}
+	hasAuditorium := false
 	for _, pair := range lesson.TeacherAuditoriums {
-		if pair.Auditorium != nil && isMilitaryAuditorium(pair.Auditorium.DisplayName) {
+		if pair.Auditorium == nil || strings.TrimSpace(pair.Auditorium.DisplayName) == "" {
+			continue
+		}
+		hasAuditorium = true
+		if isMilitaryAuditorium(pair.Auditorium.DisplayName) {
 			return true
 		}
 	}
-	return false
+	return !hasAuditorium
 }
 
 func normalizeLessonValue(value string) string {
