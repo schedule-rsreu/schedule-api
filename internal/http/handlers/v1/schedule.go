@@ -64,6 +64,7 @@ func NewRouter(g *echo.Group,
 // @Tags        Groups
 // @Router      /api/v1/schedule/groups/{group}/calendar.ics [get]
 // @Param       group  path  string  true  "group" example(344)
+// @Param       include_military  query  bool  false  "include military lessons" default(true)
 // @Produce     text/calendar
 // @Success     200  {string}  string
 // @Failure     404  {object}  echo.HTTPError
@@ -74,8 +75,12 @@ func (sh *ScheduleHandler) getGroupCalendar(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, "group path param not found")
 	}
 
-	source := fmt.Sprintf("%s://%s%s", c.Scheme(), c.Request().Host, c.Request().URL.Path)
-	calendar, err := sh.s.GetGroupCalendar(c.Request().Context(), group, source)
+	source := ""
+	if c.QueryParam("omit_source") != "true" {
+		source = fmt.Sprintf("%s://%s%s", c.Scheme(), c.Request().Host, c.Request().URL.Path)
+	}
+	includeMilitary := c.QueryParam("include_military") != "false"
+	calendar, err := sh.s.GetGroupCalendar(c.Request().Context(), group, source, includeMilitary)
 	if err != nil {
 		if errors.As(err, &services.NotFoundError{}) {
 			return echo.NewHTTPError(http.StatusNotFound, err)
@@ -114,13 +119,14 @@ func (sh *ScheduleHandler) getScheduleByGroup(c echo.Context) error {
 	ctx := c.Request().Context()
 	group := c.Param("group")
 	addEmptyLessons := c.QueryParam("add_empty_lessons") == "true"
+	includeMilitary := c.QueryParam("include_military") != "false"
 	date := c.QueryParam("date")
 
 	if group == "" {
 		return echo.NewHTTPError(http.StatusBadRequest, "group query param not found")
 	}
 
-	resp, err := sh.s.GetScheduleByGroup(ctx, group, addEmptyLessons, date)
+	resp, err := sh.s.GetScheduleByGroup(ctx, group, addEmptyLessons, includeMilitary, date)
 	if err != nil {
 		if errors.As(err, &services.NotFoundError{}) {
 			return echo.NewHTTPError(http.StatusNotFound, err)
@@ -139,6 +145,7 @@ func (sh *ScheduleHandler) getScheduleByGroup(c echo.Context) error {
 // @Router      /api/v1/schedule/teachers [get]
 // @Param       teacher_id  query  int  true  "teacher" example("Конюхов Алексей Николаевич")
 // @Param       date  query  string  false  "date" example(2025-07-13)
+// @Param       include_military  query  bool  false  "include military lessons" default(true)
 // @Success     200  {object}  models.TeacherSchedule
 // @Response    200  {object}  models.TeacherSchedule
 // @Failure     500  {object}  echo.HTTPError.
@@ -325,6 +332,7 @@ func (sh *ScheduleHandler) getFacultiesCourses(c echo.Context) error {
 // @Router      /api/v1/schedule/groups/sample [post]
 // @Param       groups  body   schedulesByGroupsRequest  true  "groups"
 // @Param       date  query  string  false  "date" example(2025-07-13)
+// @Param       include_military  query  bool  false  "include military lessons" default(true)
 // @Success     200  {array}   models.StudentSchedule
 // @Response    200  {array}   models.StudentSchedule
 // @Failure     500  {object}  echo.HTTPError
@@ -333,6 +341,7 @@ func (sh *ScheduleHandler) schedulesByGroups(c echo.Context) error {
 	var req schedulesByGroupsRequest
 
 	date := c.QueryParam("date")
+	includeMilitary := c.QueryParam("include_military") != "false"
 
 	if err := c.Bind(&req); err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
@@ -344,7 +353,7 @@ func (sh *ScheduleHandler) schedulesByGroups(c echo.Context) error {
 
 	ctx := c.Request().Context()
 
-	resp, err := sh.s.GetSchedulesByGroups(ctx, date, req.Groups)
+	resp, err := sh.s.GetSchedulesByGroups(ctx, date, req.Groups, includeMilitary)
 	if err != nil {
 		if errors.As(err, &services.NotFoundError{}) {
 			return echo.NewHTTPError(http.StatusNotFound, err)

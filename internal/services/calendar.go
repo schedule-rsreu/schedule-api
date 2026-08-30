@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"slices"
 	"sort"
 	"strconv"
 	"strings"
@@ -19,7 +20,7 @@ const (
 	calendarURL = "https://www.google.com/maps?q=54.6132708,39.7236472"
 )
 
-func (s *ScheduleService) GetGroupCalendar(ctx context.Context, group, source string) ([]byte, error) {
+func (s *ScheduleService) GetGroupCalendar(ctx context.Context, group, source string, includeMilitary bool) ([]byte, error) {
 	group = strings.ToUpper(strings.TrimSpace(group))
 	calendar, err := s.Repo.GetGroupCalendar(ctx, group)
 	if err != nil {
@@ -27,6 +28,19 @@ func (s *ScheduleService) GetGroupCalendar(ctx context.Context, group, source st
 			return nil, NotFoundError{fmt.Sprintf("calendar for group %v not found", group)}
 		}
 		return nil, err
+	}
+	if !includeMilitary {
+		calendar.Events = slices.DeleteFunc(calendar.Events, func(event models.CalendarEvent) bool {
+			if normalizeLessonValue(event.Title) != "военная подготовка" {
+				return false
+			}
+			for _, pair := range event.TeacherAuditoriums {
+				if isMilitaryAuditorium(pair.Auditorium) {
+					return true
+				}
+			}
+			return false
+		})
 	}
 	calendar.Source = source
 	return GenerateCalendar(calendar), nil

@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"slices"
 	"sort"
 	"strings"
 	"time"
@@ -39,7 +40,7 @@ func ParseDateOrNow(dateStr string) (time.Time, error) {
 	return date, nil
 }
 
-func (s *ScheduleService) GetScheduleByGroup(ctx context.Context, group string, addEmptyLessons bool, dateStr string) (*models.StudentSchedule, error) {
+func (s *ScheduleService) GetScheduleByGroup(ctx context.Context, group string, addEmptyLessons, includeMilitary bool, dateStr string) (*models.StudentSchedule, error) {
 	date, err := ParseDateOrNow(dateStr)
 	if err != nil {
 		return nil, err
@@ -57,13 +58,16 @@ func (s *ScheduleService) GetScheduleByGroup(ctx context.Context, group string, 
 		return nil, err
 	}
 
+	if !includeMilitary {
+		filterMilitarySchedule(&resp.Schedule)
+	}
 	if addEmptyLessons {
 		s.AddEmptyLessons(&resp.Schedule, resp.LessonsTimes)
 	}
 	return resp, err
 }
 
-func (s *ScheduleService) GetSchedulesByGroups(ctx context.Context, dateStr string, groups []string) ([]*models.StudentSchedule, error) {
+func (s *ScheduleService) GetSchedulesByGroups(ctx context.Context, dateStr string, groups []string, includeMilitary bool) ([]*models.StudentSchedule, error) {
 	date, err := ParseDateOrNow(dateStr)
 	if err != nil {
 		return nil, err
@@ -77,7 +81,46 @@ func (s *ScheduleService) GetSchedulesByGroups(ctx context.Context, dateStr stri
 		}
 		return nil, err
 	}
+	if !includeMilitary {
+		for _, schedule := range resp {
+			filterMilitarySchedule(&schedule.Schedule)
+		}
+	}
 	return resp, err
+}
+
+func filterMilitarySchedule(schedule *models.NumeratorDenominator[models.StudentWeek]) {
+	filterWeek := func(week *models.StudentWeek) {
+		week.Monday = slices.DeleteFunc(week.Monday, isMilitaryStudentLesson)
+		week.Tuesday = slices.DeleteFunc(week.Tuesday, isMilitaryStudentLesson)
+		week.Wednesday = slices.DeleteFunc(week.Wednesday, isMilitaryStudentLesson)
+		week.Thursday = slices.DeleteFunc(week.Thursday, isMilitaryStudentLesson)
+		week.Friday = slices.DeleteFunc(week.Friday, isMilitaryStudentLesson)
+		week.Saturday = slices.DeleteFunc(week.Saturday, isMilitaryStudentLesson)
+	}
+	filterWeek(&schedule.Numerator)
+	filterWeek(&schedule.Denominator)
+}
+
+func isMilitaryStudentLesson(lesson models.StudentLesson) bool {
+	if normalizeLessonValue(lesson.Title) != "военная подготовка" {
+		return false
+	}
+	for _, pair := range lesson.TeacherAuditoriums {
+		if pair.Auditorium != nil && isMilitaryAuditorium(pair.Auditorium.DisplayName) {
+			return true
+		}
+	}
+	return false
+}
+
+func normalizeLessonValue(value string) string {
+	return strings.ToLower(strings.Join(strings.Fields(value), " "))
+}
+
+func isMilitaryAuditorium(value string) bool {
+	parts := strings.Fields(strings.ToUpper(value))
+	return len(parts) > 0 && parts[0] == "ВК"
 }
 
 func (s *ScheduleService) GetGroups(ctx context.Context, facultyName string, course int, dateStr string) (*models.CourseFacultyGroups, error) {
