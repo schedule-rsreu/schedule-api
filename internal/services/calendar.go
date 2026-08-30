@@ -52,12 +52,20 @@ func GenerateCalendar(calendar *models.GroupCalendar) []byte {
 	dtstamp := calendar.UpdatedAt.UTC().Format("20060102T150405Z")
 	for index := range calendar.Events {
 		event := &calendar.Events[index]
+		if event.Cancelled {
+			continue
+		}
 		emoji, lessonTypeName, lessonTypeShortName := lessonPresentation(event.LessonType)
 		auditoriums := eventAuditoriums(event)
 		summary := emoji + " " + lessonTypeShortName + " " + event.Title
 		if len(auditoriums) > 0 {
 			summary += " " + strings.Join(auditoriums, ", ")
 		}
+		alarmDescription := lessonTypeShortName + " " + event.Title
+		if len(auditoriums) > 0 {
+			alarmDescription += " " + strings.Join(auditoriums, ", ")
+		}
+		alarmDescription += " через 20 минут"
 		writeCalendarLine(&result, "BEGIN:VEVENT")
 		writeProperty(&result, "UID", event.UID)
 		writeCalendarLine(&result, "DTSTAMP:"+dtstamp)
@@ -70,19 +78,13 @@ func GenerateCalendar(calendar *models.GroupCalendar) []byte {
 		writeCalendarLine(&result, "GEO:"+calendarGeo)
 		writeCalendarLine(&result, "URL:"+calendarURL)
 		writeCalendarLine(&result, "SEQUENCE:"+strconv.FormatInt(event.Sequence+1, 10))
-		if event.Cancelled {
-			writeCalendarLine(&result, "STATUS:CANCELLED")
-		} else {
-			writeCalendarLine(&result, "STATUS:CONFIRMED")
-		}
+		writeCalendarLine(&result, "STATUS:CONFIRMED")
 		writeCalendarLine(&result, "TRANSP:OPAQUE")
-		if !event.Cancelled {
-			writeCalendarLine(&result, "BEGIN:VALARM")
-			writeCalendarLine(&result, "TRIGGER:-PT30M")
-			writeCalendarLine(&result, "ACTION:DISPLAY")
-			writeProperty(&result, "DESCRIPTION", "Пара через 30 минут: "+event.Title)
-			writeCalendarLine(&result, "END:VALARM")
-		}
+		writeCalendarLine(&result, "BEGIN:VALARM")
+		writeCalendarLine(&result, "TRIGGER:-PT20M")
+		writeCalendarLine(&result, "ACTION:DISPLAY")
+		writeProperty(&result, "DESCRIPTION", alarmDescription)
+		writeCalendarLine(&result, "END:VALARM")
 		writeCalendarLine(&result, "END:VEVENT")
 	}
 

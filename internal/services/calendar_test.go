@@ -54,9 +54,9 @@ func TestGenerateCalendar(t *testing.T) {
 		"CATEGORIES:EDUCATION,LAB\r\n",
 		"LOCATION:106а C\\, 110 C · РГРТУ\r\n",
 		"DESCRIPTION:Лабораторная работа\\nПроектирование информационных систем с очень длинным названием для проверки переноса строки\\nБурмистров Александр Сергеевич — 106а C\\nСоловьев Александр Вадимович — 110 C\\n\\nПерерыв: 14:20–14:25\r\n",
-		"TRIGGER:-PT30M\r\n",
+		"TRIGGER:-PT20M\r\n",
 		"ACTION:DISPLAY\r\n",
-		"STATUS:CANCELLED\r\n",
+		"DESCRIPTION:Лаб. Проектирование информационных систем с очень длинным названием для проверки переноса строки 106а C\\, 110 C через 20 минут\r\n",
 		"SEQUENCE:4\r\n",
 	} {
 		if !strings.Contains(unfolded, expected) {
@@ -65,6 +65,10 @@ func TestGenerateCalendar(t *testing.T) {
 	}
 	if strings.Count(unfolded, "BEGIN:VALARM\r\n") != 1 {
 		t.Fatalf("expected one alarm for the active event:\n%s", result)
+	}
+	if strings.Count(unfolded, "BEGIN:VEVENT\r\n") != 1 ||
+		strings.Contains(unfolded, "cancelled@rsreu-schedule.ru") {
+		t.Fatalf("cancelled event must not be published:\n%s", result)
 	}
 
 	if !utf8.ValidString(result) {
