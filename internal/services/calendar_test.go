@@ -13,7 +13,6 @@ import (
 func TestGenerateCalendar(t *testing.T) {
 	calendar := &models.GroupCalendar{
 		Group:     "344",
-		Source:    "https://api.example.com/api/v1/schedule/groups/344/calendar.ics",
 		UpdatedAt: time.Date(2026, 8, 19, 12, 0, 0, 0, time.UTC),
 		Events: []models.CalendarEvent{
 			{
@@ -45,7 +44,6 @@ func TestGenerateCalendar(t *testing.T) {
 
 	for _, expected := range []string{
 		"NAME:Расписание группы 344\r\n",
-		"SOURCE;VALUE=URI:https://api.example.com/api/v1/schedule/groups/344/calendar.ics\r\n",
 		"REFRESH-INTERVAL;VALUE=DURATION:PT1H\r\n",
 		"COLOR:#5288c1\r\n",
 		"DTSTAMP:20260819T120000Z\r\n",

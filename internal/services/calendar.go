@@ -20,7 +20,7 @@ const (
 	calendarURL = "https://www.google.com/maps?q=54.6132708,39.7236472"
 )
 
-func (s *ScheduleService) GetGroupCalendar(ctx context.Context, group, source string, includeMilitary bool) ([]byte, error) {
+func (s *ScheduleService) GetGroupCalendar(ctx context.Context, group string, includeMilitary bool) ([]byte, error) {
 	group = strings.ToUpper(strings.TrimSpace(group))
 	calendar, err := s.Repo.GetGroupCalendar(ctx, group)
 	if err != nil {
@@ -42,7 +42,6 @@ func (s *ScheduleService) GetGroupCalendar(ctx context.Context, group, source st
 			return false
 		})
 	}
-	calendar.Source = source
 	return GenerateCalendar(calendar), nil
 }
 
@@ -57,9 +56,6 @@ func GenerateCalendar(calendar *models.GroupCalendar) []byte {
 	writeProperty(&result, "NAME", calendarName)
 	writeProperty(&result, "X-WR-CALNAME", calendarName)
 	writeCalendarLine(&result, "X-WR-TIMEZONE:Europe/Moscow")
-	if calendar.Source != "" {
-		writeCalendarLine(&result, "SOURCE;VALUE=URI:"+calendar.Source)
-	}
 	writeCalendarLine(&result, "REFRESH-INTERVAL;VALUE=DURATION:PT1H")
 	writeCalendarLine(&result, "COLOR:#5288c1")
 
