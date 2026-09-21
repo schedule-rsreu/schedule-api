@@ -20,6 +20,7 @@ import (
 
 	"github.com/schedule-rsreu/schedule-api/pkg/postgres"
 
+	"github.com/schedule-rsreu/schedule-api/internal/http/middleware/ban"
 	"github.com/schedule-rsreu/schedule-api/internal/http/middleware/dwh"
 
 	"github.com/labstack/gommon/color"
@@ -161,6 +162,11 @@ func Run(cfg *config.Config) {
 	e := echo.New()
 	e.HideBanner = true
 	e.HidePort = true
+	e.IPExtractor = echo.ExtractIPFromXFFHeader(
+		echo.TrustLoopback(true),
+		echo.TrustLinkLocal(true),
+		echo.TrustPrivateNet(true),
+	)
 
 	postgresDB, err := postgres.New(cfg.PostgresDSN)
 	if err != nil {
@@ -168,7 +174,7 @@ func Run(cfg *config.Config) {
 		return
 	}
 
-	handlers.NewRouter(e, services.NewScheduleService(repo.NewScheduleRepo(postgresDB)))
+	handlers.NewRouter(e, services.NewScheduleService(repo.NewScheduleRepo(postgresDB)), cfg.TelegramBotToken)
 
 	go func() {
 		if cfg.Production {
@@ -176,7 +182,7 @@ func Run(cfg *config.Config) {
 		} else {
 			printBanner(cfg.Version, "http://localhost:"+cfg.Port)
 		}
-		setupEcho(e, &logger, cfg.DWHUrl)
+		setupEcho(e, &logger, cfg.DWHUrl, cfg.BannedIPs)
 
 		err := e.Start(net.JoinHostPort(cfg.Host, cfg.Port))
 		if err != nil {
@@ -205,9 +211,13 @@ func Run(cfg *config.Config) {
 	logger.Info().Msg("app - Run - exit")
 }
 
-func setupEcho(e *echo.Echo, logger *zerolog.Logger, dwhURL string) {
+func setupEcho(e *echo.Echo, logger *zerolog.Logger, dwhURL string, bannedIPs []string) {
 	e.Use(middleware.Recover())
-	e.Use(middleware.CORS())
+	e.Use(ban.New(bannedIPs))
+	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
+		AllowOrigins:     []string{"https://rsreu-schedule.ru", "https://schedule.vingp.dev", "http://localhost:5173"},
+		AllowCredentials: true,
+	}))
 	e.Use(middleware.RequestID())
 
 	setupLogger(e, logger)

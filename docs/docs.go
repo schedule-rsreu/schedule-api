@@ -17,12 +17,26 @@ const docTemplate = `{
     "paths": {
         "/api/v1/schedule/auditoriums": {
             "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    },
+                    {
+                        "TMAAuth": []
+                    }
+                ],
                 "description": "Get auditorium schedule by auditorium_id",
                 "tags": [
                     "Auditoriums"
                 ],
                 "summary": "Get auditorium schedule",
                 "parameters": [
+                    {
+                        "type": "string",
+                        "description": "authorization: tma or Bearer",
+                        "name": "authorization",
+                        "in": "header"
+                    },
                     {
                         "type": "integer",
                         "example": 12,
@@ -49,13 +63,13 @@ const docTemplate = `{
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/echo.HTTPError"
+                            "$ref": "#/definitions/internal_http_handlers_v1.HTTPError"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/echo.HTTPError"
+                            "$ref": "#/definitions/internal_http_handlers_v1.HTTPError"
                         }
                     }
                 }
@@ -63,12 +77,26 @@ const docTemplate = `{
         },
         "/api/v1/schedule/courses": {
             "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    },
+                    {
+                        "TMAAuth": []
+                    }
+                ],
                 "description": "Курсы факультета. Фильтрует по наличию занятий в диапазоне ±6 месяцев от date. По умолчанию date = текущий день",
                 "tags": [
                     "Courses"
                 ],
                 "summary": "Get faculty courses",
                 "parameters": [
+                    {
+                        "type": "string",
+                        "description": "authorization: tma or Bearer",
+                        "name": "authorization",
+                        "in": "header"
+                    },
                     {
                         "enum": [
                             "иэф",
@@ -101,13 +129,13 @@ const docTemplate = `{
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/echo.HTTPError"
+                            "$ref": "#/definitions/internal_http_handlers_v1.HTTPError"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/echo.HTTPError"
+                            "$ref": "#/definitions/internal_http_handlers_v1.HTTPError"
                         }
                     }
                 }
@@ -115,11 +143,27 @@ const docTemplate = `{
         },
         "/api/v1/schedule/day": {
             "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    },
+                    {
+                        "TMAAuth": []
+                    }
+                ],
                 "description": "Информация о текущем дне",
                 "tags": [
                     "Day"
                 ],
                 "summary": "Get day",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "authorization: tma or Bearer",
+                        "name": "authorization",
+                        "in": "header"
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -130,7 +174,7 @@ const docTemplate = `{
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/echo.HTTPError"
+                            "$ref": "#/definitions/internal_http_handlers_v1.HTTPError"
                         }
                     }
                 }
@@ -138,11 +182,27 @@ const docTemplate = `{
         },
         "/api/v1/schedule/faculties": {
             "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    },
+                    {
+                        "TMAAuth": []
+                    }
+                ],
                 "description": "Факультеты",
                 "tags": [
                     "Faculties"
                 ],
                 "summary": "Get faculties",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "authorization: tma or Bearer",
+                        "name": "authorization",
+                        "in": "header"
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -153,13 +213,13 @@ const docTemplate = `{
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/echo.HTTPError"
+                            "$ref": "#/definitions/internal_http_handlers_v1.HTTPError"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/echo.HTTPError"
+                            "$ref": "#/definitions/internal_http_handlers_v1.HTTPError"
                         }
                     }
                 }
@@ -167,12 +227,26 @@ const docTemplate = `{
         },
         "/api/v1/schedule/faculties/course": {
             "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    },
+                    {
+                        "TMAAuth": []
+                    }
+                ],
                 "description": "Факультеты курса. Фильтрует по наличию занятий в диапазоне ±6 месяцев от date. По умолчанию date = текущий день",
                 "tags": [
                     "Faculties"
                 ],
                 "summary": "Get course faculties",
                 "parameters": [
+                    {
+                        "type": "string",
+                        "description": "authorization: tma or Bearer",
+                        "name": "authorization",
+                        "in": "header"
+                    },
                     {
                         "enum": [
                             1,
@@ -206,13 +280,13 @@ const docTemplate = `{
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/echo.HTTPError"
+                            "$ref": "#/definitions/internal_http_handlers_v1.HTTPError"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/echo.HTTPError"
+                            "$ref": "#/definitions/internal_http_handlers_v1.HTTPError"
                         }
                     }
                 }
@@ -220,12 +294,26 @@ const docTemplate = `{
         },
         "/api/v1/schedule/faculties/courses": {
             "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    },
+                    {
+                        "TMAAuth": []
+                    }
+                ],
                 "description": "Факультеты с курсами. Фильтрует по наличию занятий в диапазоне ±6 месяцев от date. По умолчанию date = текущий день",
                 "tags": [
                     "Faculties"
                 ],
                 "summary": "Get faculties with courses",
                 "parameters": [
+                    {
+                        "type": "string",
+                        "description": "authorization: tma or Bearer",
+                        "name": "authorization",
+                        "in": "header"
+                    },
                     {
                         "type": "string",
                         "example": "2025-01-08",
@@ -247,13 +335,13 @@ const docTemplate = `{
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/echo.HTTPError"
+                            "$ref": "#/definitions/internal_http_handlers_v1.HTTPError"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/echo.HTTPError"
+                            "$ref": "#/definitions/internal_http_handlers_v1.HTTPError"
                         }
                     }
                 }
@@ -261,12 +349,26 @@ const docTemplate = `{
         },
         "/api/v1/schedule/groups": {
             "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    },
+                    {
+                        "TMAAuth": []
+                    }
+                ],
                 "description": "Группы факультета курса. Фильтрует по наличию занятий в диапазоне ±6 месяцев от date. По умолчанию date = текущий день",
                 "tags": [
                     "Groups"
                 ],
                 "summary": "Get course faculty groups",
                 "parameters": [
+                    {
+                        "type": "string",
+                        "description": "authorization: tma or Bearer",
+                        "name": "authorization",
+                        "in": "header"
+                    },
                     {
                         "enum": [
                             1,
@@ -317,19 +419,19 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/echo.HTTPError"
+                            "$ref": "#/definitions/internal_http_handlers_v1.HTTPError"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/echo.HTTPError"
+                            "$ref": "#/definitions/internal_http_handlers_v1.HTTPError"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/echo.HTTPError"
+                            "$ref": "#/definitions/internal_http_handlers_v1.HTTPError"
                         }
                     }
                 }
@@ -337,12 +439,26 @@ const docTemplate = `{
         },
         "/api/v1/schedule/groups/sample": {
             "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    },
+                    {
+                        "TMAAuth": []
+                    }
+                ],
                 "description": "Рассписание для нескольких групп",
                 "tags": [
                     "Groups"
                 ],
                 "summary": "Get schedules by groups",
                 "parameters": [
+                    {
+                        "type": "string",
+                        "description": "authorization: tma or Bearer",
+                        "name": "authorization",
+                        "in": "header"
+                    },
                     {
                         "description": "groups",
                         "name": "groups",
@@ -357,6 +473,13 @@ const docTemplate = `{
                         "example": "2025-07-13",
                         "description": "date",
                         "name": "date",
+                        "in": "query"
+                    },
+                    {
+                        "type": "boolean",
+                        "default": true,
+                        "description": "include military lessons",
+                        "name": "include_military",
                         "in": "query"
                     }
                 ],
@@ -373,13 +496,13 @@ const docTemplate = `{
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/echo.HTTPError"
+                            "$ref": "#/definitions/internal_http_handlers_v1.HTTPError"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/echo.HTTPError"
+                            "$ref": "#/definitions/internal_http_handlers_v1.HTTPError"
                         }
                     }
                 }
@@ -387,12 +510,26 @@ const docTemplate = `{
         },
         "/api/v1/schedule/groups/{group}": {
             "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    },
+                    {
+                        "TMAAuth": []
+                    }
+                ],
                 "description": "Get schedule by group",
                 "tags": [
                     "Groups"
                 ],
                 "summary": "Get schedule by group",
                 "parameters": [
+                    {
+                        "type": "string",
+                        "description": "authorization: tma or Bearer",
+                        "name": "authorization",
+                        "in": "header"
+                    },
                     {
                         "type": "string",
                         "example": "344",
@@ -425,13 +562,13 @@ const docTemplate = `{
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/echo.HTTPError"
+                            "$ref": "#/definitions/internal_http_handlers_v1.HTTPError"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/echo.HTTPError"
+                            "$ref": "#/definitions/internal_http_handlers_v1.HTTPError"
                         }
                     }
                 }
@@ -439,6 +576,14 @@ const docTemplate = `{
         },
         "/api/v1/schedule/groups/{group}/calendar.ics": {
             "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    },
+                    {
+                        "TMAAuth": []
+                    }
+                ],
                 "description": "Returns an iCalendar feed with schedule updates and cancellations",
                 "produces": [
                     "text/calendar"
@@ -450,11 +595,24 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
+                        "description": "authorization: tma or Bearer",
+                        "name": "authorization",
+                        "in": "header"
+                    },
+                    {
+                        "type": "string",
                         "example": "344",
                         "description": "group",
                         "name": "group",
                         "in": "path",
                         "required": true
+                    },
+                    {
+                        "type": "boolean",
+                        "default": true,
+                        "description": "include military lessons",
+                        "name": "include_military",
+                        "in": "query"
                     }
                 ],
                 "responses": {
@@ -467,13 +625,13 @@ const docTemplate = `{
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/echo.HTTPError"
+                            "$ref": "#/definitions/internal_http_handlers_v1.HTTPError"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/echo.HTTPError"
+                            "$ref": "#/definitions/internal_http_handlers_v1.HTTPError"
                         }
                     }
                 }
@@ -481,11 +639,27 @@ const docTemplate = `{
         },
         "/api/v1/schedule/lesson/types": {
             "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    },
+                    {
+                        "TMAAuth": []
+                    }
+                ],
                 "description": "Get lesson types",
                 "tags": [
                     "Lesson"
                 ],
                 "summary": "Get lesson types",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "authorization: tma or Bearer",
+                        "name": "authorization",
+                        "in": "header"
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -496,13 +670,13 @@ const docTemplate = `{
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/echo.HTTPError"
+                            "$ref": "#/definitions/internal_http_handlers_v1.HTTPError"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/echo.HTTPError"
+                            "$ref": "#/definitions/internal_http_handlers_v1.HTTPError"
                         }
                     }
                 }
@@ -510,12 +684,26 @@ const docTemplate = `{
         },
         "/api/v1/schedule/teachers": {
             "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    },
+                    {
+                        "TMAAuth": []
+                    }
+                ],
                 "description": "Расписание преподавателя",
                 "tags": [
                     "Teachers"
                 ],
                 "summary": "Get teacher schedule",
                 "parameters": [
+                    {
+                        "type": "string",
+                        "description": "authorization: tma or Bearer",
+                        "name": "authorization",
+                        "in": "header"
+                    },
                     {
                         "type": "integer",
                         "description": "teacher",
@@ -529,6 +717,13 @@ const docTemplate = `{
                         "description": "date",
                         "name": "date",
                         "in": "query"
+                    },
+                    {
+                        "type": "boolean",
+                        "default": true,
+                        "description": "include military lessons",
+                        "name": "include_military",
+                        "in": "query"
                     }
                 ],
                 "responses": {
@@ -541,13 +736,13 @@ const docTemplate = `{
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/echo.HTTPError"
+                            "$ref": "#/definitions/internal_http_handlers_v1.HTTPError"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/echo.HTTPError"
+                            "$ref": "#/definitions/internal_http_handlers_v1.HTTPError"
                         }
                     }
                 }
@@ -555,11 +750,27 @@ const docTemplate = `{
         },
         "/api/v1/schedule/teachers/all": {
             "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    },
+                    {
+                        "TMAAuth": []
+                    }
+                ],
                 "description": "Список всех преподавателей",
                 "tags": [
                     "Teachers"
                 ],
                 "summary": "Get teachers",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "authorization: tma or Bearer",
+                        "name": "authorization",
+                        "in": "header"
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -570,13 +781,13 @@ const docTemplate = `{
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/echo.HTTPError"
+                            "$ref": "#/definitions/internal_http_handlers_v1.HTTPError"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/echo.HTTPError"
+                            "$ref": "#/definitions/internal_http_handlers_v1.HTTPError"
                         }
                     }
                 }
@@ -584,12 +795,26 @@ const docTemplate = `{
         },
         "/api/v1/schedule/teachers/departments": {
             "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    },
+                    {
+                        "TMAAuth": []
+                    }
+                ],
                 "description": "Список кафедр. Если факультет не передана, то возвращаются все кафедры.",
                 "tags": [
                     "Teachers"
                 ],
                 "summary": "Get departments list by faculty",
                 "parameters": [
+                    {
+                        "type": "string",
+                        "description": "authorization: tma or Bearer",
+                        "name": "authorization",
+                        "in": "header"
+                    },
                     {
                         "type": "integer",
                         "example": 1,
@@ -611,13 +836,13 @@ const docTemplate = `{
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/echo.HTTPError"
+                            "$ref": "#/definitions/internal_http_handlers_v1.HTTPError"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/echo.HTTPError"
+                            "$ref": "#/definitions/internal_http_handlers_v1.HTTPError"
                         }
                     }
                 }
@@ -625,12 +850,26 @@ const docTemplate = `{
         },
         "/api/v1/schedule/teachers/faculties": {
             "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    },
+                    {
+                        "TMAAuth": []
+                    }
+                ],
                 "description": "Список факультетов. Если кафедра не передан, то возвращаются все факультеты.",
                 "tags": [
                     "Teachers"
                 ],
                 "summary": "Get faculties list by department",
                 "parameters": [
+                    {
+                        "type": "string",
+                        "description": "authorization: tma or Bearer",
+                        "name": "authorization",
+                        "in": "header"
+                    },
                     {
                         "type": "integer",
                         "example": 123,
@@ -652,13 +891,13 @@ const docTemplate = `{
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/echo.HTTPError"
+                            "$ref": "#/definitions/internal_http_handlers_v1.HTTPError"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/echo.HTTPError"
+                            "$ref": "#/definitions/internal_http_handlers_v1.HTTPError"
                         }
                     }
                 }
@@ -666,12 +905,26 @@ const docTemplate = `{
         },
         "/api/v1/schedule/teachers/list": {
             "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    },
+                    {
+                        "TMAAuth": []
+                    }
+                ],
                 "description": "Список преподавателей по факультету и кафедре. Параметры не обязательны.",
                 "tags": [
                     "Teachers"
                 ],
                 "summary": "Get teachers list by faculty and department",
                 "parameters": [
+                    {
+                        "type": "string",
+                        "description": "authorization: tma or Bearer",
+                        "name": "authorization",
+                        "in": "header"
+                    },
                     {
                         "type": "integer",
                         "example": 4,
@@ -697,13 +950,13 @@ const docTemplate = `{
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/echo.HTTPError"
+                            "$ref": "#/definitions/internal_http_handlers_v1.HTTPError"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/echo.HTTPError"
+                            "$ref": "#/definitions/internal_http_handlers_v1.HTTPError"
                         }
                     }
                 }
@@ -711,12 +964,6 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "echo.HTTPError": {
-            "type": "object",
-            "properties": {
-                "message": {}
-            }
-        },
         "github_com_schedule-rsreu_schedule-api_internal_models.Auditorium": {
             "type": "object",
             "properties": {
@@ -1410,6 +1657,12 @@ const docTemplate = `{
                 }
             }
         },
+        "internal_http_handlers_v1.HTTPError": {
+            "type": "object",
+            "properties": {
+                "message": {}
+            }
+        },
         "internal_http_handlers_v1.schedulesByGroupsRequest": {
             "type": "object",
             "required": [
@@ -1428,6 +1681,20 @@ const docTemplate = `{
                     ]
                 }
             }
+        }
+    },
+    "securityDefinitions": {
+        "BearerAuth": {
+            "description": "Используй \"Bearer {jwt token}\" в заголовке Authorization. Также поддерживается cookie access_token.",
+            "type": "apiKey",
+            "name": "Authorization",
+            "in": "header"
+        },
+        "TMAAuth": {
+            "description": "Используй \"tma {telegram init_data}\" в заголовке Authorization",
+            "type": "apiKey",
+            "name": "Authorization",
+            "in": "header"
         }
     },
     "externalDocs": {

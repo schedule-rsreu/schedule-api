@@ -53,8 +53,7 @@ run-main-file:
 
 .PHONY: swag
 swag:
-
-	swag init --parseDependency --parseInternal -g ./internal/http/handlers/router.go
+	go run github.com/swaggo/swag/cmd/swag init --parseDependency --parseInternal -g ./internal/http/handlers/router.go
 
 .PHONY: d
 d:

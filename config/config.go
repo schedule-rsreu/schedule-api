@@ -10,14 +10,16 @@ import (
 )
 
 type Config struct {
-	Port        string `env:"PORT"         env-default:"80"`
-	Host        string `env:"HOST"         env-default:"0.0.0.0"`
-	Version     string `env:"VERSION"      env-default:"1"`
-	PostgresDSN string `env:"POSTGRES_DSN"                          env-required:"true"`
-	Environment string `env:"ENVIRONMENT"  env-default:"prod"`
-	OtlEndpoint string `env:"OTL_ENDPOINT" env-default:"tempo:4317"`
-	DWHUrl      string `env:"DWH_URL"                               env-required:"true"`
-	Production  bool   `env:"PRODUCTION"   env-default:"true"`
+	Port             string   `env:"PORT"         env-default:"80"`
+	Host             string   `env:"HOST"         env-default:"0.0.0.0"`
+	Version          string   `env:"VERSION"      env-default:"1"`
+	PostgresDSN      string   `env:"POSTGRES_DSN"                          env-required:"true"`
+	Environment      string   `env:"ENVIRONMENT"  env-default:"prod"`
+	OtlEndpoint      string   `env:"OTL_ENDPOINT" env-default:"tempo:4317"`
+	DWHUrl           string   `env:"DWH_URL"                               env-required:"true"`
+	TelegramBotToken string   `env:"TELEGRAM_BOT_TOKEN" env-required:"true"`
+	BannedIPs        []string `env:"BANNED_IPS"         env-required:"true"`
+	Production       bool     `env:"PRODUCTION"   env-default:"true"`
 }
 
 var (

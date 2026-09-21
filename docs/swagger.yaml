@@ -1,8 +1,4 @@
 definitions:
-  echo.HTTPError:
-    properties:
-      message: {}
-    type: object
   github_com_schedule-rsreu_schedule-api_internal_models.Auditorium:
     properties:
       building:
@@ -495,6 +491,10 @@ definitions:
           $ref: '#/definitions/github_com_schedule-rsreu_schedule-api_internal_models.StudentTeacherInfo'
         type: array
     type: object
+  internal_http_handlers_v1.HTTPError:
+    properties:
+      message: {}
+    type: object
   internal_http_handlers_v1.schedulesByGroupsRequest:
     properties:
       groups:
@@ -521,6 +521,10 @@ paths:
     get:
       description: Get auditorium schedule by auditorium_id
       parameters:
+      - description: 'authorization: tma or Bearer'
+        in: header
+        name: authorization
+        type: string
       - description: auditorium_id
         example: 12
         in: query
@@ -540,11 +544,14 @@ paths:
         "404":
           description: Not Found
           schema:
-            $ref: '#/definitions/echo.HTTPError'
+            $ref: '#/definitions/internal_http_handlers_v1.HTTPError'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/echo.HTTPError'
+            $ref: '#/definitions/internal_http_handlers_v1.HTTPError'
+      security:
+      - BearerAuth: []
+      - TMAAuth: []
       summary: Get auditorium schedule
       tags:
       - Auditoriums
@@ -553,6 +560,10 @@ paths:
       description: Курсы факультета. Фильтрует по наличию занятий в диапазоне ±6 месяцев
         от date. По умолчанию date = текущий день
       parameters:
+      - description: 'authorization: tma or Bearer'
+        in: header
+        name: authorization
+        type: string
       - description: faculty
         enum:
         - иэф
@@ -577,17 +588,25 @@ paths:
         "404":
           description: Not Found
           schema:
-            $ref: '#/definitions/echo.HTTPError'
+            $ref: '#/definitions/internal_http_handlers_v1.HTTPError'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/echo.HTTPError'
+            $ref: '#/definitions/internal_http_handlers_v1.HTTPError'
+      security:
+      - BearerAuth: []
+      - TMAAuth: []
       summary: Get faculty courses
       tags:
       - Courses
   /api/v1/schedule/day:
     get:
       description: Информация о текущем дне
+      parameters:
+      - description: 'authorization: tma or Bearer'
+        in: header
+        name: authorization
+        type: string
       responses:
         "200":
           description: OK
@@ -596,13 +615,21 @@ paths:
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/echo.HTTPError'
+            $ref: '#/definitions/internal_http_handlers_v1.HTTPError'
+      security:
+      - BearerAuth: []
+      - TMAAuth: []
       summary: Get day
       tags:
       - Day
   /api/v1/schedule/faculties:
     get:
       description: Факультеты
+      parameters:
+      - description: 'authorization: tma or Bearer'
+        in: header
+        name: authorization
+        type: string
       responses:
         "200":
           description: OK
@@ -611,11 +638,14 @@ paths:
         "404":
           description: Not Found
           schema:
-            $ref: '#/definitions/echo.HTTPError'
+            $ref: '#/definitions/internal_http_handlers_v1.HTTPError'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/echo.HTTPError'
+            $ref: '#/definitions/internal_http_handlers_v1.HTTPError'
+      security:
+      - BearerAuth: []
+      - TMAAuth: []
       summary: Get faculties
       tags:
       - Faculties
@@ -624,6 +654,10 @@ paths:
       description: Факультеты курса. Фильтрует по наличию занятий в диапазоне ±6 месяцев
         от date. По умолчанию date = текущий день
       parameters:
+      - description: 'authorization: tma or Bearer'
+        in: header
+        name: authorization
+        type: string
       - description: course
         enum:
         - 1
@@ -649,11 +683,14 @@ paths:
         "404":
           description: Not Found
           schema:
-            $ref: '#/definitions/echo.HTTPError'
+            $ref: '#/definitions/internal_http_handlers_v1.HTTPError'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/echo.HTTPError'
+            $ref: '#/definitions/internal_http_handlers_v1.HTTPError'
+      security:
+      - BearerAuth: []
+      - TMAAuth: []
       summary: Get course faculties
       tags:
       - Faculties
@@ -662,6 +699,10 @@ paths:
       description: Факультеты с курсами. Фильтрует по наличию занятий в диапазоне
         ±6 месяцев от date. По умолчанию date = текущий день
       parameters:
+      - description: 'authorization: tma or Bearer'
+        in: header
+        name: authorization
+        type: string
       - description: date
         example: "2025-01-08"
         in: query
@@ -677,11 +718,14 @@ paths:
         "404":
           description: Not Found
           schema:
-            $ref: '#/definitions/echo.HTTPError'
+            $ref: '#/definitions/internal_http_handlers_v1.HTTPError'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/echo.HTTPError'
+            $ref: '#/definitions/internal_http_handlers_v1.HTTPError'
+      security:
+      - BearerAuth: []
+      - TMAAuth: []
       summary: Get faculties with courses
       tags:
       - Faculties
@@ -690,6 +734,10 @@ paths:
       description: Группы факультета курса. Фильтрует по наличию занятий в диапазоне
         ±6 месяцев от date. По умолчанию date = текущий день
       parameters:
+      - description: 'authorization: tma or Bearer'
+        in: header
+        name: authorization
+        type: string
       - description: course
         enum:
         - 1
@@ -728,15 +776,18 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/echo.HTTPError'
+            $ref: '#/definitions/internal_http_handlers_v1.HTTPError'
         "404":
           description: Not Found
           schema:
-            $ref: '#/definitions/echo.HTTPError'
+            $ref: '#/definitions/internal_http_handlers_v1.HTTPError'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/echo.HTTPError'
+            $ref: '#/definitions/internal_http_handlers_v1.HTTPError'
+      security:
+      - BearerAuth: []
+      - TMAAuth: []
       summary: Get course faculty groups
       tags:
       - Groups
@@ -744,6 +795,10 @@ paths:
     get:
       description: Get schedule by group
       parameters:
+      - description: 'authorization: tma or Bearer'
+        in: header
+        name: authorization
+        type: string
       - description: group
         example: "344"
         in: path
@@ -767,11 +822,14 @@ paths:
         "404":
           description: Not Found
           schema:
-            $ref: '#/definitions/echo.HTTPError'
+            $ref: '#/definitions/internal_http_handlers_v1.HTTPError'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/echo.HTTPError'
+            $ref: '#/definitions/internal_http_handlers_v1.HTTPError'
+      security:
+      - BearerAuth: []
+      - TMAAuth: []
       summary: Get schedule by group
       tags:
       - Groups
@@ -779,12 +837,21 @@ paths:
     get:
       description: Returns an iCalendar feed with schedule updates and cancellations
       parameters:
+      - description: 'authorization: tma or Bearer'
+        in: header
+        name: authorization
+        type: string
       - description: group
         example: "344"
         in: path
         name: group
         required: true
         type: string
+      - default: true
+        description: include military lessons
+        in: query
+        name: include_military
+        type: boolean
       produces:
       - text/calendar
       responses:
@@ -795,11 +862,14 @@ paths:
         "404":
           description: Not Found
           schema:
-            $ref: '#/definitions/echo.HTTPError'
+            $ref: '#/definitions/internal_http_handlers_v1.HTTPError'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/echo.HTTPError'
+            $ref: '#/definitions/internal_http_handlers_v1.HTTPError'
+      security:
+      - BearerAuth: []
+      - TMAAuth: []
       summary: Subscribe to a group calendar.
       tags:
       - Groups
@@ -807,6 +877,10 @@ paths:
     post:
       description: Рассписание для нескольких групп
       parameters:
+      - description: 'authorization: tma or Bearer'
+        in: header
+        name: authorization
+        type: string
       - description: groups
         in: body
         name: groups
@@ -818,6 +892,11 @@ paths:
         in: query
         name: date
         type: string
+      - default: true
+        description: include military lessons
+        in: query
+        name: include_military
+        type: boolean
       responses:
         "200":
           description: OK
@@ -828,17 +907,25 @@ paths:
         "404":
           description: Not Found
           schema:
-            $ref: '#/definitions/echo.HTTPError'
+            $ref: '#/definitions/internal_http_handlers_v1.HTTPError'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/echo.HTTPError'
+            $ref: '#/definitions/internal_http_handlers_v1.HTTPError'
+      security:
+      - BearerAuth: []
+      - TMAAuth: []
       summary: Get schedules by groups
       tags:
       - Groups
   /api/v1/schedule/lesson/types:
     get:
       description: Get lesson types
+      parameters:
+      - description: 'authorization: tma or Bearer'
+        in: header
+        name: authorization
+        type: string
       responses:
         "200":
           description: OK
@@ -847,11 +934,14 @@ paths:
         "404":
           description: Not Found
           schema:
-            $ref: '#/definitions/echo.HTTPError'
+            $ref: '#/definitions/internal_http_handlers_v1.HTTPError'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/echo.HTTPError'
+            $ref: '#/definitions/internal_http_handlers_v1.HTTPError'
+      security:
+      - BearerAuth: []
+      - TMAAuth: []
       summary: Get lesson types
       tags:
       - Lesson
@@ -859,6 +949,10 @@ paths:
     get:
       description: Расписание преподавателя
       parameters:
+      - description: 'authorization: tma or Bearer'
+        in: header
+        name: authorization
+        type: string
       - description: teacher
         in: query
         name: teacher_id
@@ -869,6 +963,11 @@ paths:
         in: query
         name: date
         type: string
+      - default: true
+        description: include military lessons
+        in: query
+        name: include_military
+        type: boolean
       responses:
         "200":
           description: OK
@@ -877,17 +976,25 @@ paths:
         "404":
           description: Not Found
           schema:
-            $ref: '#/definitions/echo.HTTPError'
+            $ref: '#/definitions/internal_http_handlers_v1.HTTPError'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/echo.HTTPError'
+            $ref: '#/definitions/internal_http_handlers_v1.HTTPError'
+      security:
+      - BearerAuth: []
+      - TMAAuth: []
       summary: Get teacher schedule
       tags:
       - Teachers
   /api/v1/schedule/teachers/all:
     get:
       description: Список всех преподавателей
+      parameters:
+      - description: 'authorization: tma or Bearer'
+        in: header
+        name: authorization
+        type: string
       responses:
         "200":
           description: OK
@@ -896,11 +1003,14 @@ paths:
         "404":
           description: Not Found
           schema:
-            $ref: '#/definitions/echo.HTTPError'
+            $ref: '#/definitions/internal_http_handlers_v1.HTTPError'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/echo.HTTPError'
+            $ref: '#/definitions/internal_http_handlers_v1.HTTPError'
+      security:
+      - BearerAuth: []
+      - TMAAuth: []
       summary: Get teachers
       tags:
       - Teachers
@@ -909,6 +1019,10 @@ paths:
       description: Список кафедр. Если факультет не передана, то возвращаются все
         кафедры.
       parameters:
+      - description: 'authorization: tma or Bearer'
+        in: header
+        name: authorization
+        type: string
       - description: faculty_id
         example: 1
         in: query
@@ -924,11 +1038,14 @@ paths:
         "404":
           description: Not Found
           schema:
-            $ref: '#/definitions/echo.HTTPError'
+            $ref: '#/definitions/internal_http_handlers_v1.HTTPError'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/echo.HTTPError'
+            $ref: '#/definitions/internal_http_handlers_v1.HTTPError'
+      security:
+      - BearerAuth: []
+      - TMAAuth: []
       summary: Get departments list by faculty
       tags:
       - Teachers
@@ -937,6 +1054,10 @@ paths:
       description: Список факультетов. Если кафедра не передан, то возвращаются все
         факультеты.
       parameters:
+      - description: 'authorization: tma or Bearer'
+        in: header
+        name: authorization
+        type: string
       - description: department_id
         example: 123
         in: query
@@ -952,11 +1073,14 @@ paths:
         "404":
           description: Not Found
           schema:
-            $ref: '#/definitions/echo.HTTPError'
+            $ref: '#/definitions/internal_http_handlers_v1.HTTPError'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/echo.HTTPError'
+            $ref: '#/definitions/internal_http_handlers_v1.HTTPError'
+      security:
+      - BearerAuth: []
+      - TMAAuth: []
       summary: Get faculties list by department
       tags:
       - Teachers
@@ -964,6 +1088,10 @@ paths:
     get:
       description: Список преподавателей по факультету и кафедре. Параметры не обязательны.
       parameters:
+      - description: 'authorization: tma or Bearer'
+        in: header
+        name: authorization
+        type: string
       - description: faculty_id
         example: 4
         in: query
@@ -982,12 +1110,27 @@ paths:
         "404":
           description: Not Found
           schema:
-            $ref: '#/definitions/echo.HTTPError'
+            $ref: '#/definitions/internal_http_handlers_v1.HTTPError'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/echo.HTTPError'
+            $ref: '#/definitions/internal_http_handlers_v1.HTTPError'
+      security:
+      - BearerAuth: []
+      - TMAAuth: []
       summary: Get teachers list by faculty and department
       tags:
       - Teachers
+securityDefinitions:
+  BearerAuth:
+    description: Используй "Bearer {jwt token}" в заголовке Authorization. Также поддерживается
+      cookie access_token.
+    in: header
+    name: Authorization
+    type: apiKey
+  TMAAuth:
+    description: Используй "tma {telegram init_data}" в заголовке Authorization
+    in: header
+    name: Authorization
+    type: apiKey
 swagger: "2.0"

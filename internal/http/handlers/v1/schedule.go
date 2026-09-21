@@ -20,6 +20,10 @@ type ScheduleHandler struct {
 	s *services.ScheduleService
 }
 
+type HTTPError struct {
+	Message interface{} `json:"message"`
+}
+
 func NewRouter(g *echo.Group,
 	scheduleService *services.ScheduleService,
 
@@ -63,12 +67,15 @@ func NewRouter(g *echo.Group,
 // @Description Returns an iCalendar feed with schedule updates and cancellations
 // @Tags        Groups
 // @Router      /api/v1/schedule/groups/{group}/calendar.ics [get]
+// @Param authorization header string false "authorization: tma or Bearer"
+// @Security BearerAuth
+// @Security TMAAuth
 // @Param       group  path  string  true  "group" example(344)
 // @Param       include_military  query  bool  false  "include military lessons" default(true)
 // @Produce     text/calendar
 // @Success     200  {string}  string
-// @Failure     404  {object}  echo.HTTPError
-// @Failure     500  {object}  echo.HTTPError.
+// @Failure     404  {object}  HTTPError
+// @Failure     500  {object}  HTTPError
 func (sh *ScheduleHandler) getGroupCalendar(c echo.Context) error {
 	group := c.Param("group")
 	if group == "" {
@@ -104,13 +111,16 @@ func safeFilename(value string) string {
 // @Description Get schedule by group
 // @Tags        Groups
 // @Router      /api/v1/schedule/groups/{group} [get]
+// @Param authorization header string false "authorization: tma or Bearer"
+// @Security BearerAuth
+// @Security TMAAuth
 // @Param       group  path  string  true  "group" example(344)
 // @Param       add_empty_lessons  query  bool  false  "add empty lessons"
 // @Param       date  query  string  false  "date" example(2025-07-13)
 // @Success     200  {object}  models.StudentSchedule
 // @Response    200  {object}  models.StudentSchedule
-// @Failure     500  {object}  echo.HTTPError.
-// @Failure     404  {object}  echo.HTTPError.
+// @Failure     500  {object}  HTTPError
+// @Failure     404  {object}  HTTPError
 func (sh *ScheduleHandler) getScheduleByGroup(c echo.Context) error {
 	ctx := c.Request().Context()
 	group := c.Param("group")
@@ -139,13 +149,16 @@ func (sh *ScheduleHandler) getScheduleByGroup(c echo.Context) error {
 // @Description Расписание преподавателя
 // @Tags        Teachers
 // @Router      /api/v1/schedule/teachers [get]
+// @Param authorization header string false "authorization: tma or Bearer"
+// @Security BearerAuth
+// @Security TMAAuth
 // @Param       teacher_id  query  int  true  "teacher" example("Конюхов Алексей Николаевич")
 // @Param       date  query  string  false  "date" example(2025-07-13)
 // @Param       include_military  query  bool  false  "include military lessons" default(true)
 // @Success     200  {object}  models.TeacherSchedule
 // @Response    200  {object}  models.TeacherSchedule
-// @Failure     500  {object}  echo.HTTPError.
-// @Failure     404  {object}  echo.HTTPError.
+// @Failure     500  {object}  HTTPError
+// @Failure     404  {object}  HTTPError
 func (sh *ScheduleHandler) getTeacherSchedule(c echo.Context) error {
 	teacherID := c.QueryParam("teacher_id")
 	date := c.QueryParam("date")
@@ -178,10 +191,13 @@ func (sh *ScheduleHandler) getTeacherSchedule(c echo.Context) error {
 // @Description Список всех преподавателей
 // @Tags        Teachers
 // @Router      /api/v1/schedule/teachers/all [get]
+// @Param authorization header string false "authorization: tma or Bearer"
+// @Security BearerAuth
+// @Security TMAAuth
 // @Success     200  {object}  models.TeachersList
 // @Response    200  {object}  models.TeachersList
-// @Failure     500  {object}  echo.HTTPError
-// @Failure     404  {object}  echo.HTTPError.
+// @Failure     500  {object}  HTTPError
+// @Failure     404  {object}  HTTPError
 func (sh *ScheduleHandler) getTeachers(c echo.Context) error {
 	ctx := c.Request().Context()
 
@@ -197,9 +213,12 @@ func (sh *ScheduleHandler) getTeachers(c echo.Context) error {
 // @Description Информация о текущем дне
 // @Tags        Day
 // @Router      /api/v1/schedule/day [get]
+// @Param authorization header string false "authorization: tma or Bearer"
+// @Security BearerAuth
+// @Security TMAAuth
 // @Success     200  {object}  models.Day
 // @Response    200  {object}  models.Day
-// @Failure     500  {object}  echo.HTTPError.
+// @Failure     500  {object}  HTTPError
 func (sh *ScheduleHandler) getDay(c echo.Context) error {
 	ctx := c.Request().Context()
 
@@ -215,10 +234,13 @@ func (sh *ScheduleHandler) getDay(c echo.Context) error {
 // @Description Факультеты
 // @Tags        Faculties
 // @Router      /api/v1/schedule/faculties [get]
+// @Param authorization header string false "authorization: tma or Bearer"
+// @Security BearerAuth
+// @Security TMAAuth
 // @Success     200  {object}  models.Faculties
 // @Response    200  {object}  models.Faculties
-// @Failure     500  {object}  echo.HTTPError
-// @Failure     404  {object}  echo.HTTPError.
+// @Failure     500  {object}  HTTPError
+// @Failure     404  {object}  HTTPError
 func (sh *ScheduleHandler) getFaculties(c echo.Context) error {
 	ctx := c.Request().Context()
 
@@ -237,12 +259,15 @@ func (sh *ScheduleHandler) getFaculties(c echo.Context) error {
 // @Description Курсы факультета. Фильтрует по наличию занятий в диапазоне ±6 месяцев от date. По умолчанию date = текущий день
 // @Tags        Courses
 // @Router      /api/v1/schedule/courses [get]
+// @Param authorization header string false "authorization: tma or Bearer"
+// @Security BearerAuth
+// @Security TMAAuth
 // @Param       faculty  query  string  true  "faculty" Enums(иэф, фаиту, фвт, фрт, фэ)
 // @Param       date  query  string  false  "date" example(2025-01-08)
 // @Success     200  {object}  models.FacultyCourses
 // @Response    200  {object}  models.FacultyCourses
-// @Failure     500  {object}  echo.HTTPError
-// @Failure     404  {object}  echo.HTTPError.
+// @Failure     500  {object}  HTTPError
+// @Failure     404  {object}  HTTPError
 func (sh *ScheduleHandler) getFacultyCourses(c echo.Context) error {
 	faculty := c.QueryParam("faculty")
 	if faculty == "" {
@@ -267,12 +292,15 @@ func (sh *ScheduleHandler) getFacultyCourses(c echo.Context) error {
 // @Description Факультеты курса. Фильтрует по наличию занятий в диапазоне ±6 месяцев от date. По умолчанию date = текущий день
 // @Tags        Faculties
 // @Router      /api/v1/schedule/faculties/course [get]
+// @Param authorization header string false "authorization: tma or Bearer"
+// @Security BearerAuth
+// @Security TMAAuth
 // @Param       course  query  int  true  "course" Enums(1, 2, 3, 4, 5, 6)
 // @Param       date  query  string  false  "date" example(2025-01-08)
 // @Success     200  {object}  models.CourseFaculties
 // @Response    200  {object}  models.CourseFaculties
-// @Failure     500  {object}  echo.HTTPError
-// @Failure     404  {object}  echo.HTTPError.
+// @Failure     500  {object}  HTTPError
+// @Failure     404  {object}  HTTPError
 func (sh *ScheduleHandler) getCourseFaculties(c echo.Context) error {
 	course, err := strconv.Atoi(c.QueryParam("course"))
 
@@ -302,11 +330,14 @@ type schedulesByGroupsRequest struct {
 // @Description Факультеты с курсами. Фильтрует по наличию занятий в диапазоне ±6 месяцев от date. По умолчанию date = текущий день
 // @Tags        Faculties
 // @Router      /api/v1/schedule/faculties/courses [get]
+// @Param authorization header string false "authorization: tma or Bearer"
+// @Security BearerAuth
+// @Security TMAAuth
 // @Param       date  query  string  false  "date" example(2025-01-08)
 // @Success     200  {object}  models.FacultiesCourses
 // @Response    200  {object}  models.FacultiesCourses
-// @Failure     500  {object}  echo.HTTPError
-// @Failure     404  {object}  echo.HTTPError.
+// @Failure     500  {object}  HTTPError
+// @Failure     404  {object}  HTTPError
 func (sh *ScheduleHandler) getFacultiesCourses(c echo.Context) error {
 	date := c.QueryParam("date")
 	ctx := c.Request().Context()
@@ -326,13 +357,16 @@ func (sh *ScheduleHandler) getFacultiesCourses(c echo.Context) error {
 // @Description Рассписание для нескольких групп
 // @Tags        Groups
 // @Router      /api/v1/schedule/groups/sample [post]
+// @Param authorization header string false "authorization: tma or Bearer"
+// @Security BearerAuth
+// @Security TMAAuth
 // @Param       groups  body   schedulesByGroupsRequest  true  "groups"
 // @Param       date  query  string  false  "date" example(2025-07-13)
 // @Param       include_military  query  bool  false  "include military lessons" default(true)
 // @Success     200  {array}   models.StudentSchedule
 // @Response    200  {array}   models.StudentSchedule
-// @Failure     500  {object}  echo.HTTPError
-// @Failure     404  {object}  echo.HTTPError.
+// @Failure     500  {object}  HTTPError
+// @Failure     404  {object}  HTTPError
 func (sh *ScheduleHandler) schedulesByGroups(c echo.Context) error {
 	var req schedulesByGroupsRequest
 
@@ -369,14 +403,17 @@ func (sh *ScheduleHandler) schedulesByGroups(c echo.Context) error {
 // @Description Группы факультета курса. Фильтрует по наличию занятий в диапазоне ±6 месяцев от date. По умолчанию date = текущий день
 // @Tags        Groups
 // @Router      /api/v1/schedule/groups [get]
+// @Param authorization header string false "authorization: tma or Bearer"
+// @Security BearerAuth
+// @Security TMAAuth
 // @Param       course  query  int  true  "course" Enums(1, 2, 3, 4, 5, 6)
 // @Param       faculty  query  string  true  "faculty" Enums(иэф, фаиту, фвт, фрт, фэ)
 // @Param       date  query  string  false  "date" example(2025-01-08)
 // @Success     200  {array}   models.CourseFacultyGroups
 // @Response    200  {array}   models.CourseFacultyGroups
-// @Failure     400  {object}  echo.HTTPError
-// @Failure     500  {object}  echo.HTTPError
-// @Failure     404  {object}  echo.HTTPError.
+// @Failure     400  {object}  HTTPError
+// @Failure     500  {object}  HTTPError
+// @Failure     404  {object}  HTTPError
 func (sh *ScheduleHandler) getCourseFacultyGroups(c echo.Context) error {
 	faculty := c.QueryParam("faculty")
 	if faculty == "" {
@@ -413,12 +450,15 @@ func (sh *ScheduleHandler) getCourseFacultyGroups(c echo.Context) error {
 // @Description Список преподавателей по факультету и кафедре. Параметры не обязательны.
 // @Tags        Teachers
 // @Router      /api/v1/schedule/teachers/list [get]
+// @Param authorization header string false "authorization: tma or Bearer"
+// @Security BearerAuth
+// @Security TMAAuth
 // @Param       faculty_id  query  int  false  "faculty_id" example(4)
 // @Param       department_id  query  int  false  "department_id" example(17)
 // @Success     200  {object}   models.TeachersList
 // @Response    200  {object}   models.TeachersList
-// @Failure     500  {object}   echo.HTTPError
-// @Failure     404  {object}   echo.HTTPError.
+// @Failure     500  {object}   HTTPError
+// @Failure     404  {object}   HTTPError
 func (sh *ScheduleHandler) getTeachersList(c echo.Context) error {
 	facultyID := c.QueryParam("faculty_id")
 	departmentID := c.QueryParam("department_id")
@@ -451,11 +491,14 @@ func (sh *ScheduleHandler) getTeachersList(c echo.Context) error {
 // @Description Список факультетов. Если кафедра не передан, то возвращаются все факультеты.
 // @Tags        Teachers
 // @Router      /api/v1/schedule/teachers/faculties [get]
+// @Param authorization header string false "authorization: tma or Bearer"
+// @Security BearerAuth
+// @Security TMAAuth
 // @Param       department_id  query  int  false  "department_id" example(123)
 // @Success     200  {array}    models.Faculty
 // @Response    200  {array}    models.Faculty
-// @Failure     500  {object}   echo.HTTPError
-// @Failure     404  {object}   echo.HTTPError.
+// @Failure     500  {object}   HTTPError
+// @Failure     404  {object}   HTTPError
 func (sh *ScheduleHandler) getTeachersFaculties(c echo.Context) error {
 	departmentId := c.QueryParam("department_id")
 
@@ -481,11 +524,14 @@ func (sh *ScheduleHandler) getTeachersFaculties(c echo.Context) error {
 // @Description Список кафедр. Если факультет не передана, то возвращаются все кафедры.
 // @Tags        Teachers
 // @Router      /api/v1/schedule/teachers/departments [get]
+// @Param authorization header string false "authorization: tma or Bearer"
+// @Security BearerAuth
+// @Security TMAAuth
 // @Param       faculty_id  query  int  false  "faculty_id" example(1)
 // @Success     200  {array}    models.Department
 // @Response    200  {array}    models.Department
-// @Failure     500  {object}   echo.HTTPError
-// @Failure     404  {object}   echo.HTTPError.
+// @Failure     500  {object}   HTTPError
+// @Failure     404  {object}   HTTPError
 func (sh *ScheduleHandler) getTeachersDepartments(c echo.Context) error {
 	facultyID := c.QueryParam("faculty_id")
 
@@ -511,12 +557,15 @@ func (sh *ScheduleHandler) getTeachersDepartments(c echo.Context) error {
 // @Description Get auditorium schedule by auditorium_id
 // @Tags        Auditoriums
 // @Router      /api/v1/schedule/auditoriums [get]
+// @Param authorization header string false "authorization: tma or Bearer"
+// @Security BearerAuth
+// @Security TMAAuth
 // @Param       auditorium_id  query  int  true  "auditorium_id" example(12)
 // @Param       date  query  string  false  "date" example(2025-06-13)
 // @Success     200  {object}  models.AuditoriumSchedule
 // @Response    200  {object}  models.AuditoriumSchedule
-// @Failure     500  {object}  echo.HTTPError.
-// @Failure     404  {object}  echo.HTTPError.
+// @Failure     500  {object}  HTTPError
+// @Failure     404  {object}  HTTPError
 func (sh *ScheduleHandler) getAuditoriumSchedule(c echo.Context) error {
 	auditoriumIdStr := c.QueryParam("auditorium_id")
 
@@ -544,7 +593,7 @@ func (sh *ScheduleHandler) getAuditoriumSchedule(c echo.Context) error {
 	return c.JSON(http.StatusOK, resp)
 }
 
-// @Failure     404  {object}  echo.HTTPError.
+// @Failure     404  {object}  HTTPError
 func (sh *ScheduleHandler) getAuditoriumList(c echo.Context) error {
 	buildingIdStr := c.QueryParam("building_id")
 
@@ -570,7 +619,7 @@ func (sh *ScheduleHandler) getAuditoriumList(c echo.Context) error {
 	return c.JSON(http.StatusOK, resp)
 }
 
-// @Failure     404  {object}  echo.HTTPError.
+// @Failure     404  {object}  HTTPError
 func (sh *ScheduleHandler) getAuditorium(c echo.Context) error {
 	auditoriumIdStr := c.Param("auditorium_id")
 
@@ -596,7 +645,7 @@ func (sh *ScheduleHandler) getAuditorium(c echo.Context) error {
 	return c.JSON(http.StatusOK, resp)
 }
 
-// @Failure     404  {object}  echo.HTTPError.
+// @Failure     404  {object}  HTTPError
 func (sh *ScheduleHandler) getBuildings(c echo.Context) error {
 	ctx := c.Request().Context()
 
@@ -611,7 +660,7 @@ func (sh *ScheduleHandler) getBuildings(c echo.Context) error {
 	return c.JSON(http.StatusOK, resp)
 }
 
-// @Failure     404  {object}  echo.HTTPError.
+// @Failure     404  {object}  HTTPError
 func (sh *ScheduleHandler) getBuilding(c echo.Context) error {
 	buildingIdStr := c.Param("id")
 
@@ -641,10 +690,13 @@ func (sh *ScheduleHandler) getBuilding(c echo.Context) error {
 // @Description Get lesson types
 // @Tags        Lesson
 // @Router      /api/v1/schedule/lesson/types [get]
+// @Param authorization header string false "authorization: tma or Bearer"
+// @Security BearerAuth
+// @Security TMAAuth
 // @Success     200  {array}  models.LessonType
 // @Response    200  {object}  models.LessonType
-// @Failure     500  {object}  echo.HTTPError.
-// @Failure     404  {object}  echo.HTTPError.
+// @Failure     500  {object}  HTTPError
+// @Failure     404  {object}  HTTPError
 func (sh *ScheduleHandler) getLessonTypes(c echo.Context) error {
 	return c.JSON(http.StatusOK, sh.s.GetLessonTypes())
 }

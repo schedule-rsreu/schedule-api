@@ -9,8 +9,11 @@ import (
 
 type Claims struct {
 	AppName string `json:"app_name"`
+	Type    string `json:"type,omitempty"`
 	jwt.RegisteredClaims
 }
+
+const AccessToken = "access"
 
 var ErrUnexpectedSigningMethod = errors.New("unexpected signing method")
 var ErrInvalidToken = errors.New("invalid token")
@@ -23,7 +26,7 @@ func ParseJWT(tokenString string, jwtKey []byte) (*Claims, error) {
 			return nil, fmt.Errorf("%w: %v", ErrUnexpectedSigningMethod, token.Header["alg"])
 		}
 		return jwtKey, nil
-	})
+	}, jwt.WithValidMethods([]string{jwt.SigningMethodHS256.Alg()}), jwt.WithExpirationRequired())
 	if err != nil {
 		return nil, err
 	}

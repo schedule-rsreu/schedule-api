@@ -55,9 +55,12 @@ jobs:
           POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
           POSTGRES_DB: ${{ secrets.POSTGRES_DB }}
           POSTGRES_DSN: ${{ secrets.POSTGRES_DSN }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          BANNED_IPS: ${{ secrets.BANNED_IPS }}
         run: |
           for name in DEPLOY_HOST DEPLOY_USER GHCR_USERNAME GHCR_PULL_TOKEN \
-            POSTGRES_USER POSTGRES_PASSWORD POSTGRES_DB POSTGRES_DSN; do
+            POSTGRES_USER POSTGRES_PASSWORD POSTGRES_DB POSTGRES_DSN \
+            TELEGRAM_BOT_TOKEN BANNED_IPS; do
             [ -n "$(printenv "$name")" ] || {
               echo "::error::$name is empty"
               exit 1
@@ -79,6 +82,8 @@ jobs:
             printf '  POSTGRES_PASSWORD: %s\n' "$(b64 "$POSTGRES_PASSWORD")"
             printf '  POSTGRES_DB: %s\n' "$(b64 "$POSTGRES_DB")"
             printf '  POSTGRES_DSN: %s\n' "$(b64 "$POSTGRES_DSN")"
+            printf '  TELEGRAM_BOT_TOKEN: %s\n' "$(b64 "$TELEGRAM_BOT_TOKEN")"
+            printf '  BANNED_IPS: %s\n' "$(b64 "$BANNED_IPS")"
             printf '%s\n' '---'
             printf 'apiVersion: v1\nkind: Secret\nmetadata:\n'
             printf '  name: ghcr-pull\n  namespace: schedule-api\n'

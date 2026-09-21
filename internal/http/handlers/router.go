@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	v1 "github.com/schedule-rsreu/schedule-api/internal/http/handlers/v1"
+	authmw "github.com/schedule-rsreu/schedule-api/internal/http/middleware/auth"
 	"github.com/schedule-rsreu/schedule-api/internal/services"
 
 	"github.com/labstack/echo/v4"
@@ -18,7 +19,15 @@ import (
 // @description     API for RSREU schedule.
 // @externalDocs.description  GitHub
 // @externalDocs.url          https://github.com/schedule-rsreu/schedule-api
-func NewRouter(e *echo.Echo, scheduleService *services.ScheduleService) {
+// @securityDefinitions.apikey BearerAuth
+// @in header
+// @name Authorization
+// @description Используй "Bearer {jwt token}" в заголовке Authorization. Также поддерживается cookie access_token.
+// @securityDefinitions.apikey TMAAuth
+// @in header
+// @name Authorization
+// @description Используй "tma {telegram init_data}" в заголовке Authorization
+func NewRouter(e *echo.Echo, scheduleService *services.ScheduleService, telegramBotToken string) {
 	e.GET("/docs", func(c echo.Context) error {
 		return c.Redirect(http.StatusMovedPermanently, "/docs/index.html")
 	})
@@ -34,5 +43,5 @@ func NewRouter(e *echo.Echo, scheduleService *services.ScheduleService) {
 		return echoSwagger.WrapHandler(c)
 	})
 
-	v1.NewRouter(e.Group("/api/v1"), scheduleService)
+	v1.NewRouter(e.Group("/api/v1", authmw.New(telegramBotToken)), scheduleService)
 }

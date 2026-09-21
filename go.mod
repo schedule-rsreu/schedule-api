@@ -18,6 +18,7 @@ require (
 	github.com/stretchr/testify v1.11.1
 	github.com/swaggo/echo-swagger v1.5.2
 	github.com/swaggo/swag v1.16.6
+	github.com/telegram-mini-apps/init-data-golang v1.5.0
 	go.opentelemetry.io/otel v1.45.0
 	go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc v1.45.0
 	go.opentelemetry.io/otel/sdk v1.45.0
