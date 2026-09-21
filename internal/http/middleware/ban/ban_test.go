@@ -1,12 +1,14 @@
 package ban_test
 
 import (
+	"bytes"
 	"net/http"
 	"net/http/httptest"
 	"strings"
 	"testing"
 
 	"github.com/labstack/echo/v4"
+	"github.com/rs/zerolog"
 	"github.com/schedule-rsreu/schedule-api/internal/http/middleware/ban"
 )
 
@@ -26,7 +28,8 @@ func TestMiddleware(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			e := echo.New()
-			e.Use(ban.New([]string{"203.0.113.7"}))
+			logger := zerolog.Nop()
+			e.Use(ban.New([]string{"203.0.113.7"}, &logger))
 			e.GET("/api/v1/schedule/groups/:group", func(c echo.Context) error { return c.NoContent(http.StatusNoContent) })
 			e.GET("/api/v1/schedule/day", func(c echo.Context) error { return c.NoContent(http.StatusNoContent) })
 
@@ -45,5 +48,24 @@ func TestMiddleware(t *testing.T) {
 				t.Fatalf("Content-Type = %q, want text/plain", rec.Header().Get(echo.HeaderContentType))
 			}
 		})
+	}
+}
+
+func TestMiddlewareLogsBannedIP(t *testing.T) {
+	var output bytes.Buffer
+	logger := zerolog.New(&output)
+	e := echo.New()
+	e.Use(ban.New([]string{"203.0.113.7"}, &logger))
+	e.GET("/api/v1/schedule/day", func(c echo.Context) error { return c.NoContent(http.StatusNoContent) })
+
+	req := httptest.NewRequest(http.MethodGet, "/api/v1/schedule/day", nil)
+	req.Header.Set(echo.HeaderXRealIP, "203.0.113.7")
+	e.ServeHTTP(httptest.NewRecorder(), req)
+
+	log := output.String()
+	for _, field := range []string{`"level":"warn"`, `"ip":"203.0.113.7"`, `"method":"GET"`, `"path":"/api/v1/schedule/day"`, `"message":"IP address blocked"`} {
+		if !strings.Contains(log, field) {
+			t.Fatalf("log = %q, want field %s", log, field)
+		}
 	}
 }

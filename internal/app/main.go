@@ -213,7 +213,7 @@ func Run(cfg *config.Config) {
 
 func setupEcho(e *echo.Echo, logger *zerolog.Logger, dwhURL string, bannedIPs []string) {
 	e.Use(middleware.Recover())
-	e.Use(ban.New(bannedIPs))
+	e.Use(ban.New(bannedIPs, logger))
 	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
 		AllowOrigins:     []string{"https://rsreu-schedule.ru", "https://schedule.vingp.dev", "http://localhost:5173"},
 		AllowCredentials: true,
