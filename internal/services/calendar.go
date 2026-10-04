@@ -56,7 +56,6 @@ func GenerateCalendar(calendar *models.GroupCalendar) []byte {
 	writeCalendarLine(&result, "VERSION:2.0")
 	writeCalendarLine(&result, "PRODID:-//schedule-rsreu//Schedule API//RU")
 	writeCalendarLine(&result, "CALSCALE:GREGORIAN")
-	writeCalendarLine(&result, "METHOD:PUBLISH")
 	calendarName := "Расписание группы " + calendar.Group
 	writeProperty(&result, "NAME", calendarName)
 	writeProperty(&result, "X-WR-CALNAME", calendarName)

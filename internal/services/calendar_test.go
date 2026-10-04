@@ -61,6 +61,9 @@ func TestGenerateCalendar(t *testing.T) {
 			t.Errorf("calendar does not contain %q:\n%s", expected, result)
 		}
 	}
+	if strings.Contains(unfolded, "METHOD:") {
+		t.Errorf("subscription calendar must not declare an iTIP scheduling method:\n%s", result)
+	}
 	if strings.Count(unfolded, "BEGIN:VALARM\r\n") != 1 {
 		t.Fatalf("expected one alarm for the active event:\n%s", result)
 	}
