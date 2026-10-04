@@ -214,7 +214,6 @@ func Run(cfg *config.Config) {
 
 func setupEcho(e *echo.Echo, logger *zerolog.Logger, dwhURL string, bannedIPs []string) {
 	e.Use(middleware.Recover())
-	e.Use(ban.New(bannedIPs, logger))
 	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
 		AllowOrigins:     []string{"https://rsreu-schedule.ru", "https://schedule.vingp.dev", "http://localhost:5173"},
 		AllowCredentials: true,
@@ -222,6 +221,7 @@ func setupEcho(e *echo.Echo, logger *zerolog.Logger, dwhURL string, bannedIPs []
 	e.Use(middleware.RequestID())
 
 	setupLogger(e, logger)
+	e.Use(ban.New(bannedIPs, logger))
 
 	e.Use(mwp.NewPatternMiddleware("schedule_api"))
 	e.GET("/metrics", echo.WrapHandler(promhttp.Handler()))

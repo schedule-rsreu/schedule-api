@@ -6,6 +6,7 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog"
+	requestlogger "github.com/schedule-rsreu/schedule-api/pkg/logger"
 )
 
 func New(ips []string, logger *zerolog.Logger) echo.MiddlewareFunc {
@@ -22,7 +23,11 @@ func New(ips []string, logger *zerolog.Logger) echo.MiddlewareFunc {
 			if _, ok := banned[ip]; !ok {
 				return next(c)
 			}
-			logger.Warn().Str("ip", ip).Str("method", c.Request().Method).Str("path", c.Request().URL.Path).Msg("IP address blocked")
+			requestLog := logger
+			if value, ok := c.Get(requestlogger.LoggerCtxKey).(*zerolog.Logger); ok {
+				requestLog = value
+			}
+			requestLog.Warn().Str("ip", ip).Str("method", c.Request().Method).Str("path", c.Request().URL.Path).Msg("IP address blocked")
 			return c.String(http.StatusForbidden, "Access denied")
 		}
 	}
