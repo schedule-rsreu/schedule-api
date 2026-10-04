@@ -34,11 +34,17 @@ func New(telegramBotToken string) echo.MiddlewareFunc {
 				if err := initdata.Validate(authData, telegramBotToken, 7*24*time.Hour); err != nil {
 					return echo.NewHTTPError(http.StatusUnauthorized, "invalid token")
 				}
+				data, err := initdata.Parse(authData)
+				if err != nil {
+					return echo.NewHTTPError(http.StatusUnauthorized, "invalid token")
+				}
+				c.Set("telegram_id", data.User.ID)
 			case strings.EqualFold(authType, "Bearer"):
 				claims, err := jwt.ParseJWT(authData, []byte(telegramBotToken))
 				if err != nil || claims.Type != jwt.AccessToken {
 					return echo.NewHTTPError(http.StatusUnauthorized, "invalid token")
 				}
+				c.Set("app_name", claims.AppName)
 			default:
 				return echo.NewHTTPError(http.StatusUnauthorized, "unknown authorization type")
 			}

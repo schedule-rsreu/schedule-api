@@ -5,6 +5,7 @@ import (
 	"errors"
 	"net"
 	"net/http"
+	"net/url"
 	"os"
 	"os/signal"
 	"strings"
@@ -314,7 +315,7 @@ func logRequestMiddleware(logger *zerolog.Logger) echo.MiddlewareFunc {
 				loggerFromCtx = logger
 			}
 
-			loggerFromCtx.Info().
+			event := loggerFromCtx.Info().
 				Time("time", v.StartTime).
 				Str("component", "middleware").
 				Str("path", v.URI).
@@ -324,12 +325,49 @@ func logRequestMiddleware(logger *zerolog.Logger) echo.MiddlewareFunc {
 				Int("status", status).
 				Int64("bytes", v.ResponseSize).
 				Str("duration", v.Latency.String()).
-				Err(v.Error).
-				Msg("request completed")
+				Err(v.Error)
+
+			params := requestParams(c)
+			if len(params) > 0 {
+				event.Interface("params", params)
+			}
+			if userID, ok := c.Get("user_id").(int64); ok && userID != 0 {
+				event.Int64("user_id", userID)
+			}
+			if telegramID, ok := c.Get("telegram_id").(int64); ok && telegramID != 0 {
+				event.Int64("telegram_id", telegramID)
+			}
+			if appName, ok := c.Get("app_name").(string); ok && appName != "" {
+				event.Str("app_name", appName)
+			}
+			event.Msg("request completed")
 
 			return nil
 		},
 	})
+}
+
+func requestParams(c echo.Context) url.Values {
+	params := c.QueryParams()
+	for i, key := range c.ParamNames() {
+		params.Set(key, c.ParamValues()[i])
+	}
+	for key := range params {
+		if sensitiveParam(key) {
+			params[key] = []string{"[REDACTED]"}
+		}
+	}
+	return params
+}
+
+func sensitiveParam(key string) bool {
+	key = strings.ToLower(key)
+	for _, part := range []string{"token", "password", "secret", "authorization", "hash", "signature", "code"} {
+		if strings.Contains(key, part) {
+			return true
+		}
+	}
+	return false
 }
 
 func setupLogger(e *echo.Echo, logger *zerolog.Logger) {
