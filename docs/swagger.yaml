@@ -517,18 +517,55 @@ info:
   title: Schedule API
   version: "2.0"
 paths:
-  /api/v1/schedule/auditoriums:
+  /api/v1/schedule/auditoriums/:
     get:
-      description: Get auditorium schedule by auditorium_id
       parameters:
       - description: 'authorization: tma or Bearer'
         in: header
         name: authorization
         type: string
-      - description: auditorium_id
-        example: 12
+      - description: building id
+        example: 1
         in: query
-        name: auditorium_id
+        name: building_id
+        type: integer
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/github_com_schedule-rsreu_schedule-api_internal_models.Auditorium'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/internal_http_handlers_v1.HTTPError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/internal_http_handlers_v1.HTTPError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/internal_http_handlers_v1.HTTPError'
+      security:
+      - BearerAuth: []
+      - TMAAuth: []
+      summary: Get auditoriums list
+      tags:
+      - Auditoriums
+  /api/v1/schedule/auditoriums/{id}:
+    get:
+      description: Расписание аудитории по id
+      parameters:
+      - description: 'authorization: tma or Bearer'
+        in: header
+        name: authorization
+        type: string
+      - description: auditorium id
+        example: 12
+        in: path
+        name: id
         required: true
         type: integer
       - description: date
@@ -541,6 +578,10 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/github_com_schedule-rsreu_schedule-api_internal_models.AuditoriumSchedule'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/internal_http_handlers_v1.HTTPError'
         "404":
           description: Not Found
           schema:
@@ -555,6 +596,110 @@ paths:
       summary: Get auditorium schedule
       tags:
       - Auditoriums
+  /api/v1/schedule/auditoriums/{id}/info:
+    get:
+      parameters:
+      - description: 'authorization: tma or Bearer'
+        in: header
+        name: authorization
+        type: string
+      - description: auditorium id
+        example: 12
+        in: path
+        name: id
+        required: true
+        type: integer
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_schedule-rsreu_schedule-api_internal_models.Auditorium'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/internal_http_handlers_v1.HTTPError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/internal_http_handlers_v1.HTTPError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/internal_http_handlers_v1.HTTPError'
+      security:
+      - BearerAuth: []
+      - TMAAuth: []
+      summary: Get auditorium info
+      tags:
+      - Auditoriums
+  /api/v1/schedule/buildings:
+    get:
+      parameters:
+      - description: 'authorization: tma or Bearer'
+        in: header
+        name: authorization
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/github_com_schedule-rsreu_schedule-api_internal_models.Building'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/internal_http_handlers_v1.HTTPError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/internal_http_handlers_v1.HTTPError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/internal_http_handlers_v1.HTTPError'
+      security:
+      - BearerAuth: []
+      - TMAAuth: []
+      summary: Get buildings list
+      tags:
+      - Buildings
+  /api/v1/schedule/buildings/{id}:
+    get:
+      parameters:
+      - description: 'authorization: tma or Bearer'
+        in: header
+        name: authorization
+        type: string
+      - description: building id
+        example: 1
+        in: path
+        name: id
+        required: true
+        type: integer
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_schedule-rsreu_schedule-api_internal_models.Building'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/internal_http_handlers_v1.HTTPError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/internal_http_handlers_v1.HTTPError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/internal_http_handlers_v1.HTTPError'
+      security:
+      - BearerAuth: []
+      - TMAAuth: []
+      summary: Get building info
+      tags:
+      - Buildings
   /api/v1/schedule/courses:
     get:
       description: Курсы факультета. Фильтрует по наличию занятий в диапазоне ±6 месяцев
@@ -945,7 +1090,44 @@ paths:
       summary: Get lesson types
       tags:
       - Lesson
-  /api/v1/schedule/teachers:
+  /api/v1/schedule/teachers/:
+    get:
+      description: Список преподавателей по факультету и кафедре. Параметры не обязательны.
+      parameters:
+      - description: 'authorization: tma or Bearer'
+        in: header
+        name: authorization
+        type: string
+      - description: faculty_id
+        example: 4
+        in: query
+        name: faculty_id
+        type: integer
+      - description: department_id
+        example: 17
+        in: query
+        name: department_id
+        type: integer
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_schedule-rsreu_schedule-api_internal_models.TeachersList'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/internal_http_handlers_v1.HTTPError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/internal_http_handlers_v1.HTTPError'
+      security:
+      - BearerAuth: []
+      - TMAAuth: []
+      summary: Get teachers list by faculty and department
+      tags:
+      - Teachers
+  /api/v1/schedule/teachers/{id}:
     get:
       description: Расписание преподавателя
       parameters:
@@ -953,9 +1135,10 @@ paths:
         in: header
         name: authorization
         type: string
-      - description: teacher
-        in: query
-        name: teacher_id
+      - description: teacher id
+        example: 1
+        in: path
+        name: id
         required: true
         type: integer
       - description: date
@@ -985,33 +1168,6 @@ paths:
       - BearerAuth: []
       - TMAAuth: []
       summary: Get teacher schedule
-      tags:
-      - Teachers
-  /api/v1/schedule/teachers/all:
-    get:
-      description: Список всех преподавателей
-      parameters:
-      - description: 'authorization: tma or Bearer'
-        in: header
-        name: authorization
-        type: string
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/github_com_schedule-rsreu_schedule-api_internal_models.TeachersList'
-        "404":
-          description: Not Found
-          schema:
-            $ref: '#/definitions/internal_http_handlers_v1.HTTPError'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/internal_http_handlers_v1.HTTPError'
-      security:
-      - BearerAuth: []
-      - TMAAuth: []
-      summary: Get teachers
       tags:
       - Teachers
   /api/v1/schedule/teachers/departments:
@@ -1082,43 +1238,6 @@ paths:
       - BearerAuth: []
       - TMAAuth: []
       summary: Get faculties list by department
-      tags:
-      - Teachers
-  /api/v1/schedule/teachers/list:
-    get:
-      description: Список преподавателей по факультету и кафедре. Параметры не обязательны.
-      parameters:
-      - description: 'authorization: tma or Bearer'
-        in: header
-        name: authorization
-        type: string
-      - description: faculty_id
-        example: 4
-        in: query
-        name: faculty_id
-        type: integer
-      - description: department_id
-        example: 17
-        in: query
-        name: department_id
-        type: integer
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/github_com_schedule-rsreu_schedule-api_internal_models.TeachersList'
-        "404":
-          description: Not Found
-          schema:
-            $ref: '#/definitions/internal_http_handlers_v1.HTTPError'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/internal_http_handlers_v1.HTTPError'
-      security:
-      - BearerAuth: []
-      - TMAAuth: []
-      summary: Get teachers list by faculty and department
       tags:
       - Teachers
 securityDefinitions:

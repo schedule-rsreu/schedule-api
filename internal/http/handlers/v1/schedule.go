@@ -47,15 +47,14 @@ func NewRouter(g *echo.Group,
 	scheduleGroup.GET("/faculties/course", sh.getCourseFaculties)   // /faculties/course?course=1
 	scheduleGroup.GET("/faculties/courses", sh.getFacultiesCourses) // /faculties/course?course=1
 
-	scheduleGroup.GET("/teachers", sh.getTeacherSchedule)                 // /teachers?teacher=Конюхов+Алексей+Николаевич
-	scheduleGroup.GET("/teachers/all", sh.getTeachers)                    // /teachers/all
-	scheduleGroup.GET("/teachers/list", sh.getTeachersList)               // /teachers/list?faculty=фаиту&department=ВМ
-	scheduleGroup.GET("/teachers/departments", sh.getTeachersDepartments) // /teachers/departments?faculty=фаиту
-	scheduleGroup.GET("/teachers/faculties", sh.getTeachersFaculties)     // /teachers/faculties?department=ВМ
+	scheduleGroup.GET("/teachers/:id", sh.getTeacherSchedule)             // /teachers/1
+	scheduleGroup.GET("/teachers/", sh.getTeachersList)                   // /teachers/?faculty_id=1&department_id=2
+	scheduleGroup.GET("/teachers/departments", sh.getTeachersDepartments) // /teachers/departments?faculty_id=1
+	scheduleGroup.GET("/teachers/faculties", sh.getTeachersFaculties)     // /teachers/faculties?department_id=2
 
-	scheduleGroup.GET("/auditoriums", sh.getAuditoriumSchedule) // /auditoriums
-	scheduleGroup.GET("/auditoriums/list", sh.getAuditoriumList)
-	scheduleGroup.GET("/auditoriums/:auditorium_id", sh.getAuditorium)
+	scheduleGroup.GET("/auditoriums/", sh.getAuditoriumList)
+	scheduleGroup.GET("/auditoriums/:id", sh.getAuditoriumSchedule)
+	scheduleGroup.GET("/auditoriums/:id/info", sh.getAuditorium)
 
 	scheduleGroup.GET("/buildings", sh.getBuildings)
 	scheduleGroup.GET("/buildings/:id", sh.getBuilding)
@@ -148,11 +147,11 @@ func (sh *ScheduleHandler) getScheduleByGroup(c echo.Context) error {
 // @Summary     Get teacher schedule
 // @Description Расписание преподавателя
 // @Tags        Teachers
-// @Router      /api/v1/schedule/teachers [get]
+// @Router      /api/v1/schedule/teachers/{id} [get]
 // @Param authorization header string false "authorization: tma or Bearer"
 // @Security BearerAuth
 // @Security TMAAuth
-// @Param       teacher_id  query  int  true  "teacher" example("Конюхов Алексей Николаевич")
+// @Param       id  path  int  true  "teacher id" example(1)
 // @Param       date  query  string  false  "date" example(2025-07-13)
 // @Param       include_military  query  bool  false  "include military lessons" default(true)
 // @Success     200  {object}  models.TeacherSchedule
@@ -160,16 +159,16 @@ func (sh *ScheduleHandler) getScheduleByGroup(c echo.Context) error {
 // @Failure     500  {object}  HTTPError
 // @Failure     404  {object}  HTTPError
 func (sh *ScheduleHandler) getTeacherSchedule(c echo.Context) error {
-	teacherID := c.QueryParam("teacher_id")
+	teacherID := c.Param("id")
 	date := c.QueryParam("date")
 
 	if teacherID == "" {
-		return echo.NewHTTPError(http.StatusBadRequest, "teacher_id query param not found")
+		return echo.NewHTTPError(http.StatusBadRequest, "teacher id not found")
 	}
 
 	teacherIdInt, err := strconv.Atoi(teacherID)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, "teacher_id query param must be integer")
+	if err != nil || teacherIdInt <= 0 {
+		return echo.NewHTTPError(http.StatusBadRequest, "teacher id must be a positive integer")
 	}
 	ctx := c.Request().Context()
 	resp, err := sh.s.GetTeacherSchedule(ctx, teacherIdInt, date)
@@ -183,28 +182,6 @@ func (sh *ScheduleHandler) getTeacherSchedule(c echo.Context) error {
 
 	resp.LessonsTimes = nil
 
-	return c.JSON(http.StatusOK, resp)
-}
-
-// getTeachers
-// @Summary     Get teachers
-// @Description Список всех преподавателей
-// @Tags        Teachers
-// @Router      /api/v1/schedule/teachers/all [get]
-// @Param authorization header string false "authorization: tma or Bearer"
-// @Security BearerAuth
-// @Security TMAAuth
-// @Success     200  {object}  models.TeachersList
-// @Response    200  {object}  models.TeachersList
-// @Failure     500  {object}  HTTPError
-// @Failure     404  {object}  HTTPError
-func (sh *ScheduleHandler) getTeachers(c echo.Context) error {
-	ctx := c.Request().Context()
-
-	resp, err := sh.s.GetAllTeachers(ctx)
-	if err != nil {
-		return err
-	}
 	return c.JSON(http.StatusOK, resp)
 }
 
@@ -449,7 +426,7 @@ func (sh *ScheduleHandler) getCourseFacultyGroups(c echo.Context) error {
 // @Summary     Get teachers list by faculty and department
 // @Description Список преподавателей по факультету и кафедре. Параметры не обязательны.
 // @Tags        Teachers
-// @Router      /api/v1/schedule/teachers/list [get]
+// @Router      /api/v1/schedule/teachers/ [get]
 // @Param authorization header string false "authorization: tma or Bearer"
 // @Security BearerAuth
 // @Security TMAAuth
@@ -554,28 +531,28 @@ func (sh *ScheduleHandler) getTeachersDepartments(c echo.Context) error {
 
 // getAuditoriumSchedule
 // @Summary     Get auditorium schedule
-// @Description Get auditorium schedule by auditorium_id
+// @Description Расписание аудитории по id
 // @Tags        Auditoriums
-// @Router      /api/v1/schedule/auditoriums [get]
+// @Router      /api/v1/schedule/auditoriums/{id} [get]
 // @Param authorization header string false "authorization: tma or Bearer"
 // @Security BearerAuth
 // @Security TMAAuth
-// @Param       auditorium_id  query  int  true  "auditorium_id" example(12)
+// @Param       id  path  int  true  "auditorium id" example(12)
 // @Param       date  query  string  false  "date" example(2025-06-13)
 // @Success     200  {object}  models.AuditoriumSchedule
-// @Response    200  {object}  models.AuditoriumSchedule
-// @Failure     500  {object}  HTTPError
+// @Failure     400  {object}  HTTPError
 // @Failure     404  {object}  HTTPError
+// @Failure     500  {object}  HTTPError
 func (sh *ScheduleHandler) getAuditoriumSchedule(c echo.Context) error {
-	auditoriumIdStr := c.QueryParam("auditorium_id")
+	auditoriumIdStr := c.Param("id")
 
 	if auditoriumIdStr == "" {
-		return echo.NewHTTPError(http.StatusBadRequest, "auditorium_id query param not found")
+		return echo.NewHTTPError(http.StatusBadRequest, "auditorium id not found")
 	}
 
 	auditoriumIdInt, err := strconv.Atoi(auditoriumIdStr)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, "auditorium_id query param must be integer")
+	if err != nil || auditoriumIdInt <= 0 {
+		return echo.NewHTTPError(http.StatusBadRequest, "auditorium id must be a positive integer")
 	}
 
 	date := c.QueryParam("date")
@@ -593,7 +570,18 @@ func (sh *ScheduleHandler) getAuditoriumSchedule(c echo.Context) error {
 	return c.JSON(http.StatusOK, resp)
 }
 
-// @Failure     404  {object}  HTTPError
+// getAuditoriumList
+// @Summary Get auditoriums list
+// @Tags Auditoriums
+// @Router /api/v1/schedule/auditoriums/ [get]
+// @Param authorization header string false "authorization: tma or Bearer"
+// @Security BearerAuth
+// @Security TMAAuth
+// @Param building_id query int false "building id" example(1)
+// @Success 200 {array} models.Auditorium
+// @Failure 400 {object} HTTPError
+// @Failure 404 {object} HTTPError
+// @Failure 500 {object} HTTPError
 func (sh *ScheduleHandler) getAuditoriumList(c echo.Context) error {
 	buildingIdStr := c.QueryParam("building_id")
 
@@ -619,17 +607,28 @@ func (sh *ScheduleHandler) getAuditoriumList(c echo.Context) error {
 	return c.JSON(http.StatusOK, resp)
 }
 
-// @Failure     404  {object}  HTTPError
+// getAuditorium
+// @Summary Get auditorium info
+// @Tags Auditoriums
+// @Router /api/v1/schedule/auditoriums/{id}/info [get]
+// @Param authorization header string false "authorization: tma or Bearer"
+// @Security BearerAuth
+// @Security TMAAuth
+// @Param id path int true "auditorium id" example(12)
+// @Success 200 {object} models.Auditorium
+// @Failure 400 {object} HTTPError
+// @Failure 404 {object} HTTPError
+// @Failure 500 {object} HTTPError
 func (sh *ScheduleHandler) getAuditorium(c echo.Context) error {
-	auditoriumIdStr := c.Param("auditorium_id")
+	auditoriumIdStr := c.Param("id")
 
 	if auditoriumIdStr == "" {
-		return echo.NewHTTPError(http.StatusBadRequest, "auditorium_id path param not found")
+		return echo.NewHTTPError(http.StatusBadRequest, "auditorium id not found")
 	}
 
 	auditoriumIdInt, err := strconv.Atoi(auditoriumIdStr)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, "auditorium_id path param must be integer")
+	if err != nil || auditoriumIdInt <= 0 {
+		return echo.NewHTTPError(http.StatusBadRequest, "auditorium id must be a positive integer")
 	}
 
 	ctx := c.Request().Context()
@@ -645,7 +644,17 @@ func (sh *ScheduleHandler) getAuditorium(c echo.Context) error {
 	return c.JSON(http.StatusOK, resp)
 }
 
-// @Failure     404  {object}  HTTPError
+// getBuildings
+// @Summary Get buildings list
+// @Tags Buildings
+// @Router /api/v1/schedule/buildings [get]
+// @Param authorization header string false "authorization: tma or Bearer"
+// @Security BearerAuth
+// @Security TMAAuth
+// @Success 200 {array} models.Building
+// @Failure 400 {object} HTTPError
+// @Failure 404 {object} HTTPError
+// @Failure 500 {object} HTTPError
 func (sh *ScheduleHandler) getBuildings(c echo.Context) error {
 	ctx := c.Request().Context()
 
@@ -660,7 +669,18 @@ func (sh *ScheduleHandler) getBuildings(c echo.Context) error {
 	return c.JSON(http.StatusOK, resp)
 }
 
-// @Failure     404  {object}  HTTPError
+// getBuilding
+// @Summary Get building info
+// @Tags Buildings
+// @Router /api/v1/schedule/buildings/{id} [get]
+// @Param authorization header string false "authorization: tma or Bearer"
+// @Security BearerAuth
+// @Security TMAAuth
+// @Param id path int true "building id" example(1)
+// @Success 200 {object} models.Building
+// @Failure 400 {object} HTTPError
+// @Failure 404 {object} HTTPError
+// @Failure 500 {object} HTTPError
 func (sh *ScheduleHandler) getBuilding(c echo.Context) error {
 	buildingIdStr := c.Param("id")
 

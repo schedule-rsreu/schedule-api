@@ -15,7 +15,7 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/api/v1/schedule/auditoriums": {
+        "/api/v1/schedule/auditoriums/": {
             "get": {
                 "security": [
                     {
@@ -25,7 +25,67 @@ const docTemplate = `{
                         "TMAAuth": []
                     }
                 ],
-                "description": "Get auditorium schedule by auditorium_id",
+                "tags": [
+                    "Auditoriums"
+                ],
+                "summary": "Get auditoriums list",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "authorization: tma or Bearer",
+                        "name": "authorization",
+                        "in": "header"
+                    },
+                    {
+                        "type": "integer",
+                        "example": 1,
+                        "description": "building id",
+                        "name": "building_id",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/github_com_schedule-rsreu_schedule-api_internal_models.Auditorium"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/internal_http_handlers_v1.HTTPError"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/internal_http_handlers_v1.HTTPError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/internal_http_handlers_v1.HTTPError"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/schedule/auditoriums/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    },
+                    {
+                        "TMAAuth": []
+                    }
+                ],
+                "description": "Расписание аудитории по id",
                 "tags": [
                     "Auditoriums"
                 ],
@@ -40,9 +100,9 @@ const docTemplate = `{
                     {
                         "type": "integer",
                         "example": 12,
-                        "description": "auditorium_id",
-                        "name": "auditorium_id",
-                        "in": "query",
+                        "description": "auditorium id",
+                        "name": "id",
+                        "in": "path",
                         "required": true
                     },
                     {
@@ -58,6 +118,181 @@ const docTemplate = `{
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/github_com_schedule-rsreu_schedule-api_internal_models.AuditoriumSchedule"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/internal_http_handlers_v1.HTTPError"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/internal_http_handlers_v1.HTTPError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/internal_http_handlers_v1.HTTPError"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/schedule/auditoriums/{id}/info": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    },
+                    {
+                        "TMAAuth": []
+                    }
+                ],
+                "tags": [
+                    "Auditoriums"
+                ],
+                "summary": "Get auditorium info",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "authorization: tma or Bearer",
+                        "name": "authorization",
+                        "in": "header"
+                    },
+                    {
+                        "type": "integer",
+                        "example": 12,
+                        "description": "auditorium id",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_schedule-rsreu_schedule-api_internal_models.Auditorium"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/internal_http_handlers_v1.HTTPError"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/internal_http_handlers_v1.HTTPError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/internal_http_handlers_v1.HTTPError"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/schedule/buildings": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    },
+                    {
+                        "TMAAuth": []
+                    }
+                ],
+                "tags": [
+                    "Buildings"
+                ],
+                "summary": "Get buildings list",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "authorization: tma or Bearer",
+                        "name": "authorization",
+                        "in": "header"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/github_com_schedule-rsreu_schedule-api_internal_models.Building"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/internal_http_handlers_v1.HTTPError"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/internal_http_handlers_v1.HTTPError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/internal_http_handlers_v1.HTTPError"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/schedule/buildings/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    },
+                    {
+                        "TMAAuth": []
+                    }
+                ],
+                "tags": [
+                    "Buildings"
+                ],
+                "summary": "Get building info",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "authorization: tma or Bearer",
+                        "name": "authorization",
+                        "in": "header"
+                    },
+                    {
+                        "type": "integer",
+                        "example": 1,
+                        "description": "building id",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_schedule-rsreu_schedule-api_internal_models.Building"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/internal_http_handlers_v1.HTTPError"
                         }
                     },
                     "404": {
@@ -682,7 +917,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/v1/schedule/teachers": {
+        "/api/v1/schedule/teachers/": {
             "get": {
                 "security": [
                     {
@@ -692,11 +927,11 @@ const docTemplate = `{
                         "TMAAuth": []
                     }
                 ],
-                "description": "Расписание преподавателя",
+                "description": "Список преподавателей по факультету и кафедре. Параметры не обязательны.",
                 "tags": [
                     "Teachers"
                 ],
-                "summary": "Get teacher schedule",
+                "summary": "Get teachers list by faculty and department",
                 "parameters": [
                     {
                         "type": "string",
@@ -706,69 +941,17 @@ const docTemplate = `{
                     },
                     {
                         "type": "integer",
-                        "description": "teacher",
-                        "name": "teacher_id",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "example": "2025-07-13",
-                        "description": "date",
-                        "name": "date",
+                        "example": 4,
+                        "description": "faculty_id",
+                        "name": "faculty_id",
                         "in": "query"
                     },
                     {
-                        "type": "boolean",
-                        "default": true,
-                        "description": "include military lessons",
-                        "name": "include_military",
+                        "type": "integer",
+                        "example": 17,
+                        "description": "department_id",
+                        "name": "department_id",
                         "in": "query"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/github_com_schedule-rsreu_schedule-api_internal_models.TeacherSchedule"
-                        }
-                    },
-                    "404": {
-                        "description": "Not Found",
-                        "schema": {
-                            "$ref": "#/definitions/internal_http_handlers_v1.HTTPError"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/internal_http_handlers_v1.HTTPError"
-                        }
-                    }
-                }
-            }
-        },
-        "/api/v1/schedule/teachers/all": {
-            "get": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    },
-                    {
-                        "TMAAuth": []
-                    }
-                ],
-                "description": "Список всех преподавателей",
-                "tags": [
-                    "Teachers"
-                ],
-                "summary": "Get teachers",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "authorization: tma or Bearer",
-                        "name": "authorization",
-                        "in": "header"
                     }
                 ],
                 "responses": {
@@ -903,7 +1086,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/v1/schedule/teachers/list": {
+        "/api/v1/schedule/teachers/{id}": {
             "get": {
                 "security": [
                     {
@@ -913,11 +1096,11 @@ const docTemplate = `{
                         "TMAAuth": []
                     }
                 ],
-                "description": "Список преподавателей по факультету и кафедре. Параметры не обязательны.",
+                "description": "Расписание преподавателя",
                 "tags": [
                     "Teachers"
                 ],
-                "summary": "Get teachers list by faculty and department",
+                "summary": "Get teacher schedule",
                 "parameters": [
                     {
                         "type": "string",
@@ -927,16 +1110,24 @@ const docTemplate = `{
                     },
                     {
                         "type": "integer",
-                        "example": 4,
-                        "description": "faculty_id",
-                        "name": "faculty_id",
+                        "example": 1,
+                        "description": "teacher id",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "example": "2025-07-13",
+                        "description": "date",
+                        "name": "date",
                         "in": "query"
                     },
                     {
-                        "type": "integer",
-                        "example": 17,
-                        "description": "department_id",
-                        "name": "department_id",
+                        "type": "boolean",
+                        "default": true,
+                        "description": "include military lessons",
+                        "name": "include_military",
                         "in": "query"
                     }
                 ],
@@ -944,7 +1135,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/github_com_schedule-rsreu_schedule-api_internal_models.TeachersList"
+                            "$ref": "#/definitions/github_com_schedule-rsreu_schedule-api_internal_models.TeacherSchedule"
                         }
                     },
                     "404": {
