@@ -13,7 +13,7 @@ import (
 )
 
 func TestMiddleware(t *testing.T) {
-	tests := []struct {
+	tests := []struct { //nolint:govet // Keep test-case inputs in a readable order.
 		name       string
 		ip         string
 		path       string
@@ -33,7 +33,7 @@ func TestMiddleware(t *testing.T) {
 			e.GET("/api/v1/schedule/groups/:group", func(c *echo.Context) error { return c.NoContent(http.StatusNoContent) })
 			e.GET("/api/v1/schedule/day", func(c *echo.Context) error { return c.NoContent(http.StatusNoContent) })
 
-			req := httptest.NewRequest(http.MethodGet, tt.path, nil)
+			req := httptest.NewRequest(http.MethodGet, tt.path, http.NoBody)
 			req.RemoteAddr = tt.ip + ":1234"
 			rec := httptest.NewRecorder()
 			e.ServeHTTP(rec, req)
@@ -58,7 +58,7 @@ func TestMiddlewareLogsBannedIP(t *testing.T) {
 	e.Use(ban.New([]string{"203.0.113.7"}, &logger))
 	e.GET("/api/v1/schedule/day", func(c *echo.Context) error { return c.NoContent(http.StatusNoContent) })
 
-	req := httptest.NewRequest(http.MethodGet, "/api/v1/schedule/day", nil)
+	req := httptest.NewRequest(http.MethodGet, "/api/v1/schedule/day", http.NoBody)
 	req.RemoteAddr = "203.0.113.7:1234"
 	e.ServeHTTP(httptest.NewRecorder(), req)
 

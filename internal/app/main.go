@@ -132,13 +132,13 @@ func Heartbeat(endpoint string) func(http.Handler) http.Handler {
 	return f
 }
 
-func printBanner(version, url string) {
+func printBanner(version, address string) {
 	colorer := color.New()
 
 	colorer.Printf(banner,
 		colorer.Red("v"+version),
-		colorer.Blue(url),
-		colorer.BlueBg(url+"/docs/index.html"),
+		colorer.Blue(address),
+		colorer.BlueBg(address+"/docs/index.html"),
 	)
 }
 

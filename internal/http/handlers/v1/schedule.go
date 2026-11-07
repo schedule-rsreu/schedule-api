@@ -16,6 +16,8 @@ import (
 	_ "github.com/schedule-rsreu/schedule-api/internal/models"
 )
 
+const falseQueryValue = "false"
+
 type ScheduleHandler struct {
 	s *services.ScheduleService
 }
@@ -81,7 +83,7 @@ func (sh *ScheduleHandler) getGroupCalendar(c *echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, "group path param not found")
 	}
 
-	includeMilitary := c.QueryParam("include_military") != "false"
+	includeMilitary := c.QueryParam("include_military") != falseQueryValue
 	calendar, err := sh.s.GetGroupCalendar(c.Request().Context(), group, includeMilitary)
 	if err != nil {
 		if errors.As(err, &services.NotFoundError{}) {
@@ -124,7 +126,7 @@ func (sh *ScheduleHandler) getScheduleByGroup(c *echo.Context) error {
 	ctx := c.Request().Context()
 	group := c.Param("group")
 	addEmptyLessons := c.QueryParam("add_empty_lessons") == "true"
-	includeMilitary := c.QueryParam("include_military") != "false"
+	includeMilitary := c.QueryParam("include_military") != falseQueryValue
 	date := c.QueryParam("date")
 
 	if group == "" {
@@ -348,7 +350,7 @@ func (sh *ScheduleHandler) schedulesByGroups(c *echo.Context) error {
 	var req schedulesByGroupsRequest
 
 	date := c.QueryParam("date")
-	includeMilitary := c.QueryParam("include_military") != "false"
+	includeMilitary := c.QueryParam("include_military") != falseQueryValue
 
 	if err := c.Bind(&req); err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, err.Error())

@@ -10,6 +10,7 @@ import (
 	initdata "github.com/telegram-mini-apps/init-data-golang"
 )
 
+//nolint:gocognit,cyclop // Keep credential validation together during the Echo migration.
 func New(telegramBotToken string) echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c *echo.Context) error {

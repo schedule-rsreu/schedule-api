@@ -20,6 +20,7 @@ const (
 	calendarURL = "https://www.google.com/maps?q=54.6132708,39.7236472"
 )
 
+//nolint:gocognit // Preserve the existing calendar filtering during dependency updates.
 func (s *ScheduleService) GetGroupCalendar(ctx context.Context, group string, includeMilitary bool) ([]byte, error) {
 	group = strings.ToUpper(strings.TrimSpace(group))
 	calendar, err := s.Repo.GetGroupCalendar(ctx, group)

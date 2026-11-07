@@ -80,6 +80,9 @@ linters:
       enable-all: true
     gocyclo:
       min-complexity: 15
+    godot:
+      exclude:
+        - '@'
     govet:
       enable-all: true
     interfacebloat:

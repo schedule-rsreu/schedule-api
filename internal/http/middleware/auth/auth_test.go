@@ -22,7 +22,7 @@ func TestMiddlewareAcceptsSupportedCredentials(t *testing.T) {
 	const secret = "123456:test-secret"
 	accessToken := signedToken(t, secret, "access")
 
-	tests := []struct {
+	tests := []struct { //nolint:govet // Keep test-case inputs in a readable order.
 		name   string
 		header string
 		cookie *http.Cookie
@@ -50,7 +50,7 @@ func TestMiddlewareRejectsInvalidCredentials(t *testing.T) {
 		"type": "access",
 		"exp":  time.Now().Add(time.Hour).Unix(),
 	})
-	tests := []struct {
+	tests := []struct { //nolint:govet // Keep test-case inputs in a readable order.
 		name   string
 		header string
 		cookie *http.Cookie
@@ -78,7 +78,7 @@ func request(t *testing.T, secret, header string, cookie *http.Cookie) *httptest
 	e := echo.New()
 	e.Use(authmw.New(secret))
 	e.GET("/", func(c *echo.Context) error { return c.NoContent(http.StatusNoContent) })
-	req := httptest.NewRequest(http.MethodGet, "/", nil)
+	req := httptest.NewRequest(http.MethodGet, "/", http.NoBody)
 	if header != "" {
 		req.Header.Set(echo.HeaderAuthorization, header)
 	}

@@ -102,6 +102,7 @@ func filterMilitarySchedule(schedule *models.NumeratorDenominator[models.Student
 	filterWeek(&schedule.Denominator)
 }
 
+//nolint:gocritic // slices.DeleteFunc requires a callback taking the element by value.
 func isMilitaryStudentLesson(lesson models.StudentLesson) bool {
 	if normalizeLessonValue(lesson.Title) != "военная подготовка" {
 		return false
