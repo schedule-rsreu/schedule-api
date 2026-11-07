@@ -5,14 +5,14 @@ import (
 	"strings"
 	"time"
 
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 	"github.com/schedule-rsreu/schedule-api/pkg/auth/jwt"
 	initdata "github.com/telegram-mini-apps/init-data-golang"
 )
 
 func New(telegramBotToken string) echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
-		return func(c echo.Context) error {
+		return func(c *echo.Context) error {
 			var authType, authData string
 			authHeader := c.Request().Header.Get(echo.HeaderAuthorization)
 			if authHeader == "" {

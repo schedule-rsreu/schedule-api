@@ -8,20 +8,20 @@ jobs:
   lint:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7.0.1
 
       - name: Set up Go
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v7.0.0
         with:
-          go-version: '1.27'
+          go-version: '1.27.x'
 
-      - uses: azure/setup-helm@v4
+      - uses: azure/setup-helm@v5.0.1
         with:
           version: v3.21.3
 
       - name: Cache lint dependencies
         id: cache-lint-dependencies
-        uses: actions/cache@v4
+        uses: actions/cache@v6.1.0
         with:
           path: bin
           key: ${{ runner.os }}-lint-dependencies-${{ hashFiles('Makefile') }}-${{ hashFiles('.golangci.yml') }}-${{ hashFiles('go.mod') }}
@@ -50,14 +50,44 @@ jobs:
             --set-string image.tag=test >/dev/null
 
       - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v5
+        uses: codecov/codecov-action@v7.1.1
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
 
-  build-image:
+  check-image:
     runs-on: ubuntu-latest
+    env:
+      IMAGE: schedule-api-check:${{ github.sha }}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7.0.1
 
-      - name: Build Docker image
-        run: docker build .
+      - name: Build fresh Docker image
+        id: build
+        run: docker build --pull -t "$IMAGE" .
+      - uses: actions/setup-go@v7.0.0
+        with:
+          go-version: '1.27.x'
+
+      - name: Scan compiled service and migration binaries
+        run: |
+          container="$(docker create "$IMAGE")"
+          trap 'docker rm -f "$container" >/dev/null' EXIT
+          docker cp "$container:/bin/main" /tmp/schedule-api
+          docker cp "$container:/usr/local/bin/goose" /tmp/goose
+          go version -m /tmp/schedule-api
+          go version -m /tmp/goose
+          go run golang.org/x/vuln/cmd/govulncheck@v1.9.0 -mode=binary /tmp/schedule-api
+          go run golang.org/x/vuln/cmd/govulncheck@v1.9.0 -mode=binary /tmp/goose
+
+      - name: Scan image with Trivy
+        if: ${{ !cancelled() && steps.build.outcome == 'success' }}
+        run: |
+          docker run --rm -v /var/run/docker.sock:/var/run/docker.sock \
+            aquasec/trivy:0.76.2 image --scanners vuln --exit-code 1 "$IMAGE"
+
+      - name: Scan image with Grype
+        if: ${{ !cancelled() && steps.build.outcome == 'success' }}
+        run: |
+          docker run --rm -v /var/run/docker.sock:/var/run/docker.sock \
+            anchore/grype:v0.121.2 "docker:$IMAGE" -o json > grype.json
+          jq -e '.matches | length == 0' grype.json

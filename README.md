@@ -105,3 +105,15 @@ helm upgrade --install schedule-api /tmp/schedule-api-bootstrap.tgz \
 Восстановите и сравните PostgreSQL backup до включения API. Только
 после проверки установите repository variable `K3S_DEPLOY_ENABLED=true`.
 `parser2` должен оставаться остановленным до отдельной миграции в k3s.
+
+## Проверки образа
+
+CI и deploy проверяют готовый образ Trivy и Grype без исключения уровней
+уязвимостей. Перед публикацией также запускаются тесты API, Helm lint и
+`govulncheck -mode=binary` для извлечённых из образа API и goose.
+
+Builder использует `golang:1.27-alpine3.24`; `docker build --pull` получает
+текущий патч Go 1.27. Runtime содержит только статические Go-бинарники и CA
+сертификаты. Shell в нём отсутствует. Миграционный Job запускает goose напрямую;
+при временной недоступности PostgreSQL Kubernetes повторяет Job (backoffLimit 6).
+Goose собирается только с PostgreSQL-драйвером.

@@ -35,8 +35,8 @@ import (
 	"github.com/schedule-rsreu/schedule-api/internal/repo"
 	"github.com/schedule-rsreu/schedule-api/internal/services"
 
-	"github.com/labstack/echo/v4"
-	"github.com/labstack/echo/v4/middleware"
+	"github.com/labstack/echo/v5"
+	"github.com/labstack/echo/v5/middleware"
 	"github.com/rs/zerolog"
 	"github.com/schedule-rsreu/schedule-api/config"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
@@ -161,8 +161,6 @@ func Run(cfg *config.Config) {
 	}(tp, ctx)
 
 	e := echo.New()
-	e.HideBanner = true
-	e.HidePort = true
 	e.IPExtractor = echo.ExtractIPFromXFFHeader(
 		echo.TrustLoopback(true),
 		echo.TrustLinkLocal(true),
@@ -177,6 +175,12 @@ func Run(cfg *config.Config) {
 
 	handlers.NewRouter(e, services.NewScheduleService(repo.NewScheduleRepo(postgresDB)), cfg.TelegramBotToken)
 
+	server := &http.Server{
+		Addr:              net.JoinHostPort(cfg.Host, cfg.Port),
+		Handler:           e,
+		ReadHeaderTimeout: contextTimeout,
+	}
+
 	go func() {
 		if cfg.Production {
 			printBanner(cfg.Version, productionUrl)
@@ -185,8 +189,8 @@ func Run(cfg *config.Config) {
 		}
 		setupEcho(e, &logger, cfg.DWHUrl, cfg.BannedIPs)
 
-		err := e.Start(net.JoinHostPort(cfg.Host, cfg.Port))
-		if err != nil {
+		err := server.ListenAndServe()
+		if err != nil && !errors.Is(err, http.ErrServerClosed) {
 			logger.Error().Err(err).Msg("app - Run - httpServer.Start")
 			return
 		}
@@ -202,7 +206,7 @@ func Run(cfg *config.Config) {
 	ctx, cancel := context.WithTimeout(context.Background(), contextTimeout)
 	defer cancel()
 
-	if err := e.Shutdown(ctx); err != nil {
+	if err := server.Shutdown(ctx); err != nil {
 		logger.Error().Err(err).Msg("app - Run - httpServer.Shutdown")
 	}
 
@@ -237,7 +241,7 @@ func addTraceToLogMiddleware(defaultLogger *zerolog.Logger) echo.MiddlewareFunc 
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		tracer := otel.Tracer("schedule-api/handlers")
 
-		return func(c echo.Context) error {
+		return func(c *echo.Context) error {
 			reqID := c.Response().Header().Get(echo.HeaderXRequestID)
 
 			ctx := otel.GetTextMapPropagator().Extract(
@@ -265,14 +269,8 @@ func addTraceToLogMiddleware(defaultLogger *zerolog.Logger) echo.MiddlewareFunc 
 
 			err := next(c)
 
-			status := c.Response().Status
+			_, status := echo.ResolveResponseStatus(c.Response(), err)
 			if err != nil {
-				var he *echo.HTTPError
-				if errors.As(err, &he) {
-					status = he.Code
-				} else {
-					status = http.StatusInternalServerError
-				}
 				span.SetAttributes(attribute.String("error", err.Error()))
 				span.RecordError(err)
 				span.SetStatus(codes.Error, err.Error())
@@ -295,20 +293,10 @@ func logRequestMiddleware(logger *zerolog.Logger) echo.MiddlewareFunc {
 		LogMethod:       true,
 		LogUserAgent:    true,
 		LogRequestID:    true,
-		LogError:        true,
 		LogRemoteIP:     true,
 
-		LogValuesFunc: func(c echo.Context, v middleware.RequestLoggerValues) error {
-			status := v.Status
-			if v.Error != nil {
-				var errWithStatus *echo.HTTPError
-				switch {
-				case errors.As(v.Error, &errWithStatus):
-					status = errWithStatus.Code
-				default:
-					status = http.StatusInternalServerError
-				}
-			}
+		LogValuesFunc: func(c *echo.Context, v middleware.RequestLoggerValues) error {
+			_, status := echo.ResolveResponseStatus(c.Response(), v.Error)
 			loggerFromCtx, ok := c.Get("logger").(*zerolog.Logger)
 
 			if !ok {
@@ -347,10 +335,10 @@ func logRequestMiddleware(logger *zerolog.Logger) echo.MiddlewareFunc {
 	})
 }
 
-func requestParams(c echo.Context) url.Values {
+func requestParams(c *echo.Context) url.Values {
 	params := c.QueryParams()
-	for i, key := range c.ParamNames() {
-		params.Set(key, c.ParamValues()[i])
+	for _, param := range c.PathValues() {
+		params.Set(param.Name, param.Value)
 	}
 	for key := range params {
 		if sensitiveParam(key) {
@@ -372,7 +360,7 @@ func sensitiveParam(key string) bool {
 
 func setupLogger(e *echo.Echo, logger *zerolog.Logger) {
 	e.Use(func(next echo.HandlerFunc) echo.HandlerFunc {
-		return func(c echo.Context) error {
+		return func(c *echo.Context) error {
 			c.Set("logger", logger)
 			return next(c)
 		}

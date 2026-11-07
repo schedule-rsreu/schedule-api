@@ -12,7 +12,7 @@ import (
 
 	"github.com/schedule-rsreu/schedule-api/internal/services"
 
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 	_ "github.com/schedule-rsreu/schedule-api/internal/models"
 )
 
@@ -75,7 +75,7 @@ func NewRouter(g *echo.Group,
 // @Success     200  {string}  string
 // @Failure     404  {object}  HTTPError
 // @Failure     500  {object}  HTTPError
-func (sh *ScheduleHandler) getGroupCalendar(c echo.Context) error {
+func (sh *ScheduleHandler) getGroupCalendar(c *echo.Context) error {
 	group := c.Param("group")
 	if group == "" {
 		return echo.NewHTTPError(http.StatusBadRequest, "group path param not found")
@@ -85,7 +85,7 @@ func (sh *ScheduleHandler) getGroupCalendar(c echo.Context) error {
 	calendar, err := sh.s.GetGroupCalendar(c.Request().Context(), group, includeMilitary)
 	if err != nil {
 		if errors.As(err, &services.NotFoundError{}) {
-			return echo.NewHTTPError(http.StatusNotFound, err)
+			return echo.NewHTTPError(http.StatusNotFound, err.Error()).Wrap(err)
 		}
 		return err
 	}
@@ -120,7 +120,7 @@ func safeFilename(value string) string {
 // @Response    200  {object}  models.StudentSchedule
 // @Failure     500  {object}  HTTPError
 // @Failure     404  {object}  HTTPError
-func (sh *ScheduleHandler) getScheduleByGroup(c echo.Context) error {
+func (sh *ScheduleHandler) getScheduleByGroup(c *echo.Context) error {
 	ctx := c.Request().Context()
 	group := c.Param("group")
 	addEmptyLessons := c.QueryParam("add_empty_lessons") == "true"
@@ -134,7 +134,7 @@ func (sh *ScheduleHandler) getScheduleByGroup(c echo.Context) error {
 	resp, err := sh.s.GetScheduleByGroup(ctx, group, addEmptyLessons, includeMilitary, date)
 	if err != nil {
 		if errors.As(err, &services.NotFoundError{}) {
-			return echo.NewHTTPError(http.StatusNotFound, err)
+			return echo.NewHTTPError(http.StatusNotFound, err.Error()).Wrap(err)
 		}
 		return err
 	}
@@ -158,7 +158,7 @@ func (sh *ScheduleHandler) getScheduleByGroup(c echo.Context) error {
 // @Response    200  {object}  models.TeacherSchedule
 // @Failure     500  {object}  HTTPError
 // @Failure     404  {object}  HTTPError
-func (sh *ScheduleHandler) getTeacherSchedule(c echo.Context) error {
+func (sh *ScheduleHandler) getTeacherSchedule(c *echo.Context) error {
 	teacherID := c.Param("id")
 	date := c.QueryParam("date")
 
@@ -175,7 +175,7 @@ func (sh *ScheduleHandler) getTeacherSchedule(c echo.Context) error {
 
 	if err != nil {
 		if errors.As(err, &services.NotFoundError{}) {
-			return echo.NewHTTPError(http.StatusNotFound, err)
+			return echo.NewHTTPError(http.StatusNotFound, err.Error()).Wrap(err)
 		}
 		return err
 	}
@@ -196,7 +196,7 @@ func (sh *ScheduleHandler) getTeacherSchedule(c echo.Context) error {
 // @Success     200  {object}  models.Day
 // @Response    200  {object}  models.Day
 // @Failure     500  {object}  HTTPError
-func (sh *ScheduleHandler) getDay(c echo.Context) error {
+func (sh *ScheduleHandler) getDay(c *echo.Context) error {
 	ctx := c.Request().Context()
 
 	resp, err := sh.s.GetDay(ctx)
@@ -218,13 +218,13 @@ func (sh *ScheduleHandler) getDay(c echo.Context) error {
 // @Response    200  {object}  models.Faculties
 // @Failure     500  {object}  HTTPError
 // @Failure     404  {object}  HTTPError
-func (sh *ScheduleHandler) getFaculties(c echo.Context) error {
+func (sh *ScheduleHandler) getFaculties(c *echo.Context) error {
 	ctx := c.Request().Context()
 
 	resp, err := sh.s.GetFaculties(ctx)
 	if err != nil {
 		if errors.As(err, &services.NotFoundError{}) {
-			return echo.NewHTTPError(http.StatusNotFound, err)
+			return echo.NewHTTPError(http.StatusNotFound, err.Error()).Wrap(err)
 		}
 		return err
 	}
@@ -245,7 +245,7 @@ func (sh *ScheduleHandler) getFaculties(c echo.Context) error {
 // @Response    200  {object}  models.FacultyCourses
 // @Failure     500  {object}  HTTPError
 // @Failure     404  {object}  HTTPError
-func (sh *ScheduleHandler) getFacultyCourses(c echo.Context) error {
+func (sh *ScheduleHandler) getFacultyCourses(c *echo.Context) error {
 	faculty := c.QueryParam("faculty")
 	if faculty == "" {
 		return echo.NewHTTPError(http.StatusBadRequest, "faculty query param not found")
@@ -257,7 +257,7 @@ func (sh *ScheduleHandler) getFacultyCourses(c echo.Context) error {
 	resp, err := sh.s.GetFacultyCourses(ctx, faculty, date)
 	if err != nil {
 		if errors.As(err, &services.NotFoundError{}) {
-			return echo.NewHTTPError(http.StatusNotFound, err)
+			return echo.NewHTTPError(http.StatusNotFound, err.Error()).Wrap(err)
 		}
 		return err
 	}
@@ -278,7 +278,7 @@ func (sh *ScheduleHandler) getFacultyCourses(c echo.Context) error {
 // @Response    200  {object}  models.CourseFaculties
 // @Failure     500  {object}  HTTPError
 // @Failure     404  {object}  HTTPError
-func (sh *ScheduleHandler) getCourseFaculties(c echo.Context) error {
+func (sh *ScheduleHandler) getCourseFaculties(c *echo.Context) error {
 	course, err := strconv.Atoi(c.QueryParam("course"))
 
 	if err != nil {
@@ -291,7 +291,7 @@ func (sh *ScheduleHandler) getCourseFaculties(c echo.Context) error {
 	resp, err := sh.s.GetCourseFaculties(ctx, course, date)
 	if err != nil {
 		if errors.As(err, &services.NotFoundError{}) {
-			return echo.NewHTTPError(http.StatusNotFound, err)
+			return echo.NewHTTPError(http.StatusNotFound, err.Error()).Wrap(err)
 		}
 		return err
 	}
@@ -315,14 +315,14 @@ type schedulesByGroupsRequest struct {
 // @Response    200  {object}  models.FacultiesCourses
 // @Failure     500  {object}  HTTPError
 // @Failure     404  {object}  HTTPError
-func (sh *ScheduleHandler) getFacultiesCourses(c echo.Context) error {
+func (sh *ScheduleHandler) getFacultiesCourses(c *echo.Context) error {
 	date := c.QueryParam("date")
 	ctx := c.Request().Context()
 
 	resp, err := sh.s.GetFacultiesWithCourses(ctx, date)
 	if err != nil {
 		if errors.As(err, &services.NotFoundError{}) {
-			return echo.NewHTTPError(http.StatusNotFound, err)
+			return echo.NewHTTPError(http.StatusNotFound, err.Error()).Wrap(err)
 		}
 		return err
 	}
@@ -344,7 +344,7 @@ func (sh *ScheduleHandler) getFacultiesCourses(c echo.Context) error {
 // @Response    200  {array}   models.StudentSchedule
 // @Failure     500  {object}  HTTPError
 // @Failure     404  {object}  HTTPError
-func (sh *ScheduleHandler) schedulesByGroups(c echo.Context) error {
+func (sh *ScheduleHandler) schedulesByGroups(c *echo.Context) error {
 	var req schedulesByGroupsRequest
 
 	date := c.QueryParam("date")
@@ -363,7 +363,7 @@ func (sh *ScheduleHandler) schedulesByGroups(c echo.Context) error {
 	resp, err := sh.s.GetSchedulesByGroups(ctx, date, req.Groups, includeMilitary)
 	if err != nil {
 		if errors.As(err, &services.NotFoundError{}) {
-			return echo.NewHTTPError(http.StatusNotFound, err)
+			return echo.NewHTTPError(http.StatusNotFound, err.Error()).Wrap(err)
 		}
 		return err
 	}
@@ -391,7 +391,7 @@ func (sh *ScheduleHandler) schedulesByGroups(c echo.Context) error {
 // @Failure     400  {object}  HTTPError
 // @Failure     500  {object}  HTTPError
 // @Failure     404  {object}  HTTPError
-func (sh *ScheduleHandler) getCourseFacultyGroups(c echo.Context) error {
+func (sh *ScheduleHandler) getCourseFacultyGroups(c *echo.Context) error {
 	faculty := c.QueryParam("faculty")
 	if faculty == "" {
 		return echo.NewHTTPError(http.StatusBadRequest, "faculty query param is required")
@@ -415,7 +415,7 @@ func (sh *ScheduleHandler) getCourseFacultyGroups(c echo.Context) error {
 	resp, err := sh.s.GetGroups(ctx, faculty, course, date)
 	if err != nil {
 		if errors.As(err, &services.NotFoundError{}) {
-			return echo.NewHTTPError(http.StatusNotFound, err)
+			return echo.NewHTTPError(http.StatusNotFound, err.Error()).Wrap(err)
 		}
 		return err
 	}
@@ -436,7 +436,7 @@ func (sh *ScheduleHandler) getCourseFacultyGroups(c echo.Context) error {
 // @Response    200  {object}   models.TeachersList
 // @Failure     500  {object}   HTTPError
 // @Failure     404  {object}   HTTPError
-func (sh *ScheduleHandler) getTeachersList(c echo.Context) error {
+func (sh *ScheduleHandler) getTeachersList(c *echo.Context) error {
 	facultyID := c.QueryParam("faculty_id")
 	departmentID := c.QueryParam("department_id")
 
@@ -455,7 +455,7 @@ func (sh *ScheduleHandler) getTeachersList(c echo.Context) error {
 	resp, err := sh.s.GetTeachersList(ctx, facultyIDInt, departmentIDInt)
 	if err != nil {
 		if errors.As(err, &services.NotFoundError{}) {
-			return echo.NewHTTPError(http.StatusNotFound, err)
+			return echo.NewHTTPError(http.StatusNotFound, err.Error()).Wrap(err)
 		}
 		logger.GetLoggerFromCtx(c).Err(err).Msg("failed to get teachers list")
 		return err
@@ -476,7 +476,7 @@ func (sh *ScheduleHandler) getTeachersList(c echo.Context) error {
 // @Response    200  {array}    models.Faculty
 // @Failure     500  {object}   HTTPError
 // @Failure     404  {object}   HTTPError
-func (sh *ScheduleHandler) getTeachersFaculties(c echo.Context) error {
+func (sh *ScheduleHandler) getTeachersFaculties(c *echo.Context) error {
 	departmentId := c.QueryParam("department_id")
 
 	departmentIdInt, err := strconv.Atoi(departmentId)
@@ -489,7 +489,7 @@ func (sh *ScheduleHandler) getTeachersFaculties(c echo.Context) error {
 	resp, err := sh.s.GetTeachersFaculties(ctx, departmentIdInt)
 	if err != nil {
 		if errors.As(err, &services.NotFoundError{}) {
-			return echo.NewHTTPError(http.StatusNotFound, err)
+			return echo.NewHTTPError(http.StatusNotFound, err.Error()).Wrap(err)
 		}
 		return err
 	}
@@ -509,7 +509,7 @@ func (sh *ScheduleHandler) getTeachersFaculties(c echo.Context) error {
 // @Response    200  {array}    models.Department
 // @Failure     500  {object}   HTTPError
 // @Failure     404  {object}   HTTPError
-func (sh *ScheduleHandler) getTeachersDepartments(c echo.Context) error {
+func (sh *ScheduleHandler) getTeachersDepartments(c *echo.Context) error {
 	facultyID := c.QueryParam("faculty_id")
 
 	facultyIDInt, err := strconv.Atoi(facultyID)
@@ -522,7 +522,7 @@ func (sh *ScheduleHandler) getTeachersDepartments(c echo.Context) error {
 	resp, err := sh.s.GetTeachersDepartments(ctx, facultyIDInt)
 	if err != nil {
 		if errors.As(err, &services.NotFoundError{}) {
-			return echo.NewHTTPError(http.StatusNotFound, err)
+			return echo.NewHTTPError(http.StatusNotFound, err.Error()).Wrap(err)
 		}
 		return err
 	}
@@ -543,7 +543,7 @@ func (sh *ScheduleHandler) getTeachersDepartments(c echo.Context) error {
 // @Failure     400  {object}  HTTPError
 // @Failure     404  {object}  HTTPError
 // @Failure     500  {object}  HTTPError
-func (sh *ScheduleHandler) getAuditoriumSchedule(c echo.Context) error {
+func (sh *ScheduleHandler) getAuditoriumSchedule(c *echo.Context) error {
 	auditoriumIdStr := c.Param("id")
 
 	if auditoriumIdStr == "" {
@@ -562,7 +562,7 @@ func (sh *ScheduleHandler) getAuditoriumSchedule(c echo.Context) error {
 	resp, err := sh.s.GetAuditoriumSchedule(ctx, auditoriumIdInt, date)
 	if err != nil {
 		if errors.As(err, &services.NotFoundError{}) {
-			return echo.NewHTTPError(http.StatusNotFound, err)
+			return echo.NewHTTPError(http.StatusNotFound, err.Error()).Wrap(err)
 		}
 		return err
 	}
@@ -582,7 +582,7 @@ func (sh *ScheduleHandler) getAuditoriumSchedule(c echo.Context) error {
 // @Failure 400 {object} HTTPError
 // @Failure 404 {object} HTTPError
 // @Failure 500 {object} HTTPError
-func (sh *ScheduleHandler) getAuditoriumList(c echo.Context) error {
+func (sh *ScheduleHandler) getAuditoriumList(c *echo.Context) error {
 	buildingIdStr := c.QueryParam("building_id")
 
 	buildingIdInt := 0 // Default to 0 to get all auditoriums
@@ -599,7 +599,7 @@ func (sh *ScheduleHandler) getAuditoriumList(c echo.Context) error {
 	resp, err := sh.s.GetAuditoriumsList(ctx, buildingIdInt)
 	if err != nil {
 		if errors.As(err, &services.NotFoundError{}) {
-			return echo.NewHTTPError(http.StatusNotFound, err)
+			return echo.NewHTTPError(http.StatusNotFound, err.Error()).Wrap(err)
 		}
 		return err
 	}
@@ -619,7 +619,7 @@ func (sh *ScheduleHandler) getAuditoriumList(c echo.Context) error {
 // @Failure 400 {object} HTTPError
 // @Failure 404 {object} HTTPError
 // @Failure 500 {object} HTTPError
-func (sh *ScheduleHandler) getAuditorium(c echo.Context) error {
+func (sh *ScheduleHandler) getAuditorium(c *echo.Context) error {
 	auditoriumIdStr := c.Param("id")
 
 	if auditoriumIdStr == "" {
@@ -636,7 +636,7 @@ func (sh *ScheduleHandler) getAuditorium(c echo.Context) error {
 	resp, err := sh.s.GetAuditorium(ctx, auditoriumIdInt)
 	if err != nil {
 		if errors.As(err, &services.NotFoundError{}) {
-			return echo.NewHTTPError(http.StatusNotFound, err)
+			return echo.NewHTTPError(http.StatusNotFound, err.Error()).Wrap(err)
 		}
 		return err
 	}
@@ -655,13 +655,13 @@ func (sh *ScheduleHandler) getAuditorium(c echo.Context) error {
 // @Failure 400 {object} HTTPError
 // @Failure 404 {object} HTTPError
 // @Failure 500 {object} HTTPError
-func (sh *ScheduleHandler) getBuildings(c echo.Context) error {
+func (sh *ScheduleHandler) getBuildings(c *echo.Context) error {
 	ctx := c.Request().Context()
 
 	resp, err := sh.s.GetBuildingsList(ctx)
 	if err != nil {
 		if errors.As(err, &services.NotFoundError{}) {
-			return echo.NewHTTPError(http.StatusNotFound, err)
+			return echo.NewHTTPError(http.StatusNotFound, err.Error()).Wrap(err)
 		}
 		return err
 	}
@@ -681,7 +681,7 @@ func (sh *ScheduleHandler) getBuildings(c echo.Context) error {
 // @Failure 400 {object} HTTPError
 // @Failure 404 {object} HTTPError
 // @Failure 500 {object} HTTPError
-func (sh *ScheduleHandler) getBuilding(c echo.Context) error {
+func (sh *ScheduleHandler) getBuilding(c *echo.Context) error {
 	buildingIdStr := c.Param("id")
 
 	if buildingIdStr == "" {
@@ -697,7 +697,7 @@ func (sh *ScheduleHandler) getBuilding(c echo.Context) error {
 	resp, err := sh.s.GetBuilding(ctx, buildingIdInt)
 	if err != nil {
 		if errors.As(err, &services.NotFoundError{}) {
-			return echo.NewHTTPError(http.StatusNotFound, err)
+			return echo.NewHTTPError(http.StatusNotFound, err.Error()).Wrap(err)
 		}
 		return err
 	}
@@ -717,6 +717,6 @@ func (sh *ScheduleHandler) getBuilding(c echo.Context) error {
 // @Response    200  {object}  models.LessonType
 // @Failure     500  {object}  HTTPError
 // @Failure     404  {object}  HTTPError
-func (sh *ScheduleHandler) getLessonTypes(c echo.Context) error {
+func (sh *ScheduleHandler) getLessonTypes(c *echo.Context) error {
 	return c.JSON(http.StatusOK, sh.s.GetLessonTypes())
 }

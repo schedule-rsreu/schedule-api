@@ -18,7 +18,7 @@ services:
       - OTL_ENDPOINT=tempo:4317
 
   postgres:
-    image: postgres:17.5
+    image: postgres:17.11
     restart: always
     environment:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
@@ -30,7 +30,7 @@ services:
       - postgres_data_volume:/var/lib/postgresql/data
 
   pgadmin:
-    image: dpage/pgadmin4:8.11
+    image: dpage/pgadmin4:9.19
     environment:
       PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL}
       PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD}

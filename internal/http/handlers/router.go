@@ -7,9 +7,9 @@ import (
 	authmw "github.com/schedule-rsreu/schedule-api/internal/http/middleware/auth"
 	"github.com/schedule-rsreu/schedule-api/internal/services"
 
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 	"github.com/schedule-rsreu/schedule-api/docs"
-	echoSwagger "github.com/swaggo/echo-swagger"
+	echoSwagger "github.com/swaggo/echo-swagger/v2"
 )
 
 // NewRouter
@@ -28,11 +28,11 @@ import (
 // @name Authorization
 // @description Используй "tma {telegram init_data}" в заголовке Authorization
 func NewRouter(e *echo.Echo, scheduleService *services.ScheduleService, telegramBotToken string) {
-	e.GET("/docs", func(c echo.Context) error {
+	e.GET("/docs", func(c *echo.Context) error {
 		return c.Redirect(http.StatusMovedPermanently, "/docs/index.html")
 	})
 
-	e.GET("/docs/*", func(c echo.Context) error {
+	e.GET("/docs/*", func(c *echo.Context) error {
 		if c.Request().URL.Path == "/docs/" {
 			return c.Redirect(http.StatusMovedPermanently, "/docs/index.html")
 		}

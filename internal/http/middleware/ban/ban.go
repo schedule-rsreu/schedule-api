@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 	"github.com/rs/zerolog"
 	requestlogger "github.com/schedule-rsreu/schedule-api/pkg/logger"
 )
@@ -18,7 +18,7 @@ func New(ips []string, logger *zerolog.Logger) echo.MiddlewareFunc {
 	}
 
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
-		return func(c echo.Context) error {
+		return func(c *echo.Context) error {
 			ip := c.RealIP()
 			if _, ok := banned[ip]; !ok {
 				return next(c)

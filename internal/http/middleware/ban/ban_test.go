@@ -7,7 +7,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 	"github.com/rs/zerolog"
 	"github.com/schedule-rsreu/schedule-api/internal/http/middleware/ban"
 )
@@ -30,11 +30,11 @@ func TestMiddleware(t *testing.T) {
 			e := echo.New()
 			logger := zerolog.Nop()
 			e.Use(ban.New([]string{"203.0.113.7"}, &logger))
-			e.GET("/api/v1/schedule/groups/:group", func(c echo.Context) error { return c.NoContent(http.StatusNoContent) })
-			e.GET("/api/v1/schedule/day", func(c echo.Context) error { return c.NoContent(http.StatusNoContent) })
+			e.GET("/api/v1/schedule/groups/:group", func(c *echo.Context) error { return c.NoContent(http.StatusNoContent) })
+			e.GET("/api/v1/schedule/day", func(c *echo.Context) error { return c.NoContent(http.StatusNoContent) })
 
 			req := httptest.NewRequest(http.MethodGet, tt.path, nil)
-			req.Header.Set(echo.HeaderXRealIP, tt.ip)
+			req.RemoteAddr = tt.ip + ":1234"
 			rec := httptest.NewRecorder()
 			e.ServeHTTP(rec, req)
 
@@ -56,10 +56,10 @@ func TestMiddlewareLogsBannedIP(t *testing.T) {
 	logger := zerolog.New(&output)
 	e := echo.New()
 	e.Use(ban.New([]string{"203.0.113.7"}, &logger))
-	e.GET("/api/v1/schedule/day", func(c echo.Context) error { return c.NoContent(http.StatusNoContent) })
+	e.GET("/api/v1/schedule/day", func(c *echo.Context) error { return c.NoContent(http.StatusNoContent) })
 
 	req := httptest.NewRequest(http.MethodGet, "/api/v1/schedule/day", nil)
-	req.Header.Set(echo.HeaderXRealIP, "203.0.113.7")
+	req.RemoteAddr = "203.0.113.7:1234"
 	e.ServeHTTP(httptest.NewRecorder(), req)
 
 	log := output.String()

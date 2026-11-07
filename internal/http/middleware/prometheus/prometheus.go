@@ -1,13 +1,11 @@
 package prometheus
 
 import (
-	"errors"
-	"net/http"
 	"strconv"
 	"strings"
 	"time"
 
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 	"github.com/prometheus/client_golang/prometheus"
 )
 
@@ -68,24 +66,14 @@ func NewPatternMiddleware(name string) echo.MiddlewareFunc {
 }
 
 func (m Middleware) patternHandler(next echo.HandlerFunc) echo.HandlerFunc {
-	return func(c echo.Context) error {
+	return func(c *echo.Context) error {
 		start := time.Now()
 
 		// Execute the handler
 		err := next(c)
 
 		// Capture the metrics after the handler executes
-		statusCode := c.Response().Status
-
-		if err != nil {
-			var httpError *echo.HTTPError
-			if errors.As(err, &httpError) {
-				statusCode = httpError.Code
-			}
-			if statusCode == 0 || statusCode == http.StatusOK {
-				statusCode = http.StatusInternalServerError
-			}
-		}
+		_, statusCode := echo.ResolveResponseStatus(c.Response(), err)
 
 		const statusCodeDivisor = 100
 

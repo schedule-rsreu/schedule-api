@@ -17,23 +17,55 @@ concurrency:
 jobs:
   publish:
     runs-on: ubuntu-latest
+    env:
+      IMAGE: ghcr.io/schedule-rsreu/schedule-api:${{ github.sha }}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7.0.1
 
       - name: Login to GHCR
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: echo "$GH_TOKEN" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
 
-      - name: Build and push immutable image
-        run: |
-          image="ghcr.io/schedule-rsreu/schedule-api:${GITHUB_SHA}"
-          docker build -t "$image" .
-          docker push "$image"
+      - name: Build fresh Docker image
+        id: build
+        run: docker build --pull -t "$IMAGE" .
+      - uses: actions/setup-go@v7.0.0
+        with:
+          go-version: '1.27.x'
 
-      - uses: azure/setup-helm@v4
+      - uses: azure/setup-helm@v5.0.1
         with:
           version: v3.21.3
+      - name: Validate API and Helm before publishing
+        run: |
+          go test ./...
+          helm lint charts/schedule-api --set-string image.tag=test
+      - name: Scan compiled service and migration binaries
+        run: |
+          container="$(docker create "$IMAGE")"
+          trap 'docker rm -f "$container" >/dev/null' EXIT
+          docker cp "$container:/bin/main" /tmp/schedule-api
+          docker cp "$container:/usr/local/bin/goose" /tmp/goose
+          go version -m /tmp/schedule-api
+          go version -m /tmp/goose
+          go run golang.org/x/vuln/cmd/govulncheck@v1.9.0 -mode=binary /tmp/schedule-api
+          go run golang.org/x/vuln/cmd/govulncheck@v1.9.0 -mode=binary /tmp/goose
+
+      - name: Scan image with Trivy
+        if: ${{ !cancelled() && steps.build.outcome == 'success' }}
+        run: |
+          docker run --rm -v /var/run/docker.sock:/var/run/docker.sock \
+            aquasec/trivy:0.76.2 image --scanners vuln --exit-code 1 "$IMAGE"
+
+      - name: Scan image with Grype
+        if: ${{ !cancelled() && steps.build.outcome == 'success' }}
+        run: |
+          docker run --rm -v /var/run/docker.sock:/var/run/docker.sock \
+            anchore/grype:v0.121.2 "docker:$IMAGE" -o json > grype.json
+          jq -e '.matches | length == 0' grype.json
+      - name: Publish checked immutable image
+        run: docker push "$IMAGE"
 
       - name: Configure SSH
         env:

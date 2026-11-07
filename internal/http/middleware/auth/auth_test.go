@@ -14,7 +14,7 @@ import (
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 	authmw "github.com/schedule-rsreu/schedule-api/internal/http/middleware/auth"
 )
 
@@ -77,7 +77,7 @@ func request(t *testing.T, secret, header string, cookie *http.Cookie) *httptest
 	t.Helper()
 	e := echo.New()
 	e.Use(authmw.New(secret))
-	e.GET("/", func(c echo.Context) error { return c.NoContent(http.StatusNoContent) })
+	e.GET("/", func(c *echo.Context) error { return c.NoContent(http.StatusNoContent) })
 	req := httptest.NewRequest(http.MethodGet, "/", nil)
 	if header != "" {
 		req.Header.Set(echo.HeaderAuthorization, header)
