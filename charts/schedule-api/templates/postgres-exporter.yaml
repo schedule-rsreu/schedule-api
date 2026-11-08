@@ -1,0 +1,124 @@
+{{- $secretName := "schedule-api-postgres-metrics" }}
+{{- $existing := lookup "v1" "Secret" .Release.Namespace $secretName }}
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {{ $secretName }}
+type: Opaque
+data:
+  password: {{ if $existing }}{{ index $existing.data "password" | quote }}{{ else }}{{ randAlphaNum 48 | b64enc | quote }}{{ end }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: schedule-api-postgres-exporter
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: schedule-api-postgres-exporter
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: schedule-api-postgres-exporter
+        logs.vingp.dev/enabled: "true"
+    spec:
+      automountServiceAccountToken: false
+      containers:
+        - name: postgres-exporter
+          image: {{ .Values.postgresExporter.image | quote }}
+          env:
+            - name: DATA_SOURCE_URI
+              value: schedule-api-postgres:5432/postgres?sslmode=disable
+            - name: DATA_SOURCE_USER
+              value: schedule_metrics
+            - name: DATA_SOURCE_PASS
+              valueFrom:
+                secretKeyRef:
+                  name: {{ $secretName }}
+                  key: password
+            - name: PG_EXPORTER_COLLECTION_TIMEOUT
+              value: 10s
+          ports:
+            - name: metrics
+              containerPort: 9187
+          readinessProbe:
+            httpGet: {path: /, port: metrics}
+          resources:
+            {{- toYaml .Values.postgresExporter.resources | nindent 12 }}
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 65534
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: [ALL]
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: schedule-api-postgres-exporter
+  labels:
+    app.kubernetes.io/name: schedule-api-postgres-exporter
+    metrics.vingp.dev/enabled: "true"
+spec:
+  selector:
+    app.kubernetes.io/name: schedule-api-postgres-exporter
+  ports:
+    - name: metrics
+      port: 9187
+      targetPort: metrics
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: schedule-api-postgres-metrics-role
+  annotations:
+    helm.sh/hook: post-install,post-upgrade
+    helm.sh/hook-delete-policy: before-hook-creation,hook-succeeded
+spec:
+  backoffLimit: 2
+  activeDeadlineSeconds: 120
+  template:
+    spec:
+      automountServiceAccountToken: false
+      restartPolicy: Never
+      containers:
+        - name: configure-role
+          image: {{ .Values.postgres.image | quote }}
+          env:
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: schedule-api-secrets
+                  key: POSTGRES_USER
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: schedule-api-secrets
+                  key: POSTGRES_PASSWORD
+            - name: METRICS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ $secretName }}
+                  key: password
+          command: [/bin/sh, -ec]
+          args:
+            - |
+              export PGPASSWORD="$POSTGRES_PASSWORD"
+              psql -h schedule-api-postgres -U "$POSTGRES_USER" -d postgres \
+                -v ON_ERROR_STOP=1 -v metrics_password="$METRICS_PASSWORD" <<'SQL'
+              BEGIN;
+              SELECT 'CREATE ROLE schedule_metrics LOGIN'
+                WHERE NOT EXISTS (SELECT FROM pg_roles WHERE rolname = 'schedule_metrics') \gexec
+              ALTER ROLE schedule_metrics WITH LOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION NOBYPASSRLS CONNECTION LIMIT 5 PASSWORD :'metrics_password';
+              GRANT CONNECT ON DATABASE postgres TO schedule_metrics;
+              GRANT pg_monitor TO schedule_metrics;
+              ALTER ROLE schedule_metrics SET default_transaction_read_only = on;
+              ALTER ROLE schedule_metrics SET statement_timeout = '5s';
+              ALTER ROLE schedule_metrics SET idle_in_transaction_session_timeout = '5s';
+              COMMIT;
+              SQL
+          resources:
+            requests: {cpu: 10m, memory: 16Mi}
+            limits: {cpu: 100m, memory: 64Mi}
