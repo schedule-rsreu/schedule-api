@@ -78,4 +78,3 @@ jobs:
           go version -m /tmp/goose
           go run golang.org/x/vuln/cmd/govulncheck@v1.9.0 -mode=binary /tmp/schedule-api
           go run golang.org/x/vuln/cmd/govulncheck@v1.9.0 -mode=binary /tmp/goose
-
