@@ -33,3 +33,12 @@ postgres:
     limits:
       cpu: "2"
       memory: 768Mi
+postgresExporter:
+  image: quay.io/prometheuscommunity/postgres-exporter:v0.20.1
+  resources:
+    requests:
+      cpu: 10m
+      memory: 32Mi
+    limits:
+      cpu: 200m
+      memory: 128Mi

@@ -119,3 +119,13 @@ Builder использует `golang:1.27-alpine3.24`; `docker build --pull` п�
 сертификаты. Shell в нём отсутствует. Миграционный Job запускает goose напрямую;
 при временной недоступности PostgreSQL Kubernetes повторяет Job (backoffLimit 6).
 Goose собирается только с PostgreSQL-драйвером.
+
+## PostgreSQL metrics
+
+A separate postgres_exporter deployment is scraped over a private Service.
+It uses the dedicated `schedule_metrics` role with `pg_monitor`, no superuser
+or application-table grants, read-only transactions and bounded query time.
+A post-install/upgrade Job configures the role without restarting PostgreSQL.
+Its random password stays in a Kubernetes Secret and is reused on upgrades;
+no new GitHub secret is needed. PostgreSQL engine version and StatefulSet
+configuration are unchanged. Helm lint/render remain; chart tests are removed.
