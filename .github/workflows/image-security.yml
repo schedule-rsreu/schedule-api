@@ -1,0 +1,84 @@
+name: Image security
+
+on:
+  workflow_run:
+    workflows: [Deploy]
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Published image tag (commit SHA)
+        required: true
+        type: string
+
+permissions:
+  contents: read
+  packages: read
+
+jobs:
+  scan:
+    name: Image security (informational)
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.workflow_run.conclusion == 'success' &&
+       github.event.workflow_run.head_repository.full_name == github.repository &&
+       github.event.workflow_run.event != 'pull_request')
+    runs-on: ubuntu-latest
+    env:
+      IMAGE: ghcr.io/schedule-rsreu/schedule-api:${{ github.event.workflow_run.head_sha || inputs.tag }}
+    steps:
+      - name: Login to GHCR
+        id: login
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: echo "$GH_TOKEN" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
+      - name: Pull published image
+        id: pull
+        continue-on-error: true
+        run: docker pull "$IMAGE"
+      - name: Scan image with Trivy
+        id: trivy
+        if: ${{ !cancelled() && steps.pull.outcome == 'success' }}
+        continue-on-error: true
+        run: |
+          docker run --rm -v /var/run/docker.sock:/var/run/docker.sock \
+            aquasec/trivy:0.76.2 image --scanners vuln --format json --exit-code 1 "$IMAGE" > trivy.json
+      - name: Scan image with Grype
+        id: grype
+        if: ${{ !cancelled() && steps.pull.outcome == 'success' }}
+        continue-on-error: true
+        run: |
+          docker run --rm -v /var/run/docker.sock:/var/run/docker.sock \
+            anchore/grype:v0.121.2 "docker:$IMAGE" -o json > grype.json
+          jq -e '.matches | length == 0' grype.json
+      - name: Report security warnings
+        if: ${{ !cancelled() }}
+        env:
+          LOGIN_OUTCOME: ${{ steps.login.outcome }}
+          PULL_OUTCOME: ${{ steps.pull.outcome }}
+          TRIVY_OUTCOME: ${{ steps.trivy.outcome }}
+          GRYPE_OUTCOME: ${{ steps.grype.outcome }}
+        run: |
+          if [ "$LOGIN_OUTCOME" != success ] || [ "$PULL_OUTCOME" != success ]; then
+            echo "::warning::Image access failed for $IMAGE; the security report may be incomplete."
+          fi
+          for scanner in trivy grype; do
+            outcome="$TRIVY_OUTCOME"
+            if [ "$scanner" = grype ]; then outcome="$GRYPE_OUTCOME"; fi
+            if [ "$outcome" != success ]; then
+              echo "::warning::$scanner reported vulnerabilities or could not finish scanning $IMAGE; see the report."
+            fi
+            echo "- $IMAGE / $scanner: $outcome (informational)" >> "$GITHUB_STEP_SUMMARY"
+          done
+      - name: Upload security reports
+        if: ${{ !cancelled() }}
+        continue-on-error: true
+        uses: actions/upload-artifact@v7.0.2
+        with:
+          name: image-security-reports
+          path: |
+            trivy.json
+            grype.json
+          retention-days: 30
