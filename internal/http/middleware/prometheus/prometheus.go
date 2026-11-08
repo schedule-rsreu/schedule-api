@@ -38,7 +38,7 @@ func NewPatternMiddleware(name string) echo.MiddlewareFunc {
 			Help:        "How many HTTP requests processed, partitioned by status code, method and HTTP path (with patterns).",
 			ConstLabels: prometheus.Labels{serviceLabel: name},
 		},
-		[]string{"handler", "method", "status"},
+		[]string{"handler", "method", "status", "code"},
 	)
 	prometheus.MustRegister(m.reqs)
 
@@ -80,11 +80,18 @@ func (m Middleware) patternHandler(next echo.HandlerFunc) echo.HandlerFunc {
 		status := strconv.Itoa(statusCode/statusCodeDivisor) + "xx"
 		routePattern := c.Path()
 		routePattern = strings.ReplaceAll(routePattern, "/*", "")
+		// Heartbeat handles /ping before the router matches a pattern.
+		if routePattern == "" && strings.EqualFold(c.Request().URL.Path, "/ping") {
+			routePattern = "/ping"
+		}
+		if routePattern == "" {
+			routePattern = "unmatched"
+		}
 
 		duration := time.Since(start).Seconds()
 
 		// Update Prometheus metrics
-		m.reqs.WithLabelValues(routePattern, c.Request().Method, status).Inc()
+		m.reqs.WithLabelValues(routePattern, c.Request().Method, status, strconv.Itoa(statusCode)).Inc()
 		m.latencyHighr.WithLabelValues().Observe(duration)
 		m.latencyLowr.WithLabelValues(routePattern, c.Request().Method, status).Observe(duration)
 
