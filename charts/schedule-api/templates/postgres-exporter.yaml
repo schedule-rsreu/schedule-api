@@ -28,8 +28,13 @@ spec:
         - name: postgres-exporter
           image: {{ .Values.postgresExporter.image | quote }}
           env:
+            - name: POSTGRES_DB
+              valueFrom:
+                secretKeyRef:
+                  name: schedule-api-secrets
+                  key: POSTGRES_DB
             - name: DATA_SOURCE_URI
-              value: schedule-api-postgres:5432/postgres?sslmode=disable
+              value: schedule-api-postgres:5432/$(POSTGRES_DB)?sslmode=disable
             - name: DATA_SOURCE_USER
               value: schedule_metrics
             - name: DATA_SOURCE_PASS
@@ -87,6 +92,11 @@ spec:
         - name: configure-role
           image: {{ .Values.postgres.image | quote }}
           env:
+            - name: POSTGRES_DB
+              valueFrom:
+                secretKeyRef:
+                  name: schedule-api-secrets
+                  key: POSTGRES_DB
             - name: POSTGRES_USER
               valueFrom:
                 secretKeyRef:
@@ -107,12 +117,13 @@ spec:
             - |
               export PGPASSWORD="$POSTGRES_PASSWORD"
               psql -h schedule-api-postgres -U "$POSTGRES_USER" -d postgres \
-                -v ON_ERROR_STOP=1 -v metrics_password="$METRICS_PASSWORD" <<'SQL'
+                -v ON_ERROR_STOP=1 -v metrics_password="$METRICS_PASSWORD" -v metrics_database="$POSTGRES_DB" <<'SQL'
               BEGIN;
               SELECT 'CREATE ROLE schedule_metrics LOGIN'
                 WHERE NOT EXISTS (SELECT FROM pg_roles WHERE rolname = 'schedule_metrics') \gexec
               ALTER ROLE schedule_metrics WITH LOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION NOBYPASSRLS CONNECTION LIMIT 5 PASSWORD :'metrics_password';
               GRANT CONNECT ON DATABASE postgres TO schedule_metrics;
+              GRANT CONNECT ON DATABASE :"metrics_database" TO schedule_metrics;
               GRANT pg_monitor TO schedule_metrics;
               ALTER ROLE schedule_metrics SET default_transaction_read_only = on;
               ALTER ROLE schedule_metrics SET statement_timeout = '5s';
