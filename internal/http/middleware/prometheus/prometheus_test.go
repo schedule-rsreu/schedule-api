@@ -37,6 +37,7 @@ func TestRequestMetricsKeepRouteFamilyAndExactCode(t *testing.T) {
 		{http.MethodGet, "/failed", "/failed", "5xx", "500", http.StatusInternalServerError},
 		{http.MethodGet, "/empty", "/empty", "2xx", "200", http.StatusOK},
 		{http.MethodGet, "/ping", "/ping", "2xx", "200", http.StatusOK},
+		{http.MethodGet, "/PING", "/ping", "2xx", "200", http.StatusOK},
 		{http.MethodGet, "/not-found/private-id", "unmatched", "4xx", "404", http.StatusNotFound},
 	}
 	expected := map[string]float64{}

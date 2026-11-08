@@ -81,7 +81,7 @@ func (m Middleware) patternHandler(next echo.HandlerFunc) echo.HandlerFunc {
 		routePattern := c.Path()
 		routePattern = strings.ReplaceAll(routePattern, "/*", "")
 		// Heartbeat handles /ping before the router matches a pattern.
-		if routePattern == "" && c.Request().URL.Path == "/ping" {
+		if routePattern == "" && strings.EqualFold(c.Request().URL.Path, "/ping") {
 			routePattern = "/ping"
 		}
 		if routePattern == "" {
