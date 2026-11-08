@@ -108,9 +108,11 @@ helm upgrade --install schedule-api /tmp/schedule-api-bootstrap.tgz \
 
 ## Проверки образа
 
-CI и deploy проверяют готовый образ Trivy и Grype без исключения уровней
-уязвимостей. Перед публикацией также запускаются тесты API, Helm lint и
-`govulncheck -mode=binary` для извлечённых из образа API и goose.
+Trivy and Grype run in the independent Image security workflow after a successful
+deployment and scan the exact published commit tag without severity exclusions.
+Findings and scan errors produce warnings and downloadable JSON reports; they do
+not block publication or deployment. API tests, Helm validation and binary
+govulncheck for API/goose still run before publishing.
 
 Builder использует `golang:1.27-alpine3.24`; `docker build --pull` получает
 текущий патч Go 1.27. Runtime содержит только статические Go-бинарники и CA

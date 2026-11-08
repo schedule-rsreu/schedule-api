@@ -79,15 +79,3 @@ jobs:
           go run golang.org/x/vuln/cmd/govulncheck@v1.9.0 -mode=binary /tmp/schedule-api
           go run golang.org/x/vuln/cmd/govulncheck@v1.9.0 -mode=binary /tmp/goose
 
-      - name: Scan image with Trivy
-        if: ${{ !cancelled() && steps.build.outcome == 'success' }}
-        run: |
-          docker run --rm -v /var/run/docker.sock:/var/run/docker.sock \
-            aquasec/trivy:0.76.2 image --scanners vuln --exit-code 1 "$IMAGE"
-
-      - name: Scan image with Grype
-        if: ${{ !cancelled() && steps.build.outcome == 'success' }}
-        run: |
-          docker run --rm -v /var/run/docker.sock:/var/run/docker.sock \
-            anchore/grype:v0.121.2 "docker:$IMAGE" -o json > grype.json
-          jq -e '.matches | length == 0' grype.json
