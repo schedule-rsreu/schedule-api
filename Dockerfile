@@ -6,7 +6,7 @@ RUN go mod download
 RUN GOBIN=/out go install github.com/swaggo/swag/cmd/swag@v1.16.6
 RUN CGO_ENABLED=0 GOBIN=/out go install \
       -tags='no_clickhouse no_libsql no_mssql no_mysql no_sqlite3 no_vertica no_ydb' \
-      github.com/pressly/goose/v3/cmd/goose@v3.29.0
+      github.com/pressly/goose/v3/cmd/goose@v3.30.1
 
 COPY . .
 RUN /out/swag init --parseDependency --parseInternal -g ./internal/http/handlers/router.go

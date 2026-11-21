@@ -34,7 +34,7 @@ postgres:
       cpu: "2"
       memory: 768Mi
 postgresExporter:
-  image: quay.io/prometheuscommunity/postgres-exporter:v0.20.1
+  image: quay.io/prometheuscommunity/postgres-exporter:v0.21.1
   resources:
     requests:
       cpu: 10m

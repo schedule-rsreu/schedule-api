@@ -71,7 +71,7 @@ jobs:
         continue-on-error: true
         run: |
           docker run --rm -v /var/run/docker.sock:/var/run/docker.sock \
-            anchore/grype:v0.121.2 "docker:$IMAGE" -o json > grype.json
+            anchore/grype:v0.122.1 "docker:$IMAGE" -o json > grype.json
           jq -e '.matches | length == 0' grype.json
       - name: Report security warnings
         if: ${{ !cancelled() }}
