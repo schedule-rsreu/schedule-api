@@ -27,6 +27,8 @@ spec:
       containers:
         - name: postgres-exporter
           image: {{ .Values.postgresExporter.image | quote }}
+          # Preserve counter values across the 0.21 upgrade.
+          args: ["--no-wrap-large-counters"]
           env:
             - name: POSTGRES_DB
               valueFrom:
