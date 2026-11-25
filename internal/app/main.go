@@ -221,6 +221,7 @@ func setupEcho(e *echo.Echo, logger *zerolog.Logger, dwhURL string, bannedIPs []
 	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
 		AllowOrigins:     []string{"https://rsreu-schedule.ru", "https://schedule.vingp.dev", "http://localhost:5173"},
 		AllowCredentials: true,
+		MaxAge:           300,
 	}))
 	e.Use(middleware.RequestID())
 
